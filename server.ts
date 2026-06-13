@@ -285,23 +285,35 @@ function mapRowToDb(table: string, row: any): any {
   }
 
   if (table === TABLES.STUDENTS || table === "students" || table === "canteen_student_profiles") {
+    const rollNo = row.rollNo || row.roll_no || row.roll_number || "";
+    const phoneNo = row.contactNo || row.contact_no || row.phone_number || "9876543210";
+    const yearVal = row.year || row.academic_year || "1st Year";
+    const fullNameVal = row.fullName || row.userName || row.user_name || "Sphoorthy Student";
+    const emailVal = row.email || row.user_email || "";
+    const profileLockedVal = row.profileLocked !== undefined ? Boolean(row.profileLocked) : (row.profile_locked !== undefined ? Boolean(row.profile_locked) : true);
+
+    if (table === "students") {
+      return {
+        id: row.userId || row.id || row.user_id || "",
+        full_name: fullNameVal,
+        roll_number: rollNo,
+        branch: row.branch || "Computer Science (CSE)",
+        academic_year: yearVal,
+        phone_number: phoneNo,
+        is_verified: true
+      };
+    }
+
     return {
       id: row.userId || row.id || row.user_id || "",
-      user_id: row.userId || row.id || row.user_id || "",
-      email: row.email || row.user_email || "",
-      user_email: row.email || row.user_email || "",
-      college_name: row.collegeName || row.college_name || "Spoorthy Engineering College",
-      roll_number: row.rollNo || row.roll_no || row.roll_number || "",
-      roll_no: row.rollNo || row.roll_no || row.roll_number || "",
-      profile_locked: row.profileLocked !== undefined ? Boolean(row.profileLocked) : (row.profile_locked !== undefined ? Boolean(row.profile_locked) : true),
-      user_name: row.fullName || row.userName || row.user_name || "",
-      full_name: row.fullName || row.userName || row.user_name || "Sphoorthy Student",
-      smart_card_no: row.smartCardNo || row.smart_card_no || "",
+      email: emailVal,
+      full_name: fullNameVal,
+      roll_number: rollNo,
       branch: row.branch || "Computer Science (CSE)",
-      academic_year: row.year || row.academic_year || "1st Year",
-      year: row.year || row.academic_year || "1st Year",
-      phone_number: row.contactNo || row.contact_no || row.phone_number || "9876543210",
-      contact_no: row.contactNo || row.contact_no || row.phone_number || "9876543210"
+      academic_year: yearVal,
+      phone_number: phoneNo,
+      college_name: row.collegeName || row.college_name || "Spoorthy Engineering College",
+      profile_locked: profileLockedVal
     };
   }
 
@@ -685,7 +697,7 @@ async function updatePaymentSettings(settings: any): Promise<boolean> {
   return false;
 }
 
-async function getStudentProfile(userId: string): Promise<any> {
+async function getStudentProfile(userId: string, email?: string): Promise<any> {
   let dbProfile: any = null;
   if (supabase && supabaseStudentsTableExists) {
     try {
@@ -700,12 +712,29 @@ async function getStudentProfile(userId: string): Promise<any> {
           console.log(`[Supabase Sync] Student profile lookup: ${error.message}`);
         }
       }
+
+      // Check by email if ID lookup was empty to associate Google login accounts with preexisting manual email profiles
+      if (!dbProfile && email && !supabaseStudentsTableExists === false) {
+        const { data: eData, error: eError } = await supabase.from(actualStudentsTable).select("*").eq("email", email);
+        if (!eError && eData && eData.length > 0) {
+          dbProfile = mapRowFromDb(actualStudentsTable, eData[0]);
+          try {
+            // Re-map the profile ID to point to the authorized Google sub-identity key
+            await supabase.from(actualStudentsTable).update({ id: userId }).eq("email", email);
+            dbProfile.userId = userId;
+            dbProfile.id = userId;
+            console.log(`[Supabase Sync] Associated existing student profile (${email}) with new Google Auth ID: ${userId}`);
+          } catch (updateErr: any) {
+            console.log("[Supabase Sync] ID migration warning:", updateErr.message);
+          }
+        }
+      }
     } catch (err: any) {
       console.log("[Supabase Sync] Student profile lookup error, falling back to memory.");
     }
   }
 
-  const memProfile = studentProfilesDb[userId] || null;
+  const memProfile = studentProfilesDb[userId] || (email ? Object.values(studentProfilesDb).find((p: any) => p.email === email) : null);
   if (dbProfile) {
     if (memProfile) {
       return {
@@ -2165,20 +2194,43 @@ app.get(["/api/auth/callback", "/api/auth/callback/"], async (req, res) => {
 
                     localStorage.setItem('oauth_user', JSON.stringify(realUser));
                     localStorage.setItem('oauth_session', JSON.stringify(session));
-                    localStorage.setItem('oauth_hasProfile', 'false');
-                    localStorage.setItem('oauth_profile', 'null');
-                    localStorage.setItem('oauth_status', 'success');
 
-                    if (window.opener) {
-                      window.opener.postMessage({
-                        type: 'OAUTH_AUTH_SUCCESS',
-                        session: session,
-                        user: realUser,
-                        hasProfile: false,
-                        profile: null
-                      }, '*');
-                    }
-                    window.close();
+                    // Fetch profile status asynchronously from server to correctly identify existing registered students
+                    fetch('/api/student/profile/' + realUser.id)
+                      .then(function(r) { return r.json(); })
+                      .then(function(profile) {
+                        var hasProfile = !!(profile && (profile.id || profile.userId));
+                        localStorage.setItem('oauth_hasProfile', hasProfile ? 'true' : 'false');
+                        localStorage.setItem('oauth_profile', profile ? JSON.stringify(profile) : 'null');
+                        localStorage.setItem('oauth_status', 'success');
+
+                        if (window.opener) {
+                          window.opener.postMessage({
+                            type: 'OAUTH_AUTH_SUCCESS',
+                            session: session,
+                            user: realUser,
+                            hasProfile: hasProfile,
+                            profile: profile
+                          }, '*');
+                        }
+                        window.close();
+                      })
+                      .catch(function(err) {
+                        localStorage.setItem('oauth_hasProfile', 'false');
+                        localStorage.setItem('oauth_profile', 'null');
+                        localStorage.setItem('oauth_status', 'success');
+
+                        if (window.opener) {
+                          window.opener.postMessage({
+                            type: 'OAUTH_AUTH_SUCCESS',
+                            session: session,
+                            user: realUser,
+                            hasProfile: false,
+                            profile: null
+                          }, '*');
+                        }
+                        window.close();
+                      });
                     return;
                   }
                 } catch(e) {
@@ -2292,7 +2344,8 @@ app.post("/api/auth/session-from-token", async (req, res) => {
 
 app.get("/api/student/profile/:userId", async (req, res) => {
   const { userId } = req.params;
-  const profile = await getStudentProfile(userId);
+  const { email } = req.query;
+  const profile = await getStudentProfile(userId, email ? String(email) : undefined);
   res.json(profile);
 });
 
@@ -2390,8 +2443,6 @@ app.post("/api/student/profile/save", async (req, res) => {
     try {
       const dbRow = {
         ...mapRowToDb(actualStudentsTable, savedProfile),
-        id: userId,
-        user_id: userId,
         created_at: new Date().toISOString()
       };
       const { error } = await supabase.from(actualStudentsTable).upsert(dbRow);

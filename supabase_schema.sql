@@ -60,15 +60,17 @@ CREATE TABLE IF NOT EXISTS public.canteen_payment_settings (
     ifsc_code TEXT
 );
 
--- 6. Table: students
-CREATE TABLE IF NOT EXISTS public.students (
+-- 6. Table: canteen_student_profiles
+CREATE TABLE IF NOT EXISTS public.canteen_student_profiles (
     id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
     full_name TEXT NOT NULL,
     roll_number TEXT UNIQUE NOT NULL,
     branch TEXT,
     academic_year TEXT,
-    phone_number TEXT UNIQUE NOT NULL,
-    is_verified BOOLEAN DEFAULT FALSE,
+    phone_number TEXT,
+    college_name TEXT DEFAULT 'Spoorthy Engineering College',
+    profile_locked BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -126,11 +128,11 @@ CREATE POLICY "Permissive select for canteen_payment_settings" ON public.canteen
 CREATE POLICY "Permissive insert for canteen_payment_settings" ON public.canteen_payment_settings FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Permissive update for canteen_payment_settings" ON public.canteen_payment_settings FOR UPDATE TO public USING (true);
 
--- 6. students
-CREATE POLICY "Permissive select for students" ON public.students FOR SELECT TO public USING (true);
-CREATE POLICY "Permissive insert for students" ON public.students FOR INSERT TO public WITH CHECK (true);
-CREATE POLICY "Permissive update for students" ON public.students FOR UPDATE TO public USING (true);
-CREATE POLICY "Permissive delete for students" ON public.students FOR DELETE TO public USING (true);
+-- 6. canteen_student_profiles
+CREATE POLICY "Permissive select for canteen_student_profiles" ON public.canteen_student_profiles FOR SELECT TO public USING (true);
+CREATE POLICY "Permissive insert for canteen_student_profiles" ON public.canteen_student_profiles FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Permissive update for canteen_student_profiles" ON public.canteen_student_profiles FOR UPDATE TO public USING (true);
+CREATE POLICY "Permissive delete for canteen_student_profiles" ON public.canteen_student_profiles FOR DELETE TO public USING (true);
 
 -- 7. canteen_orders
 CREATE POLICY "Permissive select for canteen_orders" ON public.canteen_orders FOR SELECT TO public USING (true);

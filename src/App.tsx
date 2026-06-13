@@ -209,7 +209,7 @@ export default function App() {
     }
     try {
       setIsProfileLoading(true);
-      const response = await fetch(`/api/student/profile/${user.id}`);
+      const response = await fetch(`/api/student/profile/${user.id}?email=${encodeURIComponent(user.email || '')}`);
       if (response.ok && response.headers.get("content-type")?.includes("application/json")) {
         const data = await response.json();
         if (data && Object.keys(data).length > 0) {

@@ -125,7 +125,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
 
         // Query the profile status from server to avoid client-side false negatives
         try {
-          const res = await fetch(`/api/student/profile/${authedUser.id}`);
+          const res = await fetch(`/api/student/profile/${authedUser.id}?email=${encodeURIComponent(authedUser.email || '')}`);
           if (res.ok) {
             const serverProfile = await res.json();
             if (serverProfile && serverProfile.id) {
@@ -245,7 +245,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
         try {
           const mockUid = "fb-usr-" + Math.abs(firebaseEmail.split('@')[0].split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
           
-          const response = await fetch(`/api/student/profile/${mockUid}`);
+          const response = await fetch(`/api/student/profile/${mockUid}?email=${encodeURIComponent(firebaseEmail.trim())}`);
           const profile = response.ok ? await response.json() : null;
           
           if (profile && profile.fullName) {
@@ -283,7 +283,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
       const userCredential = await signInWithEmailAndPassword(auth, firebaseEmail.trim(), firebasePassword);
       const user = userCredential.user;
       
-      const response = await fetch(`/api/student/profile/${user.uid}`);
+      const response = await fetch(`/api/student/profile/${user.uid}?email=${encodeURIComponent(user.email || firebaseEmail.trim())}`);
       const profile = response.ok ? await response.json() : null;
 
       if (profile && profile.fullName) {
