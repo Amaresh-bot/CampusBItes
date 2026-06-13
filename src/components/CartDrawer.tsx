@@ -23,9 +23,6 @@ export function CartDrawer({
 }: CartDrawerProps) {
   const [paymentMethod] = useState<'razorpay'>('razorpay');
   const [customInstructions, setCustomInstructions] = useState<string>('');
-  const [couponCode, setCouponCode] = useState<string>('');
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountPercent: number; msg: string } | null>(null);
-  const [couponError, setCouponError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   
   // Simulated Razorpay Interactive Modal State
@@ -62,29 +59,10 @@ export function CartDrawer({
   // Bill calculations
   const subtotal = cartItems.reduce((acc, item) => acc + (item.foodItem.price * item.quantity), 0);
   
-  // Coupon trigger
-  const handleApplyCoupon = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setCouponError(null);
-    const code = couponCode.trim().toUpperCase();
-    if (!code) return;
-
-    if (code === 'CAMPUS20' || code === 'SPHN20' || code === 'WELCOME20') {
-      setAppliedCoupon({
-        code,
-        discountPercent: 20,
-        msg: '20% Swiggy-style redesign coupon applied!'
-      });
-      setCouponCode('');
-    } else {
-      setCouponError('Invalid coupon. Try CAMPUS20 for 20% OFF!');
-    }
-  };
-
-  const discountAmount = appliedCoupon ? Math.round((subtotal * appliedCoupon.discountPercent) / 100) : 0;
+  const discountAmount = 0;
   const taxes = 0; // Removed: Student IGST & CGST (5%)
   const platformFee = 0; // Removed: Fixed Platform Fee
-  const totalAmount = Math.max(0, subtotal - discountAmount);
+  const totalAmount = subtotal;
 
   // Initialize the payment transaction
   const handleCheckout = async () => {
@@ -250,7 +228,6 @@ export function CartDrawer({
         onOrderPlacement(data.order);
         onClearCart();
         setCustomInstructions('');
-        setAppliedCoupon(null);
       } else {
         alert("Failed to submit active kitchen order: " + (data.error || `HTTP ${resp.status}`));
       }
@@ -381,53 +358,12 @@ export function CartDrawer({
             />
           </div>
 
-          {/* 4. Swiggy coupon promo core */}
-          <div className="space-y-2 text-left pt-1">
-            <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider flex items-center gap-1.5">
-              <Percent className="w-3.5 h-3.5 text-[#1B4D3E]" />
-              Apply Coupon Code
-            </span>
-            <form onSubmit={handleApplyCoupon} className="flex gap-2">
-              <input
-                type="text"
-                placeholder="PROMO CODE (e.g. CAMPUS20)"
-                value={couponCode}
-                onChange={(e) => { setCouponCode(e.target.value); setCouponError(null); }}
-                className="w-full bg-slate-50 border border-slate-200 outline-none px-3 py-2 text-xs rounded-lg uppercase font-mono font-bold tracking-widest text-slate-800"
-              />
-              <button
-                type="submit"
-                className="bg-[#1B4D3E] hover:bg-[#2E7D5A] text-white text-[11px] font-black px-4 rounded-lg transition-all cursor-pointer uppercase"
-              >
-                Apply
-              </button>
-            </form>
-            {appliedCoupon && (
-              <div className="flex items-center justify-between text-[11px] bg-[#E8F5E9] text-[#1B4D3E] px-3 py-1.5 rounded-lg font-bold">
-                <span>Code <strong>{appliedCoupon.code}</strong> applied</span>
-                <button onClick={() => setAppliedCoupon(null)} className="text-red-500 hover:text-red-700 font-bold ml-2">
-                  [remove]
-                </button>
-              </div>
-            )}
-            {couponError && (
-              <p className="text-[10px] text-rose-500 font-bold">{couponError}</p>
-            )}
-          </div>
-
           {/* 5. Swiggy detailed bill breakdown */}
           <div className="border-t border-slate-100 pt-4 space-y-2.5 text-xs text-slate-500 text-left">
             <div className="flex justify-between">
               <span className="font-medium text-slate-400">Tray Subtotal</span>
               <span className="font-mono font-bold text-slate-700">₹{subtotal}</span>
             </div>
-
-            {appliedCoupon && (
-              <div className="flex justify-between text-emerald-600 font-bold">
-                <span>Swiggy Coupon Discount ({appliedCoupon.discountPercent}%)</span>
-                <span className="font-mono">-₹{discountAmount}</span>
-              </div>
-            )}
 
             <div className="flex justify-between items-center text-sm font-black text-slate-800 border-t border-dashed border-slate-200 pt-3 mt-1.5 font-sans">
               <span>Total billable amount</span>

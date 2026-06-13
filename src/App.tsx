@@ -737,8 +737,8 @@ export default function App() {
     };
 
     const promos = [
-      { title: "20% OFF on Campus Cafe", code: "Use coupon CAMPUS20", color: "from-[#1B4D3E] to-[#4CAF50]" },
-      { title: "Free Coffee on Orders Above ₹150", code: "Use coupon WELCOME20", color: "from-[#FF9800] to-[#FF5722]" },
+      { title: "Sizzling Samosas & Snacks", code: "Prepared fresh daily", color: "from-[#1B4D3E] to-[#4CAF50]" },
+      { title: "Hot Filter Coffee & Tea", code: "Energize your college study sessions", color: "from-[#FF9800] to-[#FF5722]" },
       { title: "Skip Queue Instant Pickup", code: "Ready in 10 minutes", color: "from-[#3F51B5] to-[#00BCD4]" }
     ];
 
