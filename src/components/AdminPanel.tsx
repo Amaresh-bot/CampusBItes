@@ -1714,8 +1714,9 @@ WITH CHECK (
                           <td className="p-3 text-slate-700 font-semibold font-mono text-[11px]">
                             {log.transaction_id || log.id}
                           </td>
-                          <td className="p-3 text-slate-500 font-mono text-[11px]">
-                            {log.user_id || log.userId}
+                          <td className="p-3 whitespace-nowrap">
+                            <div className="font-sans font-bold text-slate-900">{log.userName || 'Student'}</div>
+                            <div className="text-[10px] text-slate-400 font-mono">({log.rollNo || log.userId || log.user_id})</div>
                           </td>
                           <td className="p-3">
                             <span className={`px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest ${

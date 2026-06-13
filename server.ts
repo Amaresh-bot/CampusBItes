@@ -363,12 +363,21 @@ function mapRowFromDb(table: string, row: any): any {
   }
 
   if (table === "canteen_wallet_transactions") {
+    let parsedDesc: any = {};
+    try {
+      if (row.description && typeof row.description === "string" && row.description.trim().startsWith("{")) {
+        parsedDesc = JSON.parse(row.description);
+      }
+    } catch (e) {}
+
     return {
       id: row.id,
       userId: row.user_id,
       amount: Number(row.amount),
       type: row.type,
-      description: row.description,
+      description: parsedDesc.comment || row.description,
+      payment_id: parsedDesc.paymentId || row.payment_id || null,
+      order_id: parsedDesc.orderId || row.order_id || null,
       createdAt: row.created_at
     };
   }
@@ -872,7 +881,31 @@ async function getOrders(userId?: string): Promise<any[]> {
     orderMap.set(o.id, o);
   }
 
-  return Array.from(orderMap.values()).sort((a, b) => b.id.localeCompare(a.id));
+  let profiles: any[] = [];
+  try {
+    profiles = await getStudentProfiles();
+  } catch (err) {
+    console.warn("Could not retrieve student profiles for orders decorator:", err);
+  }
+
+  const profileMap = new Map<string, any>();
+  for (const p of profiles) {
+    const key = (p.id || p.userId || "").toLowerCase();
+    if (key) {
+      profileMap.set(key, p);
+    }
+  }
+
+  const enrichedOrders = Array.from(orderMap.values()).map(o => {
+    const profile = o.userId ? profileMap.get(o.userId.toLowerCase()) : null;
+    return {
+      ...o,
+      userName: o.userName || profile?.fullName || "Student",
+      rollNo: o.rollNo || profile?.rollNo || profile?.roll_number || "No Profile"
+    };
+  });
+
+  return enrichedOrders.sort((a, b) => b.id.localeCompare(a.id));
 }
 
 async function addOrder(order: any): Promise<boolean> {
@@ -2911,19 +2944,56 @@ app.post("/api/payment/create-order", async (req, res) => {
 
 // Helper: Fetch all transactions globally for admin log monitoring
 async function getAllTransactions(): Promise<any[]> {
+  let dbTxs: any[] = [];
   if (supabase) {
     try {
       const { data, error } = await supabase.from(TABLES.WALLET_TRANSACTIONS).select("*");
       if (!error && data) {
-        return data.map((d: any) => mapRowFromDb(TABLES.WALLET_TRANSACTIONS, d));
+        dbTxs = data.map((d: any) => mapRowFromDb(TABLES.WALLET_TRANSACTIONS, d));
       } else if (error) {
         console.log("[Storage] Reading high-reliability global transactions cache.");
       }
     } catch (err: any) {
       console.log("[Storage] Reading high-reliability global transactions cache.");
     }
+  } else {
+    dbTxs = walletTransactionsDb;
   }
-  return walletTransactionsDb;
+
+  // Combine memory with Supabase records
+  const txMap = new Map();
+  for (const t of walletTransactionsDb) {
+    txMap.set(t.id, t);
+  }
+  for (const t of dbTxs) {
+    txMap.set(t.id, t);
+  }
+
+  const allTxs = Array.from(txMap.values());
+
+  let profiles: any[] = [];
+  try {
+    profiles = await getStudentProfiles();
+  } catch (pErr) {
+    console.warn("Could not load student profiles for transactions decorator:", pErr);
+  }
+
+  const profileMap = new Map<string, any>();
+  for (const p of profiles) {
+    const key = (p.id || p.userId || "").toLowerCase();
+    if (key) {
+      profileMap.set(key, p);
+    }
+  }
+
+  return allTxs.map(t => {
+    const profile = t.userId ? profileMap.get(t.userId.toLowerCase()) : null;
+    return {
+      ...t,
+      userName: profile?.fullName || t.userName || "Student",
+      rollNo: profile?.rollNo || t.rollNo || ""
+    };
+  }).sort((a, b) => b.id.localeCompare(a.id));
 }
 
 // API: Validate payment transaction and register kitchen order
@@ -2974,6 +3044,33 @@ app.post("/api/orders/create", async (req, res) => {
   // Persists to Server Memory database & Supabase
   ordersDb.push(completedOrder);
   await addOrder(completedOrder);
+
+  // Register checkout/payment transaction ledger audit log
+  try {
+    const txId = `tx_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const descriptionObj = {
+      comment: `Canteen checkout total of ₹${completedOrder.totalAmount} paid via ${completedOrder.paymentMethod || 'razorpay'}`,
+      paymentId: razorpay_payment_id || `rzp_sim_pay_${Date.now()}`,
+      orderId: completedOrder.id,
+      status: "success"
+    };
+
+    const newTx = {
+      id: txId,
+      userId: completedOrder.userId,
+      amount: completedOrder.totalAmount,
+      type: 'payment',
+      description: JSON.stringify(descriptionObj),
+      createdAt: new Date().toISOString()
+    };
+
+    walletTransactionsDb.push(newTx);
+    await addTransaction(newTx);
+    console.log(`[Storage] Registered payment transaction ledger check for Order: ${completedOrder.id}`);
+  } catch (txErr: any) {
+    console.warn("[Storage] Failed to register payment checkout log:", txErr.message);
+  }
+
   res.json({ success: true, order: completedOrder });
 });
 
