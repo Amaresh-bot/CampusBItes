@@ -116,6 +116,9 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
   useEffect(() => {
     const handleLoginSuccess = (authedUser: any, hasProfile: boolean, profile: any) => {
       if (authedUser) {
+        if (authedUser.email && authedUser.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com') {
+          authedUser.role = 'admin';
+        }
         if (hasProfile || profile) {
           const finalProfile = profile;
           localStorage.setItem('canteen_user', JSON.stringify(authedUser));
@@ -669,11 +672,12 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
             try {
               const { doc, setDoc } = await import('firebase/firestore');
               const { db } = await import('../firebase/config');
+              const isAdminEmail = payload.email && payload.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com';
               await setDoc(doc(db, 'users', payload.userId), {
                 id: payload.userId,
                 name: payload.fullName,
                 email: payload.email,
-                role: 'customer',
+                role: isAdminEmail ? 'admin' : 'customer',
                 rollNo: payload.rollNo,
                 contactNo: payload.contactNo,
                 branch: payload.branch,
@@ -690,7 +694,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
             id: payload.userId,
             name: payload.fullName,
             email: payload.email,
-            role: 'customer' as const
+            role: (payload.email && payload.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' as const : 'customer' as const
           };
 
           localStorage.setItem('canteen_user', JSON.stringify(finalUser));

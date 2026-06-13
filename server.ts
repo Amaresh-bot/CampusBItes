@@ -1796,7 +1796,7 @@ app.post("/api/auth/login", async (req, res) => {
       return res.json({
         success: true,
         session: data.session,
-        user: { id: user.id, name: profile?.fullName || email.split("@")[0], email: user.email, role: 'customer' },
+        user: { id: user.id, name: profile?.fullName || email.split("@")[0], email: user.email, role: (user.email && user.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' : 'customer' },
         hasProfile,
         profile
       });
@@ -1820,9 +1820,10 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     const profile = studentProfilesDb[user.id] || null;
+    const isOverriddenAdmin = user.email && user.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com';
     return res.json({
       success: true,
-      user: { id: user.id, name: profile?.fullName || email.split("@")[0], email: user.email, role: 'customer' },
+      user: { id: user.id, name: profile?.fullName || email.split("@")[0], email: user.email, role: isOverriddenAdmin ? 'admin' : 'customer' },
       hasProfile: !!profile,
       profile
     });
@@ -2066,7 +2067,8 @@ app.get(["/api/auth/callback", "/api/auth/callback/"], async (req, res) => {
         }
         const hasProfile = (profiles && profiles.length > 0) || !!studentProfilesDb[user.id];
         const profile = hasProfile ? (profiles && profiles.length > 0 ? mapRowFromDb(actualStudentsTable, profiles[0]) : studentProfilesDb[user.id]) : null;
-        const authedUser = { id: user.id, name: profile?.fullName || user.user_metadata?.full_name || user.email?.split("@")[0] || "Student", email: user.email, role: "customer" };
+        const isOverriddenAdmin = user.email && user.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com';
+        const authedUser = { id: user.id, name: profile?.fullName || user.user_metadata?.full_name || user.email?.split("@")[0] || "Student", email: user.email, role: isOverriddenAdmin ? "admin" : "customer" };
         return res.send(`
           <html>
             <body>
@@ -2123,7 +2125,8 @@ app.get(["/api/auth/callback", "/api/auth/callback/"], async (req, res) => {
     }
     
     const profile = studentProfilesDb[mockId] || null;
-    const authedUser = { id: `${mockId}`, name: `${profile?.fullName || queryName}`, email: `${mockEmail}`, role: "customer" };
+    const isOverriddenAdmin = mockEmail && mockEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com';
+    const authedUser = { id: `${mockId}`, name: `${profile?.fullName || queryName}`, email: `${mockEmail}`, role: isOverriddenAdmin ? "admin" : "customer" };
     return res.send(`
       <html>
         <body>
@@ -2151,11 +2154,12 @@ app.get(["/api/auth/callback", "/api/auth/callback/"], async (req, res) => {
                   }).join('')));
                   
                   if (payload && payload.sub) {
+                    const isOverriddenAdmin = payload.email && payload.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com';
                     const realUser = {
                       id: payload.sub,
                       name: payload.user_metadata?.full_name || payload.email?.split('@')[0] || "Google User",
                       email: payload.email || "",
-                      role: "customer"
+                      role: isOverriddenAdmin ? "admin" : "customer"
                     };
                     const session = { access_token: accessToken, user: { id: payload.sub, email: payload.email } };
 
@@ -2274,7 +2278,7 @@ app.post("/api/auth/session-from-token", async (req, res) => {
 
       return res.json({
         success: true,
-        user: { id: user.id, name: profile?.fullName || user.email?.split("@")[0] || "Student", email: user.email, role: 'customer' },
+        user: { id: user.id, name: profile?.fullName || user.email?.split("@")[0] || "Student", email: user.email, role: (user.email && user.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' : 'customer' },
         hasProfile,
         profile
       });
