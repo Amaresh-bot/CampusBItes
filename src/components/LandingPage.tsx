@@ -98,10 +98,10 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
       >
         {/* Transparent Absolute Navbar Overlay inside Hero */}
         <nav className="absolute top-0 left-0 right-0 z-50 w-full bg-transparent border-none">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-0 min-h-[72px] sm:h-24 flex items-center justify-between gap-2">
             
             {/* Logo Brand Identity with White-Text Contrast */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <FallbackImage
                 srcs={[
                   '/assets/college_logo.png',
@@ -112,18 +112,18 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
                 ]}
                 alt="Sphoorthy Engineering College CampusBites Logo"
                 type="logo"
-                className="w-12 h-12 object-contain rounded-xl shrink-0 border border-white/10 p-0.5 shadow-sm bg-white/5 backdrop-blur-md"
+                className="w-9 h-9 sm:w-12 sm:h-12 object-contain rounded-xl shrink-0 border border-white/10 p-0.5 shadow-sm bg-white/5 backdrop-blur-md"
               />
-              <div className="flex flex-col text-left">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-display font-black text-2xl tracking-tight text-white">
+              <div className="flex flex-col text-left min-w-0">
+                <div className="flex items-center gap-1 sm:gap-1.5">
+                  <span className="font-display font-black text-lg sm:text-2xl tracking-tight text-white">
                     Campus<span className="text-[#4CAF50]">Bites</span>
                   </span>
-                  <span className="text-[9px] font-mono font-bold bg-[#4CAF50]/20 text-[#E8F5E9] px-1.5 py-0.5 rounded-md border border-[#4CAF50]/30">
+                  <span className="text-[8px] sm:text-[9px] font-mono font-bold bg-[#4CAF50]/20 text-[#E8F5E9] px-1 sm:px-1.5 py-0.5 rounded border border-[#4CAF50]/30 shrink-0">
                     SPHN
                   </span>
                 </div>
-                <span className="text-[9px] text-[#A2C2B9] font-bold tracking-wider uppercase">Sphoorthy Engineering</span>
+                <span className="text-[8px] sm:text-[9px] text-[#A2C2B9] font-bold tracking-wider uppercase hidden sm:block truncate">Sphoorthy Engineering</span>
               </div>
             </div>
 
@@ -149,20 +149,20 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
             </div>
 
             {/* Right Area Controls with high contrasts */}
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
               <button
                 onClick={onSignIn}
-                className="text-xs font-black text-[#E8F5E9] hover:text-white px-3.5 py-2 rounded-xl transition-all cursor-pointer font-sans"
+                className="text-[11px] sm:text-xs font-black text-[#E8F5E9] hover:text-white px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-sans shrink-0"
               >
                 Sign In
               </button>
               
               <button
                 onClick={onSignIn}
-                className="text-xs font-extrabold bg-[#4CAF50] hover:bg-[#45a049] hover:scale-[1.02] text-white px-6 py-3 rounded-[15px] cursor-pointer shadow-lg shadow-[#1B4D3E]/20 active:scale-95 transition-all flex items-center gap-1.5 border border-[#4CAF50]/15"
+                className="text-[11px] sm:text-xs font-extrabold bg-[#4CAF50] hover:bg-[#45a049] hover:scale-[1.02] text-white px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg shadow-[#1B4D3E]/20 active:scale-95 transition-all flex items-center gap-1.5 border border-[#4CAF50]/15 shrink-0"
               >
-                Get Started
-                <ArrowRight className="w-3.5 h-3.5 text-white" />
+                <span>Get Started</span>
+                <ArrowRight className="w-3.5 h-3.5 text-white hidden xs:block" />
               </button>
             </div>
           </div>
@@ -188,7 +188,7 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
 
               {/* Mega Heavy Premium Headings */}
               <div className="space-y-4">
-                <h1 className="text-4xl sm:text-5xl lg:text-[72px] font-display font-extrabold tracking-tight text-white leading-[1.08]">
+                <h1 className="text-3xl sm:text-5xl lg:text-[72px] font-display font-extrabold tracking-tight text-white leading-[1.15] sm:leading-[1.08]">
                   Order Food & Essentials.<br />
                   Discover Campus Stores.<br />
                   <span className="text-[#4CAF50] relative inline-block">
@@ -197,7 +197,7 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
                   </span>
                 </h1>
                 
-                <p className="text-sm sm:text-base md:text-lg text-slate-200 mt-2 font-semibold max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                <p className="text-xs sm:text-base md:text-lg text-slate-200 mt-2 font-semibold max-w-xl mx-auto lg:mx-0 leading-relaxed">
                   Everything students need inside campus. Fresh meals, snacks, stationery, printouts, and essentials delivered faster than standing in line.
                 </p>
               </div>
@@ -227,23 +227,23 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
                   </div>
 
                   {/* Box 2: 🔍 Item Search input */}
-                  <div className="flex-1 flex items-center pl-2 md:pl-4 pr-1 py-1 md:py-0">
-                    <Search className="w-5 h-5 text-slate-400 shrink-0" />
+                  <div className="flex-1 flex items-center pl-2 md:pl-4 pr-1 py-1 md:py-0 min-w-0 gap-1.5">
+                    <Search className="w-4 h-4 text-slate-400 shrink-0" />
                     <input 
                       type="text"
-                      placeholder="Search food, stationery, snacks, printouts..."
+                      placeholder="Search food, stationery..."
                       value={searchVal}
                       onChange={(e) => setSearchVal(e.target.value)}
-                      className="w-full pl-3 pr-3 py-2 text-xs md:text-sm text-slate-900 bg-transparent outline-none placeholder-slate-400 font-bold"
+                      className="w-full min-w-0 pl-1 pr-1 py-2 text-xs md:text-sm text-slate-900 bg-transparent outline-none placeholder-slate-400 font-bold"
                     />
                     
                     {/* Action Search Button */}
                     <button
                       type="submit"
-                      className="bg-[#1B4D3E] hover:bg-[#2E7D5A] active:scale-95 text-white text-[10px] md:text-xs font-black px-4 md:px-6 py-2.5 md:py-0 md:h-full rounded-[14px] transition-all cursor-pointer flex items-center gap-1.5 border border-[#143B2F] shadow-sm uppercase shrink-0"
+                      className="bg-[#1B4D3E] hover:bg-[#2E7D5A] active:scale-95 text-white text-[10px] md:text-xs font-black px-3 md:px-6 py-2.5 md:py-0 h-10 md:h-full rounded-[14px] transition-all cursor-pointer flex items-center gap-1 border border-[#143B2F] shadow-sm uppercase shrink-0"
                     >
                       <span>Find Food</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#4CAF50]" />
+                      <ChevronRight className="w-3.5 h-3.5 text-[#4CAF50] hidden xs:block" />
                     </button>
                   </div>
 
