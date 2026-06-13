@@ -114,13 +114,30 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
 
   // Google OAuth callback state listener
   useEffect(() => {
-    const handleLoginSuccess = (authedUser: any, hasProfile: boolean, profile: any) => {
+    const handleLoginSuccess = async (authedUser: any, hasProfile: boolean, profile: any) => {
       if (authedUser) {
         if (authedUser.email && authedUser.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com') {
           authedUser.role = 'admin';
         }
-        if (hasProfile || profile) {
-          const finalProfile = profile;
+
+        let finalProfile = profile;
+        let finalHasProfile = hasProfile || !!profile;
+
+        // Query the profile status from server to avoid client-side false negatives
+        try {
+          const res = await fetch(`/api/student/profile/${authedUser.id}`);
+          if (res.ok) {
+            const serverProfile = await res.json();
+            if (serverProfile && serverProfile.id) {
+              finalProfile = serverProfile;
+              finalHasProfile = true;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to query profile status from server", e);
+        }
+
+        if (finalHasProfile) {
           localStorage.setItem('canteen_user', JSON.stringify(authedUser));
           if (finalProfile) {
             localStorage.setItem(`student_profile_${authedUser.id}`, JSON.stringify(finalProfile));
