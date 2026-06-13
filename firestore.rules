@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Catch-All Deny Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Global Reusable Validation Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Enterprise Rules for Users Profile ---
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // On create: users can register themselves. Must prevent forging an admin role during creation
+      allow create: if isSignedIn() && isOwner(userId) &&
+        incoming().id == userId &&
+        incoming().email is string &&
+        incoming().name is string &&
+        incoming().name.size() > 0 &&
+        incoming().name.size() <= 100 &&
+        incoming().role == 'customer'; // Default role must be customer
+
+      // On update: prevent escalation to admin
+      allow update: if isOwner(userId) &&
+        incoming().name is string &&
+        incoming().name.size() > 0 &&
+        incoming().name.size() <= 100 &&
+        incoming().role == existing().role; // Role remains immortal unless edited by admin
+    }
+
+    // --- Zero-Trust Rules for Canteen Orders ---
+    match /orders/{orderId} {
+      // Admin can see everything. Customers can only view their own orders
+      allow get: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+
+      // Create: user places their order
+      allow create: if isSignedIn() &&
+        incoming().id == orderId &&
+        incoming().userId == request.auth.uid &&
+        incoming().totalAmount is number &&
+        incoming().totalAmount > 0 &&
+        incoming().status == 'Pending' &&
+        incoming().paymentStatus in ['Paid', 'Unpaid'] &&
+        incoming().paymentMethod in ['razorpay', 'demo_wallet'] &&
+        incoming().items is list &&
+        incoming().items.size() > 0;
+
+      // Update: Admin can manage all stages. User can only cancel standard 'Pending' orders
+      allow update: if (
+        isAdmin() || (
+          isSignedIn() && 
+          existing().userId == request.auth.uid &&
+          existing().status == 'Pending' &&
+          incoming().status == 'Cancelled' &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['status'])
+        )
+      );
+
+      // Prevent accidental hard deletion of historical order documents
+      allow delete: if isAdmin();
+    }
+  }
+}

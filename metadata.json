@@ -1,0 +1,6 @@
+{
+  "name": "Canteen Ordering & Razorpay Checkout",
+  "description": "A full-stack canteen application featuring secure Firebase auth, cart builder, real-time status tracker, and Razorpay payment integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

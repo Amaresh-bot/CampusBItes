@@ -1,0 +1,38 @@
+{
+  "usr_phone_6304732932": {
+    "userId": "usr_phone_6304732932",
+    "email": "shivaganeshmummadi7@gmail.com",
+    "collegeName": "Spoorthy Engineering College",
+    "rollNo": "23N81A6659",
+    "fullName": "MUMMADI SHIVA GANESH",
+    "branch": "Computer Science (CSE)",
+    "year": "4th Year",
+    "contactNo": "6304732932",
+    "profileLocked": true,
+    "profile_locked": true
+  },
+  "mock-google-user": {
+    "userId": "mock-google-user",
+    "email": "amareshkaturi@gmail.com",
+    "collegeName": "Spoorthy Engineering College",
+    "rollNo": "26N81A5012",
+    "fullName": "Amaresh",
+    "branch": "Computer Science (CSE)",
+    "year": "1st Year",
+    "contactNo": "6304732932",
+    "profileLocked": true,
+    "profile_locked": true
+  },
+  "usr_google_shivaganeshmummadi7_gmail_com": {
+    "userId": "usr_google_shivaganeshmummadi7_gmail_com",
+    "email": "shivaganeshmummadi7@gmail.com",
+    "collegeName": "Spoorthy Engineering College",
+    "rollNo": "26N81A1615",
+    "fullName": "Mummadi Shiva Ganesh",
+    "branch": "Computer Science (CSE)",
+    "year": "1st Year",
+    "contactNo": "6304732932",
+    "profileLocked": true,
+    "profile_locked": true
+  }
+}

@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Rubik+Glitch&family=Rubik+Glitch+Pop&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Proxima Nova", "Montserrat", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Proxima Nova", "Montserrat", "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-glitch: "Rubik Glitch", "Rubik Glitch Pop", system-ui, sans-serif;
+  --font-biscuit: "Rubik Glitch", "Rubik Glitch Pop", system-ui, sans-serif;
+  
+  --color-swiggy-orange: #1B4D3E;
+  --color-swiggy-orange-hover: #143B2F;
+  --color-swiggy-orange-light: #F2F7F5;
+  --color-swiggy-dark: #1B4D3E;
+  --color-swiggy-gray: #4A5D57;
+
+  --color-orange-50: #F2F7F5;
+  --color-orange-100: #E3EDE9;
+  --color-orange-200: #C2DDD3;
+  --color-orange-550: #1B4D3E;
+
+  --color-college-blue-50: #F2F7F5;
+  --color-college-blue-100: #E3EDE9;
+  --color-college-blue-200: #C2DDD3;
+  --color-college-blue-300: #93C2B1;
+  --color-college-blue-400: #5E9B85;
+  --color-college-blue-500: #1B4D3E;
+  --color-college-blue-600: #143B2F;
+  --color-college-blue-700: #102F26;
+  --color-college-blue-800: #0C231C;
+  --color-college-blue-900: #06120E;
+  
+  --color-college-gold-50: #FFFFFF;
+  --color-college-gold-100: #FFFFFF;
+  --color-college-gold-200: #E3EDE9;
+  --color-college-gold-300: #C2DDD3;
+  --color-college-gold-400: #93C2B1;
+  --color-college-gold-500: #1B4D3E;
+  --color-college-gold-650: #143B2F;
+  --color-college-gold-700: #102F26;
+}

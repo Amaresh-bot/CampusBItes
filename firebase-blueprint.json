@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a custom registration profile for canteen customers or admins",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique user identity corresponding to Firebase Auth UID" },
+        "name": { "type": "string", "description": "Display name of the user" },
+        "email": { "type": "string", "format": "email", "description": "Verified user email address" },
+        "role": { "type": "string", "enum": ["customer", "admin"], "description": "Privilege level of this customer" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The ISO timestamp when profile was created" }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Represents an eating order prepared by the canteen",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique identifier of this order" },
+        "userId": { "type": "string", "description": "The customer ID who placed the order" },
+        "userName": { "type": "string", "description": "The customer name for easy kitchen pickup lookup" },
+        "userEmail": { "type": "string", "description": "Customer email" },
+        "items": { "type": "array", "description": "The set of food items purchased" },
+        "totalAmount": { "type": "number", "description": "The cumulative cost of cooking" },
+        "status": { "type": "string", "enum": ["Pending", "Preparing", "Ready for Pickup", "Completed", "Cancelled"], "description": "Order progression status" },
+        "paymentStatus": { "type": "string", "enum": ["Unpaid", "Paid", "Failed"], "description": "Payment authorization state" },
+        "paymentMethod": { "type": "string", "enum": ["razorpay", "demo_wallet"], "description": "Transaction processor channel" },
+        "paymentId": { "type": "string", "description": "The Razorpay payment processing reference" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "tokenNumber": { "type": "string", "description": "Friendly human-readable ticket code" }
+      },
+      "required": ["id", "userId", "userName", "userEmail", "items", "totalAmount", "status", "paymentStatus", "paymentMethod", "createdAt", "tokenNumber"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Stores individual user records securely using split-level auth permissions."
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Stores active and historical meals with state transition controls."
+    }
+  }
+}
