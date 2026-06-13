@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ChefHat, TrendingUp, ShoppingBag, CheckSquare, ChevronRight, XCircle, ArrowLeft, QrCode, PlusCircle, Trash2, Edit2, Settings, Users, Percent, Sparkles, Smartphone, Check, Database, RefreshCw, AlertTriangle, ShieldCheck, Lock } from 'lucide-react';
+import { ChefHat, TrendingUp, ShoppingBag, CheckSquare, ChevronRight, XCircle, ArrowLeft, QrCode, PlusCircle, Trash2, Edit2, Settings, Users, Percent, Sparkles, Smartphone, Check, Database, RefreshCw, AlertTriangle, ShieldCheck, Lock, AlertCircle, BarChart2, DollarSign, Activity } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie, Legend } from 'recharts';
 import { Order, OrderStatus, FoodItem, StudentProfile, PaymentSettings } from '../types';
 
 interface AdminPanelProps {
@@ -30,13 +31,37 @@ export function AdminPanel({
   onToggleStudentVerify
 }: AdminPanelProps) {
   // Supabase diagnostic monitor states
-  const [activeAdminSubTab, setActiveAdminSubTab] = useState<'kitchen' | 'menu' | 'students' | 'upi' | 'database' | 'security' | 'transactions'>('kitchen');
+  const [activeAdminSubTab, setActiveAdminSubTab] = useState<'dashboard' | 'kitchen' | 'menu' | 'students' | 'upi' | 'database' | 'security' | 'transactions'>('dashboard');
   const [dbStatus, setDbStatus] = useState<any>(null);
   const [dbLoading, setDbLoading] = useState(false);
 
   // Global payment audit logs states
   const [paymentLogs, setPaymentLogs] = useState<any[]>([]);
   const [paymentLogsLoading, setPaymentLogsLoading] = useState(false);
+
+  // Simulated live stock levels for interactive low-stock lists
+  const [itemStocks, setItemStocks] = useState<Record<string, number>>({});
+
+  // Helper to retrieve stock count safely for any item
+  const getItemStock = (itemId: string, isAvailable: boolean) => {
+    if (!isAvailable) return 0;
+    if (itemId in itemStocks) return itemStocks[itemId];
+    // Create a stable, deterministic visual stock count for realism
+    const seed = itemId.charCodeAt(itemId.length - 1) || 7;
+    return (seed % 12) + 2; // Returns custom value between 2 and 13
+  };
+
+  const handleRestockItem = (itemId: string, amount: number = 30) => {
+    setItemStocks(prev => ({
+      ...prev,
+      [itemId]: amount
+    }));
+    // Synchronize catalog status so the item is marked as available
+    const item = foodItems.find(i => i.id === itemId);
+    if (item && !item.isAvailable) {
+      onEditMenuItem(itemId, { isAvailable: true });
+    }
+  };
 
   const fetchDbStatus = async () => {
     setDbLoading(true);
@@ -171,6 +196,29 @@ export function AdminPanel({
   const salesRevenue = completedOrders.reduce((acc, o) => acc + o.totalAmount, 0);
   const activeOrders = orders.filter(o => ['Pending', 'Approved', 'Preparing', 'Ready for Pickup'].includes(o.status));
 
+  // Determine if a timestamp matches today's date
+  const isCreatedToday = (createdAtStr: string) => {
+    if (!createdAtStr) return false;
+    try {
+      const orderDate = new Date(createdAtStr);
+      const today = new Date();
+      return orderDate.getFullYear() === today.getFullYear() &&
+             orderDate.getMonth() === today.getMonth() &&
+             orderDate.getDate() === today.getDate();
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const completedToday = completedOrders.filter(o => isCreatedToday(o.createdAt));
+  const dailyRevenue = completedToday.reduce((acc, o) => acc + o.totalAmount, 0);
+
+  // Define low stock alert items (isAvailable false or simulated stock <= 5)
+  const lowStockItems = foodItems.filter(item => {
+    const stock = getItemStock(item.id, item.isAvailable);
+    return stock <= 5;
+  });
+
   const getActionLabel = (status: OrderStatus): string | null => {
     switch (status) {
       case 'Pending': return 'Approve Order';
@@ -294,6 +342,7 @@ export function AdminPanel({
         {/* Categories Selector */}
         <div className="flex gap-1 overflow-x-auto pb-1 max-w-full">
           {[
+            { id: 'dashboard', label: '📊 Dashboard' },
             { id: 'kitchen', label: 'Queues' },
             { id: 'menu', label: 'Menu Catalog' },
             { id: 'students', label: 'Students' },
@@ -321,34 +370,336 @@ export function AdminPanel({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
           <div className="space-y-1">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Total Canteen Revenue</span>
-            <p className="text-xl font-mono font-bold text-slate-900 mt-1 block">₹{salesRevenue.toFixed(2)}</p>
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Daily Revenue (Today)</span>
+            <p className="text-xl font-mono font-bold text-slate-900 mt-1 block">₹{dailyRevenue.toFixed(2)}</p>
           </div>
-          <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center border border-blue-105">
+          <div className="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center border border-emerald-100/50">
             <TrendingUp className="w-4 h-4" />
           </div>
         </div>
 
         <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
           <div className="space-y-1">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Active Canteen Queue</span>
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Total Active Orders</span>
             <p className="text-xl font-mono font-bold text-slate-900 mt-1 block">{activeOrders.length} orders</p>
           </div>
-          <div className="w-9 h-9 bg-amber-50 text-amber-700 rounded-lg flex items-center justify-center border border-amber-105">
+          <div className="w-9 h-9 bg-amber-50 text-amber-700 rounded-lg flex items-center justify-center border border-amber-100/50">
             <ShoppingBag className="w-4 h-4" />
           </div>
         </div>
 
         <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
           <div className="space-y-1">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Items Count</span>
-            <p className="text-xl font-mono font-bold text-slate-900 mt-1 block">{foodItems.length} delicacies</p>
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Low Stock Inventory Alerts</span>
+            <p className="text-xl font-mono font-bold text-rose-650 mt-1 block text-rose-600">{lowStockItems.length} items</p>
           </div>
-          <div className="w-9 h-9 bg-emerald-50 text-emerald-700 rounded-lg flex items-center justify-center border border-emerald-105">
-            <CheckSquare className="w-4 h-4" />
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center border transition-all ${
+            lowStockItems.length > 0 
+              ? 'bg-rose-50 text-rose-600 border-rose-100 animate-pulse' 
+              : 'bg-slate-50 text-slate-400 border-slate-200'
+          }`}>
+            <AlertTriangle className="w-4 h-4" />
           </div>
         </div>
       </div>
+
+      {/* Active Panel Views */}
+      {activeAdminSubTab === 'dashboard' && (
+        <div id="admin-analytics-dashboard" className="space-y-6">
+          
+          {/* Main 2-column Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* Left Box: Low-Stock Inventory Desk (Interactive) */}
+            <div className="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col space-y-4">
+              <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                <div>
+                  <h4 className="font-sans font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-500" />
+                    Kitchen Low-Stock & Availability Monitor
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Critical alert threshold is &le; 5 units. Tap to restock instantly or toggle availability.</p>
+                </div>
+                <span className="px-2.5 py-0.5 bg-rose-50 border border-rose-100 text-rose-750 font-mono text-[10px] font-bold rounded-lg uppercase">
+                  {lowStockItems.length} Alerts
+                </span>
+              </div>
+
+              {lowStockItems.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-2 border border-dashed border-slate-200 rounded-xl bg-slate-50/50 min-h-[220px]">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 font-extrabold text-sm">&#10003;</div>
+                  <h5 className="font-bold text-slate-900 text-xs">All Items Fully Stocked</h5>
+                  <p className="text-[11px] text-slate-450 max-w-xs">No active stock levels are currently below safety buffer. All menu entries are set available.</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                  {lowStockItems.map(item => {
+                    const currentStock = getItemStock(item.id, item.isAvailable);
+                    return (
+                      <div key={item.id} className="p-3 bg-slate-50 hover:bg-slate-100/50 transition-all border border-slate-200/60 rounded-xl flex items-center justify-between gap-4 text-xs">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <img 
+                            src={item.imageUrl} 
+                            alt={item.name} 
+                            className="w-10 h-10 rounded-lg object-cover bg-slate-200 border border-slate-350 shadow-xs shrink-0" 
+                          />
+                          <div className="min-w-0">
+                            <h5 className="font-bold text-slate-950 truncate">{item.name}</h5>
+                            <span className="text-[10px] text-slate-400 capitalize font-medium">{item.category} &bull; Prep: {item.estimatedPrepTime}m</span>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase ${
+                                currentStock === 0 
+                                  ? 'bg-rose-100 text-rose-800' 
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}>
+                                {currentStock === 0 ? 'Out Of Stock (0)' : `Critical (${currentStock} left)`}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Interactive fast restock action panel */}
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => handleRestockItem(item.id, 15)}
+                            className="px-2 py-1 bg-white hover:bg-blue-50 border border-slate-250 hover:border-blue-200 text-slate-700 hover:text-blue-700 text-[10px] font-bold rounded-lg cursor-pointer transition-all active:scale-95"
+                          >
+                            +15
+                          </button>
+                          <button
+                            onClick={() => handleRestockItem(item.id, 30)}
+                            className="px-2 py-1 bg-white hover:bg-emerald-50 border border-slate-250 hover:border-emerald-200 text-slate-700 hover:text-emerald-700 text-[10px] font-bold rounded-lg cursor-pointer transition-all active:scale-95"
+                          >
+                            +30
+                          </button>
+                          <button
+                            onClick={() => handleRestockItem(item.id, 50)}
+                            className="px-2 py-1 bg-slate-950 hover:bg-black bg-black text-white text-[10px] font-bold rounded-lg cursor-pointer transition-all active:scale-95"
+                          >
+                            +50 (Full)
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Right Box: Visual Chart Analytics (Recharts) */}
+            <div className="lg:col-span-5 space-y-6">
+              
+              {/* Pie Chart: Order Status Ratios */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col space-y-3">
+                <div>
+                  <h4 className="font-sans font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                    <Activity className="w-4 h-4 text-indigo-500" />
+                    Kitchen Queue Mix
+                  </h4>
+                  <p className="text-[11px] text-slate-500">Breakdown of orders in active processing steps.</p>
+                </div>
+
+                <div className="h-[180px] w-full flex items-center justify-between font-sans">
+                  <div className="w-[120px] h-[120px] shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={(() => {
+                            const statusColors: Record<OrderStatus, string> = {
+                              'Pending': '#eab308',
+                              'Approved': '#3b82f6',
+                              'Preparing': '#a855f7',
+                              'Ready for Pickup': '#14b8a6',
+                              'Completed': '#10b981',
+                              'Cancelled': '#ef4444'
+                            };
+                            const statusCounts: Record<string, number> = {};
+                            orders.forEach(o => {
+                              statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+                            });
+                            const statusData = Object.entries(statusCounts).map(([status, count]) => ({
+                              name: status,
+                              value: count,
+                              color: statusColors[status as OrderStatus] || '#64748b'
+                            }));
+                            const defaultStatusData = [
+                              { name: 'Pending', value: 2, color: '#eab308' },
+                              { name: 'Approved', value: 1, color: '#3b82f6' },
+                              { name: 'Preparing', value: 4, color: '#a855f7' },
+                              { name: 'Ready for Pickup', value: 3, color: '#14b8a6' },
+                              { name: 'Completed', value: 12, color: '#10b981' }
+                            ];
+                            return statusData.length > 0 ? statusData : defaultStatusData;
+                          })()}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={25}
+                          outerRadius={45}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {(() => {
+                            const statusColors: Record<OrderStatus, string> = {
+                              'Pending': '#eab308',
+                              'Approved': '#3b82f6',
+                              'Preparing': '#a855f7',
+                              'Ready for Pickup': '#14b8a6',
+                              'Completed': '#10b981',
+                              'Cancelled': '#ef4444'
+                            };
+                            const statusCounts: Record<string, number> = {};
+                            orders.forEach(o => {
+                              statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+                            });
+                            const statusData = Object.entries(statusCounts).map(([status, count]) => ({
+                              name: status,
+                              value: count,
+                              color: statusColors[status as OrderStatus] || '#64748b'
+                            }));
+                            const defaultStatusData = [
+                              { name: 'Pending', value: 2, color: '#eab308' },
+                              { name: 'Approved', value: 1, color: '#3b82f6' },
+                              { name: 'Preparing', value: 4, color: '#a855f7' },
+                              { name: 'Ready for Pickup', value: 3, color: '#14b8a6' },
+                              { name: 'Completed', value: 12, color: '#10b981' }
+                            ];
+                            return statusData.length > 0 ? statusData : defaultStatusData;
+                          })().map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ fontSize: '10px', borderRadius: '8px', fontFamily: 'Inter, sans-serif' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Legends side panels */}
+                  <div className="flex-1 flex flex-col gap-1 pl-3 border-l border-slate-100 max-h-[160px] overflow-y-auto min-w-0">
+                    {(() => {
+                      const statusColors: Record<OrderStatus, string> = {
+                        'Pending': '#eab308',
+                        'Approved': '#3b82f6',
+                        'Preparing': '#a855f7',
+                        'Ready for Pickup': '#14b8a6',
+                        'Completed': '#10b981',
+                        'Cancelled': '#ef4444'
+                      };
+                      const statusCounts: Record<string, number> = {};
+                      orders.forEach(o => {
+                        statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+                      });
+                      const statusData = Object.entries(statusCounts).map(([status, count]) => ({
+                        name: status,
+                        value: count,
+                        color: statusColors[status as OrderStatus] || '#64748b'
+                      }));
+                      const defaultStatusData = [
+                        { name: 'Pending', value: 2, color: '#eab308' },
+                        { name: 'Approved', value: 1, color: '#3b82f6' },
+                        { name: 'Preparing', value: 4, color: '#a855f7' },
+                        { name: 'Ready for Pickup', value: 3, color: '#14b8a6' },
+                        { name: 'Completed', value: 12, color: '#10b981' }
+                      ];
+                      return statusData.length > 0 ? statusData : defaultStatusData;
+                    })().map((entry, index) => (
+                      <div key={index} className="flex items-center gap-1.5 text-[9.5px] min-w-0">
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                        <span className="font-bold text-slate-705 text-slate-600 capitalize truncate max-w-[65px]">{entry.name}:</span>
+                        <span className="font-mono font-extrabold text-slate-900 ml-auto pr-1">{entry.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bar Chart: Category Variety */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col space-y-3">
+                <div>
+                  <h4 className="font-sans font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                    <BarChart2 className="w-4 h-4 text-emerald-500" />
+                    Menu Variety Share
+                  </h4>
+                  <p className="text-[11px] text-slate-500">Delicacy distributions across culinary categories.</p>
+                </div>
+
+                <div className="h-[145px] w-full font-sans">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={(() => {
+                      const categoryCountMap: Record<string, number> = {};
+                      foodItems.forEach(item => {
+                        categoryCountMap[item.category] = (categoryCountMap[item.category] || 0) + 1;
+                      });
+                      const categoryData = Object.entries(categoryCountMap).map(([category, count]) => ({
+                        name: category,
+                        count: count
+                      }));
+                      const defaultCategoryData = [
+                        { name: 'Breakfast', count: 4 },
+                        { name: 'Lunch', count: 6 },
+                        { name: 'Snacks', count: 5 },
+                        { name: 'Beverages', count: 3 }
+                      ];
+                      return categoryData.length > 0 ? categoryData : defaultCategoryData;
+                    })()}>
+                      <XAxis 
+                        dataKey="name" 
+                        stroke="#94a3b8" 
+                        fontSize={8} 
+                        tickLine={false} 
+                        axisLine={false} 
+                      />
+                      <YAxis 
+                        stroke="#94a3b8" 
+                        fontSize={8} 
+                        tickLine={false} 
+                        axisLine={false} 
+                        allowDecimals={false}
+                      />
+                      <Tooltip 
+                        cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }}
+                        contentStyle={{ fontSize: '9.5px', borderRadius: '8px', fontFamily: 'Inter, sans-serif' }}
+                      />
+                      <Bar dataKey="count" radius={[3, 3, 0, 0]} fill="#0f172a">
+                        {(() => {
+                          const categoryCountMap: Record<string, number> = {};
+                          foodItems.forEach(item => {
+                            categoryCountMap[item.category] = (categoryCountMap[item.category] || 0) + 1;
+                          });
+                          const categoryData = Object.entries(categoryCountMap).map(([category, count]) => ({
+                            name: category,
+                            count: count
+                          }));
+                          const defaultCategoryData = [
+                            { name: 'Breakfast', count: 4 },
+                            { name: 'Lunch', count: 6 },
+                            { name: 'Snacks', count: 5 },
+                            { name: 'Beverages', count: 3 }
+                          ];
+                          return categoryData.length > 0 ? categoryData : defaultCategoryData;
+                        })().map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={
+                              index % 4 === 0 ? '#10b981' : 
+                              index % 4 === 1 ? '#3b82f6' : 
+                              index % 4 === 2 ? '#a855f7' : '#f59e0b'
+                            } 
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
 
       {/* Active Panel Views */}
       {activeAdminSubTab === 'kitchen' && (
