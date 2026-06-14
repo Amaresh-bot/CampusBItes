@@ -1,6 +1,14 @@
 // demo.tsx
 
+import Dock from "@/components/ui/dock";
 import { MenuItemCard } from "@/components/ui/menu-item-card"; // Adjust the import path
+import {
+  Home,
+  Search,
+  Bell,
+  Settings,
+  User,
+} from "lucide-react"
 
 const menuItems = [
   {
@@ -41,27 +49,47 @@ const menuItems = [
   },
 ];
 
+export function DemoOne() {
+  const dockItems = [
+    { icon: Home, label: "Home", onClick: () => alert("Home clicked") },
+    { icon: Search, label: "Search", onClick: () => alert("Search clicked") },
+    { icon: Bell, label: "Notifications", onClick: () => alert("Notifications clicked") },
+    { icon: User, label: "Profile", onClick: () => alert("Profile clicked") },
+    { icon: Settings, label: "Settings", onClick: () => alert("Settings clicked") },
+  ]
+
+  return <Dock items={dockItems} />
+}
+
 export default function MenuItemCardDemo() {
   const handleAddItem = (itemName: string) => {
     console.log(`Added ${itemName} to cart!`);
   };
 
   return (
-    <div className="flex items-center justify-center w-full min-h-screen p-4 bg-background">
-      <div className="grid w-full max-w-6xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {menuItems.map((item, index) => (
-          <MenuItemCard
-            key={index}
-            imageUrl={item.imageUrl}
-            isVegetarian={item.isVegetarian}
-            name={item.name}
-            price={item.price}
-            originalPrice={item.originalPrice}
-            quantity={item.quantity}
-            prepTimeInMinutes={item.prepTimeInMinutes}
-            onAdd={() => handleAddItem(item.name)}
-          />
-        ))}
+    <div className="flex flex-col items-center justify-center w-full min-h-screen p-4 bg-background gap-8">
+      <div className="w-full max-w-xl text-center py-4 border rounded-2xl bg-slate-50 dark:bg-zinc-900 shadow-sm p-4">
+        <h3 className="text-xs font-bold text-slate-800 mb-2 uppercase tracking-widest">Interactive Dock Component Model</h3>
+        <DemoOne />
+      </div>
+      
+      <div className="w-full max-w-6xl">
+        <h3 className="text-xs font-bold text-center text-slate-800 mb-6 uppercase tracking-widest">Original MenuItem Cards</h3>
+        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {menuItems.map((item, index) => (
+            <MenuItemCard
+              key={index}
+              imageUrl={item.imageUrl}
+              isVegetarian={item.isVegetarian}
+              name={item.name}
+              price={item.price}
+              originalPrice={item.originalPrice}
+              quantity={item.quantity}
+              prepTimeInMinutes={item.prepTimeInMinutes}
+              onAdd={() => handleAddItem(item.name)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

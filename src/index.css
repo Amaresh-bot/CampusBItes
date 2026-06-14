@@ -38,4 +38,23 @@
   --color-college-gold-500: #1B4D3E;
   --color-college-gold-650: #143B2F;
   --color-college-gold-700: #102F26;
+
+  /* shadcn-compatible semantic tokens for Dock component */
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+  --color-primary: #1B4D3E;
+  --color-primary-foreground: #ffffff;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-accent: #f1f5f9;
+  --color-accent-foreground: #0f172a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0f172a;
+  --color-border: #e2e8f0;
+  --color-input: #e2e8f0;
+  --color-ring: #1B4D3E;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-secondary: #f1f5f9;
+  --color-secondary-foreground: #0f172a;
 }

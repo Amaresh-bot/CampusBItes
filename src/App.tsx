@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ShoppingBag, ChefHat, Sparkles, LogOut, Clock, BookOpen, User, Bell, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Store, Tag, MapPin, Gift, Percent, Search, Home, ChevronDown, Mic, ShoppingCart } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import Dock from '@/components/ui/dock';
 import { FoodItem, Order, StudentProfile, PaymentSettings, SystemNotification } from './types';
 import { AuthScreen } from './components/AuthScreen';
 import { CanteenMenu } from './components/CanteenMenu';
@@ -761,7 +762,7 @@ export default function App() {
     ];
 
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex flex-col justify-between pb-22 select-none relative overflow-x-hidden">
+      <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex flex-col justify-between pb-28 select-none relative overflow-x-hidden">
         
         {/* Compact Swiggy-style Sticky Mobile Header (Height: 70px) */}
         <header className="sticky top-0 z-45 h-[70px] bg-white border-none flex items-center justify-between px-4 shadow-[0_2px_12px_rgba(0,0,0,0.02)] shrink-0">
@@ -1090,7 +1091,7 @@ export default function App() {
 
         {/* Floating Custom Swiggy Bottom Basket Bar (When count > 0 and not on cart tab) */}
         {mobileCartItemCount > 0 && mobileTab !== 'cart' && (
-          <div className="fixed bottom-[74px] left-4 right-4 z-40 select-none">
+          <div className="fixed bottom-[100px] left-4 right-4 z-40 select-none">
             <button
               onClick={() => setMobileTab('cart')}
               className="w-full bg-[#1B4D3E] text-white px-4.5 py-3.5 rounded-2xl shadow-lg flex items-center justify-between font-sans hover:bg-[#2E7D5A] active:scale-[0.98] transition-all cursor-pointer"
@@ -1114,51 +1115,56 @@ export default function App() {
           </div>
         )}
 
-        {/* Sticky Mobile Bottom Navigation (White background, height 58px) */}
-        <nav className="fixed bottom-0 left-0 right-0 z-45 bg-white h-[58px] border-t border-slate-100 flex items-center justify-around px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] shrink-0">
-          {[
-            { tag: 'home', label: 'Home', icon: Home },
-            { tag: 'orders', label: 'Orders', icon: ShoppingBag },
-            { tag: 'cart', label: 'Cart', icon: ShoppingCart, count: mobileCartItemCount },
-            { tag: 'profile', label: 'Profile', icon: User }
-          ].map((item) => {
-            const Icon = item.icon;
-            const isTabActive = mobileTab === item.tag;
-            return (
-              <button
-                key={item.tag}
-                onClick={() => {
-                  setMobileTab(item.tag as any);
-                  if (item.tag === 'home') {
-                    setActiveTab('menu');
-                  } else if (item.tag === 'orders') {
-                    setActiveTab('orders');
-                    fetchUserOrders();
-                  } else if (item.tag === 'profile') {
-                    setActiveTab('profile');
-                    fetchStudentProfile();
-                  }
-                }}
-                className="relative flex flex-col items-center justify-center flex-1 h-full cursor-pointer select-none transition-all duration-200 outline-none"
-              >
-                <div className={`p-1.5 rounded-full transition-all duration-300 ${
-                  isTabActive ? 'text-[#1B4D3E] scale-110' : 'text-slate-400 hover:text-slate-600'
-                }`}>
-                  <Icon className="w-5 h-5 stroke-[2.2]" />
-                  {item.count !== undefined && item.count > 0 && (
-                    <span className="absolute top-1.5 right-6 bg-red-500 text-white font-mono text-[9px] h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center font-bold scale-90 border-2 border-white">
-                      {item.count}
-                    </span>
-                  )}
-                </div>
-                <span className={`text-[9px] font-black transition-all duration-200 leading-none ${
-                  isTabActive ? 'text-[#1B4D3E] transform translate-y-0.5' : 'text-slate-400'
-                }`}>
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
+        {/* Sticky Mobile Bottom Navigation — Dock Style */}
+        <nav className="fixed bottom-0 left-0 right-0 z-45 bg-white/80 backdrop-blur-xl border-t border-slate-100 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] shrink-0">
+          <Dock
+            activeLabel={mobileTab === 'home' ? 'Home' : mobileTab === 'orders' ? 'Orders' : mobileTab === 'cart' ? 'Cart' : 'Profile'}
+            className="py-2"
+            items={[
+              {
+                icon: Home,
+                label: 'Home',
+                onClick: () => {
+                  setMobileTab('home');
+                  setActiveTab('menu');
+                }
+              },
+              {
+                icon: ShoppingBag,
+                label: 'Orders',
+                onClick: () => {
+                  setMobileTab('orders');
+                  setActiveTab('orders');
+                  fetchUserOrders();
+                }
+              },
+              {
+                icon: () => (
+                  <div className="relative">
+                    <ShoppingCart className="h-5 w-5" />
+                    {mobileCartItemCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white font-mono text-[8px] h-3.5 min-w-[14px] px-0.5 rounded-full flex items-center justify-center font-bold border border-white">
+                        {mobileCartItemCount > 9 ? '9+' : mobileCartItemCount}
+                      </span>
+                    )}
+                  </div>
+                ),
+                label: 'Cart',
+                onClick: () => {
+                  setMobileTab('cart');
+                }
+              },
+              {
+                icon: User,
+                label: 'Profile',
+                onClick: () => {
+                  setMobileTab('profile');
+                  setActiveTab('profile');
+                  fetchStudentProfile();
+                }
+              }
+            ]}
+          />
         </nav>
 
         {/* Global Compliance overlay triggers for the policy screens */}
