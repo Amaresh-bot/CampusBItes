@@ -71,17 +71,11 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#1E293B] antialiased font-sans flex flex-col justify-between selection:bg-[#4CAF50]/20 selection:text-[#1B4D3E]">
       
-      {/* 1. Global Announcement / College Trust Ribbon */}
-      <div className="bg-[#1B4D3E] text-[#FFFFFF] text-[11px] font-sans font-bold py-2 px-4 text-center flex justify-center items-center gap-1.5 select-none tracking-wider">
-        <span className="inline-flex h-2 w-2 rounded-full bg-[#4CAF50] animate-pulse shrink-0"></span>
-        <span className="uppercase text-slate-100">Sphoorthy Engineering College Ecosystem Smart Hub (N8 Portal)</span>
-        <span className="hidden sm:inline text-slate-300/40">•</span>
-        <span className="hidden sm:inline text-[#E8F5E9] font-medium">Canteen Orders & Bookstore Reservation Active</span>
-      </div>
+
 
       <section 
         id="hero" 
-        className="relative text-white overflow-hidden flex flex-col justify-center pt-28 pb-12 sm:pb-16 selection:bg-[#4CAF50]/30"
+        className="relative text-white overflow-hidden flex flex-col justify-center pt-28 pb-8 sm:pb-10 selection:bg-[#4CAF50]/30"
         style={{
           background: 'rgba(27, 77, 62, 0.9)',
           backdropFilter: 'blur(20px)'
@@ -298,7 +292,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
 
       {/* 6. Featured SPHN Categories (Swiggy food options circular slider layout) */}
       <section 
-        className="pt-8 sm:pt-12 pb-16 w-full rounded-t-[32px] sm:rounded-t-[48px] -mt-6 sm:-mt-8 relative z-20 border-t border-slate-100 select-none overflow-hidden"
+        className="pt-8 sm:pt-10 pb-16 w-full relative z-20 border-t border-slate-100 select-none overflow-hidden"
         style={{
           background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 1))'
         }}
