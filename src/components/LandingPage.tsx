@@ -349,26 +349,10 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
             </div>
           </div>
 
-          {/* Premium Statistics Banner counters */}
-          <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-3xl mx-auto py-4 border-b border-slate-100 text-center">
-            <div className="space-y-1">
-              <div className="text-xl sm:text-3.5xl font-extrabold text-[#1B4D3E]">5000+</div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Orders Delivered</div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-xl sm:text-3.5xl font-extrabold text-[#1B4D3E]">1200+</div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Students Served</div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-xl sm:text-3.5xl font-extrabold text-[#1B4D3E]">15+</div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Campus Stores</div>
-            </div>
-          </div>
-
-          {/* Swiggy-Style Category Horizontal Slider */}
+          {/* Swiggy-Style Category Horizontal Slider - Two Rows */}
           <div 
             ref={scrollRef}
-            className="flex gap-4 sm:gap-8 overflow-x-auto pb-4 pt-2 no-scrollbar scroll-smooth w-full select-none"
+            className="grid grid-rows-2 grid-flow-col gap-y-6 gap-x-4 sm:gap-x-8 overflow-x-auto pb-4 pt-2 no-scrollbar scroll-smooth w-full select-none"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {categories.map((cat) => (
