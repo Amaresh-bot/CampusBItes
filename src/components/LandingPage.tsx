@@ -75,7 +75,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
 
       <section 
         id="hero" 
-        className="relative text-white overflow-hidden flex flex-col justify-center pt-28 pb-8 sm:pb-10 selection:bg-[#4CAF50]/30"
+        className="relative text-white overflow-hidden min-h-screen flex flex-col justify-center pt-28 pb-8 sm:pb-10 selection:bg-[#4CAF50]/30"
         style={{
           background: 'rgba(27, 77, 62, 0.9)',
           backdropFilter: 'blur(20px)'
