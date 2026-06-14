@@ -2,20 +2,13 @@ import React, { useState } from 'react';
 import { 
   Search, 
   ChevronRight, 
-  Coffee, 
-  Notebook, 
   Sparkles, 
   HelpCircle, 
   MapPin, 
   Clock, 
   GraduationCap, 
-  BookOpen, 
-  Zap, 
-  CheckCircle2, 
   CreditCard,
   ShoppingBag,
-  Star,
-  Flame,
   ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -46,28 +39,7 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
     { id: 'lab_materials', name: 'Lab Materials', icon: '🔬', count: 'SPHN Kits' },
   ];
 
-  // Swiggy style popular campus venues with realistic badges
-  const popularStores = [
-    {
-      name: "Sphoorthy Central Cafe",
-      category: "North Indian • Chinese • South Indian • Fast Food",
-      rating: "4.8",
-      time: "10-15 Min",
-      tag: "Best Seller",
-      image: "🍔",
-      color: "bg-[#E8F5E9]"
-    },
-    {
-      name: "Student Stationery Emporium",
-      category: "Record Books • Lab Kits • Geometry Essentials • Printing",
-      rating: "4.9",
-      time: "5-10 Min",
-      tag: "Academic Hub",
-      image: "📚",
-      color: "bg-[#F3F4F6]"
-    },
-
-  ];
+  // Removed popularStores
 
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#1E293B] antialiased font-sans flex flex-col justify-between selection:bg-[#4CAF50]/20 selection:text-[#1B4D3E]">
@@ -151,7 +123,7 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
               
               <button
                 onClick={onSignIn}
-                className="text-[11px] sm:text-xs font-extrabold bg-[#4CAF50] hover:bg-[#45a049] hover:scale-[1.02] text-white px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg shadow-[#1B4D3E]/20 active:scale-95 transition-all flex items-center gap-1.5 border border-[#4CAF50]/15 shrink-0"
+                className="text-[11px] sm:text-xs font-extrabold bg-[#1B4D3E] hover:bg-[#12352B] hover:scale-[1.02] text-white px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg shadow-[#1B4D3E]/20 active:scale-95 border border-white/10 hover:border-white/20 transition-all flex items-center gap-1.5 shrink-0"
               >
                 <span>Get Started</span>
                 <ArrowRight className="w-3.5 h-3.5 text-white hidden xs:block" />
@@ -170,7 +142,7 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             
             {/* Hero Left Content Accent Block */}
-            <div className="col-span-1 lg:col-span-6 space-y-6 text-center lg:text-left flex flex-col justify-center">
+            <div className="col-span-1 lg:col-span-7 space-y-6 text-center lg:text-left flex flex-col justify-center">
               
               {/* Premium College Incubated Badge */}
               <div className="inline-flex self-center lg:self-start items-center gap-1.5 bg-[#E8F5E9]/15 border border-[#4CAF50]/20 px-3.5 py-1.5 rounded-full text-[10px] sm:text-xs font-black tracking-wide text-[#E8F5E9] uppercase select-none shadow-xs backdrop-blur-md">
@@ -190,243 +162,252 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
                 </h1>
                 
                 <p className="text-xs sm:text-base md:text-lg text-slate-200 mt-2 font-semibold max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                  Everything students need inside campus. Fresh meals, snacks, stationery, printouts, and essentials delivered faster than standing in line.
+                  Everything students need inside campus. Fresh meals, snacks, stationery, printouts, and essentials delivered faster.
                 </p>
               </div>
 
+              {/* Swiggy-like Dual Input Search Container */}
+              <form onSubmit={handleSearchSubmit} className="w-full max-w-2xl mt-8 relative z-30">
+                <div className="flex flex-col sm:flex-row items-stretch bg-white/10 hover:bg-white/15 focus-within:bg-white focus-within:text-[#1E293B] rounded-2xl border border-white/20 focus-within:border-white/40 shadow-lg backdrop-blur-md transition-all duration-300 overflow-hidden">
+                  
+                  {/* Left Side: Campus Block selector */}
+                  <div className="relative flex items-center px-4 py-3 sm:py-4 border-b sm:border-b-0 sm:border-r border-white/10 focus-within:border-slate-200 shrink-0 select-none cursor-pointer group/loc min-w-[170px] sm:max-w-[200px]">
+                    <MapPin className="w-4 h-4 text-[#4CAF50] shrink-0 mr-2" />
+                    <select
+                      value={selectedCollege}
+                      onChange={(e) => setSelectedCollege(e.target.value)}
+                      className="bg-transparent text-xs sm:text-sm font-bold text-white focus-within:text-[#1E293B] outline-none cursor-pointer pr-4 appearance-none w-full border-none"
+                    >
+                      <option className="text-slate-900 bg-white" value="Sphoorthy Camp">Sphoorthy Camp</option>
+                      <option className="text-slate-900 bg-white" value="Block A">Block A (Main)</option>
+                      <option className="text-slate-900 bg-white" value="Block B">Block B (Lounge)</option>
+                      <option className="text-slate-900 bg-white" value="Library Hub">Library Hub</option>
+                    </select>
+                    <ChevronRight className="w-3.5 h-3.5 text-white/60 focus-within:text-[#1E293B]/60 absolute right-3 pointer-events-none rotate-90" />
+                  </div>
 
+                  {/* Right Side: Main Search input */}
+                  <div className="relative flex-1 flex items-center">
+                    <input
+                      type="text"
+                      value={searchVal}
+                      onChange={(e) => setSearchVal(e.target.value)}
+                      placeholder="Search food, snacks, stationery, stores..."
+                      className="w-full pl-5 pr-12 py-3.5 sm:py-4 bg-transparent text-white focus:text-[#1E293B] placeholder:text-slate-355 focus:placeholder:text-slate-400 focus:outline-none text-sm sm:text-base font-semibold border-none"
+                    />
+                    <button 
+                      type="submit"
+                      className="absolute right-3 text-[#E8F5E9] focus-within:text-[#1E293B]/80 hover:text-white shrink-0 p-1.5 cursor-pointer"
+                    >
+                      <Search className="w-5 h-5 text-[#4CAF50] hover:scale-110 transition-transform" />
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              {/* Quick Access Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mt-10 w-full">
+                
+                {/* Card 1: Food Delivery */}
+                <motion.div
+                  whileHover={{ y: -6, scale: 1.02 }}
+                  onClick={onSignIn}
+                  className="cursor-pointer bg-white rounded-[24px] p-5 shadow-lg flex flex-col justify-between h-[180px] sm:h-[200px] border border-white/10 hover:border-[#4CAF50]/30 transition-all duration-300 relative overflow-hidden group select-none text-left"
+                >
+                  <div className="absolute -right-4 -bottom-4 w-24 h-24 sm:w-28 sm:h-28 bg-[#E8F5E9]/60 rounded-full flex items-center justify-center text-5xl group-hover:scale-110 transition-transform" />
+                  <div className="absolute right-2 bottom-2 text-4xl sm:text-5xl">🍔</div>
+                  
+                  <div className="space-y-1 relative z-10">
+                    <span className="text-[10px] font-black uppercase text-[#1B4D3E] tracking-wider">Food Delivery</span>
+                    <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm leading-tight">Fresh meals from campus canteens</h3>
+                    <div className="inline-block bg-[#E8F5E9] text-[#1B4D3E] text-[9px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider mt-1">
+                      Fresh & Hot
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 w-8 h-8 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center group-hover:bg-[#4CAF50] transition-colors mt-auto">
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
+                </motion.div>
+
+                {/* Card 2: Campus Store */}
+                <motion.div
+                  whileHover={{ y: -6, scale: 1.02 }}
+                  onClick={onSignIn}
+                  className="cursor-pointer bg-white rounded-[24px] p-5 shadow-lg flex flex-col justify-between h-[180px] sm:h-[200px] border border-white/10 hover:border-[#4CAF50]/30 transition-all duration-300 relative overflow-hidden group select-none text-left"
+                >
+                  <div className="absolute -right-4 -bottom-4 w-24 h-24 sm:w-28 sm:h-28 bg-[#E8F5E9]/60 rounded-full flex items-center justify-center text-5xl group-hover:scale-110 transition-transform" />
+                  <div className="absolute right-2 bottom-2 text-4xl sm:text-5xl">🛒</div>
+
+                  <div className="space-y-1 relative z-10">
+                    <span className="text-[10px] font-black uppercase text-[#1B4D3E] tracking-wider">Campus Store</span>
+                    <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm leading-tight">Stationery and daily essentials</h3>
+                    <div className="inline-block bg-[#E8F5E9] text-[#1B4D3E] text-[9px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider mt-1">
+                      Student Rates
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 w-8 h-8 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center group-hover:bg-[#4CAF50] transition-colors mt-auto">
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
+                </motion.div>
+
+                {/* Card 3: Print & Services */}
+                <motion.div
+                  whileHover={{ y: -6, scale: 1.02 }}
+                  onClick={onSignIn}
+                  className="cursor-pointer bg-white rounded-[24px] p-5 shadow-lg flex flex-col justify-between h-[180px] sm:h-[200px] border border-white/10 hover:border-[#4CAF50]/30 transition-all duration-300 relative overflow-hidden group select-none text-left"
+                >
+                  <div className="absolute -right-4 -bottom-4 w-24 h-24 sm:w-28 sm:h-28 bg-[#E8F5E9]/60 rounded-full flex items-center justify-center text-5xl group-hover:scale-110 transition-transform" />
+                  <div className="absolute right-2 bottom-2 text-4xl sm:text-5xl">🖨️</div>
+
+                  <div className="space-y-1 relative z-10">
+                    <span className="text-[10px] font-black uppercase text-[#1B4D3E] tracking-wider">Print & Hub</span>
+                    <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm leading-tight">Printouts, records & academic services</h3>
+                    <div className="inline-block bg-[#E8F5E9] text-[#1B4D3E] text-[9px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider mt-1">
+                      Instant Copy
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 w-8 h-8 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center group-hover:bg-[#4CAF50] transition-colors mt-auto">
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
+                </motion.div>
+
+              </div>
 
             </div>
 
-            {/* Hero Right visual column: Dynamic floating marketplace illustration cards */}
-            <div className="hidden md:flex col-span-1 lg:col-span-6 relative h-[450px] md:h-[550px] lg:h-[600px] items-center justify-center select-none overflow-hidden">
+            {/* Hero Right visual column: Premium marketplace showcase */}
+            <div className="hidden lg:flex col-span-1 lg:col-span-5 relative h-[500px] items-center justify-center select-none overflow-visible">
               
               {/* Central Pulsating Halo Backdrops */}
-              <div className="absolute w-[300px] md:w-[450px] h-[300px] md:h-[450px] rounded-full bg-radial from-[#4CAF50]/15 to-transparent blur-3xl" />
-              <div className="absolute w-[200px] md:w-[350px] h-[200px] md:h-[350px] rounded-full bg-[#E8F5E9]/5 blur-2xl" />
+              <div className="absolute w-[400px] h-[400px] rounded-full bg-radial from-[#4CAF50]/20 to-transparent blur-3xl pointer-events-none" />
 
-              {/* Card 1: Burger Card (🍔) */}
-              <motion.div 
-                animate={{ y: [0, -12, 0] }}
-                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                whileHover={{ scale: 1.05, zIndex: 30 }}
-                onClick={onSignIn}
-                className="absolute top-[5%] left-[8%] bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl p-4 shadow-xl flex items-center gap-3.5 cursor-pointer max-w-[200px] transition-all"
+              {/* Large Glassmorphism Card */}
+              <div 
+                className="w-full max-w-[380px] h-[380px] rounded-[48px] shadow-2xl backdrop-blur-[20px] border flex flex-col items-center justify-center relative overflow-visible text-center p-8 transition-all duration-500 hover:border-white/25"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  borderColor: 'rgba(255, 255, 255, 0.15)',
+                }}
               >
-                <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-3xl shrink-0">🍔</div>
-                <div className="text-left">
-                  <span className="text-[10px] font-extrabold uppercase text-[#2E7D5A] tracking-wider leading-none">Canteen Grill</span>
-                  <h4 className="font-extrabold text-slate-900 text-xs mt-0.5 whitespace-nowrap">Spicy Crispy Burger</h4>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[11px] font-bold text-slate-500 font-mono">₹45</span>
-                    <span className="text-[9px] font-black text-[#4CAF50] bg-[#E8F5E9] px-1 py-0.5 rounded uppercase font-sans">★ 4.8</span>
+                {/* Center Content */}
+                <div className="space-y-4 relative z-10 max-w-[280px]">
+                  <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mx-auto border border-white/20 shadow-inner">
+                    <ShoppingBag className="w-10 h-10 text-[#4CAF50]" />
                   </div>
-                </div>
-              </motion.div>
-
-              {/* Card 2: Coffee Card (☕) */}
-              <motion.div 
-                animate={{ y: [0, 14, 0] }}
-                transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
-                whileHover={{ scale: 1.05, zIndex: 30 }}
-                onClick={onSignIn}
-                className="absolute top-[32%] right-[2%] bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl p-4 shadow-xl flex items-center gap-3.5 cursor-pointer max-w-[200px] transition-all"
-              >
-                <div className="w-12 h-12 bg-[#EBF7F2] rounded-xl flex items-center justify-center text-3xl shrink-0">☕</div>
-                <div className="text-left">
-                  <span className="text-[10px] font-extrabold uppercase text-[#2E7D5A] tracking-wider leading-none">Block-B Lounge</span>
-                  <h4 className="font-extrabold text-slate-900 text-xs mt-0.5 whitespace-nowrap">Cold Brew Coffee</h4>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[11px] font-bold text-slate-500 font-mono">₹35</span>
-                    <span className="text-[9px] font-black text-[#4CAF50] bg-[#E8F5E9] px-1 py-0.5 rounded uppercase font-sans">★ 4.9</span>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Card 3: Notebook Card (📚) */}
-              <motion.div 
-                animate={{ y: [0, -15, 0] }}
-                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-                whileHover={{ scale: 1.05, zIndex: 30 }}
-                onClick={onSignIn}
-                className="absolute bottom-[10%] left-[5%] bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl p-4 shadow-xl flex items-center gap-3.5 cursor-pointer max-w-[210px] transition-all"
-              >
-                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-3xl shrink-0">📚</div>
-                <div className="text-left">
-                  <span className="text-[10px] font-extrabold uppercase text-[#2E7D5A] tracking-wider leading-none">SPHN Book Store</span>
-                  <h4 className="font-extrabold text-slate-900 text-xs mt-0.5 whitespace-nowrap">B.Tech Lab Record</h4>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[11px] font-bold text-slate-500 font-mono">₹25</span>
-                    <span className="text-[9px] font-black text-slate-600 bg-slate-100 px-1 py-0.5 rounded uppercase font-sans">Required</span>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Card 4: Pen Card (🖊️) */}
-              <motion.div 
-                animate={{ y: [0, 8, 0] }}
-                transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}
-                whileHover={{ scale: 1.05, zIndex: 30 }}
-                onClick={onSignIn}
-                className="absolute top-[8%] right-[10%] bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl p-3 shadow-lg flex items-center gap-2.5 cursor-pointer max-w-[150px] transition-all"
-              >
-                <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-2xl shrink-0">🖊️</div>
-                <div className="text-left min-w-0">
-                  <h4 className="font-extrabold text-slate-900 text-xs mt-0.5 truncate uppercase font-sans">Drawing Pen</h4>
-                  <p className="text-[10px] font-bold text-slate-450 font-mono">₹10 • Fast Pack</p>
-                </div>
-              </motion.div>
-
-
-
-              {/* Big central beautiful food illustrations background container */}
-              <div className="w-72 h-72 md:w-96 md:h-96 rounded-[40px] bg-white/5 border border-white/5 shadow-2xl backdrop-blur-xs flex items-center justify-center relative overflow-hidden text-center p-8">
-                <div className="space-y-4">
-                  <div className="absolute -top-10 -left-10 w-32 h-32 bg-[#4CAF50]/15 rounded-full blur-xl" />
-                  <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white/5 rounded-full blur-xl" />
-                  
-                  <ShoppingBag className="w-20 h-20 text-[#4CAF50] mx-auto animate-pulse" />
                   <div>
-                    <h3 className="font-display font-black text-white text-lg tracking-tight uppercase">SPHN Campus Marketplace</h3>
-                    <p className="text-xs text-[#A2C2B9] mt-1 font-medium px-4">Everything students need from sizzling canteen meals to stationary supplies instantly.</p>
+                    <h3 className="font-display font-black text-white text-xl tracking-tight uppercase leading-tight">
+                      SPHN Campus Marketplace
+                    </h3>
+                    <p className="text-xs text-[#A2C2B9] mt-2 font-medium leading-relaxed">
+                      Discover food, drinks, files, records, and exam prep tools right inside Sphoorthy.
+                    </p>
                   </div>
                 </div>
-              </div>
 
-            </div>
+                {/* Floating animated product cards around the center */}
+                
+                {/* 1. Burger (🍔) */}
+                <motion.div 
+                  animate={{ y: [0, -10, 0], x: [0, 5, 0] }}
+                  transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+                  whileHover={{ scale: 1.08 }}
+                  onClick={onSignIn}
+                  className="absolute -top-[12%] -left-[10%] bg-white/95 backdrop-blur-md border border-slate-100/10 rounded-2xl p-3 shadow-xl flex items-center gap-3 cursor-pointer max-w-[170px]"
+                >
+                  <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-2xl shrink-0">🍔</div>
+                  <div className="text-left leading-tight">
+                    <h4 className="font-bold text-slate-850 text-[11px] whitespace-nowrap">Canteen Burger</h4>
+                    <span className="text-[10px] font-bold text-slate-450 font-mono">₹45</span>
+                  </div>
+                </motion.div>
 
-          </div>
-        </div>
-      </section>
+                {/* 2. Coffee (☕) */}
+                <motion.div 
+                  animate={{ y: [0, 12, 0], x: [0, -4, 0] }}
+                  transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
+                  whileHover={{ scale: 1.08 }}
+                  onClick={onSignIn}
+                  className="absolute top-[20%] -right-[15%] bg-white/95 backdrop-blur-md border border-slate-100/10 rounded-2xl p-3 shadow-xl flex items-center gap-3 cursor-pointer max-w-[170px]"
+                >
+                  <div className="w-10 h-10 bg-[#EBF7F2] rounded-xl flex items-center justify-center text-2xl shrink-0">☕</div>
+                  <div className="text-left leading-tight">
+                    <h4 className="font-bold text-slate-855 text-[11px] whitespace-nowrap">Cold Brew</h4>
+                    <span className="text-[10px] font-bold text-slate-450 font-mono">₹35</span>
+                  </div>
+                </motion.div>
 
-      {/* 5. Service Cards (Three large bento grid cards below hero) */}
-      <section className="bg-white py-16 w-full -mt-4 relative z-20 rounded-t-[32px] sm:rounded-t-[48px] border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="text-center max-w-xl mx-auto space-y-3">
-            <h2 className="text-3xl font-display font-black tracking-tight text-[#1B4D3E]">
-              What would you like to do?
-            </h2>
-            <p className="text-xs text-[#2E7D5A] font-bold uppercase tracking-widest">
-              Instant pickup solutions customized for Sphoorthy Campus
-            </p>
-          </div>
+                {/* 3. Notebook (📚) */}
+                <motion.div 
+                  animate={{ y: [0, -14, 0], x: [0, -5, 0] }}
+                  transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+                  whileHover={{ scale: 1.08 }}
+                  onClick={onSignIn}
+                  className="absolute -bottom-[10%] -left-[5%] bg-white/95 backdrop-blur-md border border-slate-100/10 rounded-2xl p-3 shadow-xl flex items-center gap-3 cursor-pointer max-w-[175px]"
+                >
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-2xl shrink-0">📚</div>
+                  <div className="text-left leading-tight">
+                    <h4 className="font-bold text-slate-855 text-[11px] whitespace-nowrap">Lab Record</h4>
+                    <span className="text-[10px] font-bold text-slate-450 font-mono">₹25</span>
+                  </div>
+                </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Card 1: Food Delivery */}
-            <div 
-              onClick={onSignIn}
-              className="group cursor-pointer bg-white hover:bg-white border border-[#E8F5E9] hover:border-[#1B4D3E] p-8 rounded-[32px] shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between space-y-6 relative overflow-hidden"
-            >
-              {/* Image Circle Background */}
-              <div className="absolute top-0 right-0 w-36 h-36 bg-[#E8F5E9]/50 rounded-bl-[100px] shrink-0 -z-10 group-hover:bg-[#E8F5E9] transition-all" />
+                {/* 4. Pen (🖊️) */}
+                <motion.div 
+                  animate={{ y: [0, 8, 0], x: [0, 4, 0] }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                  whileHover={{ scale: 1.08 }}
+                  onClick={onSignIn}
+                  className="absolute -top-[5%] -right-[5%] bg-white/95 backdrop-blur-md border border-slate-100/10 rounded-2xl p-2.5 shadow-lg flex items-center gap-2.5 cursor-pointer max-w-[130px]"
+                >
+                  <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-xl shrink-0">🖊️</div>
+                  <div className="text-left min-w-0 leading-tight">
+                    <h4 className="font-bold text-slate-855 text-[10px] truncate">Drawing Pen</h4>
+                    <span className="text-[9px] font-bold text-slate-450 font-mono">₹10</span>
+                  </div>
+                </motion.div>
 
-              <div className="space-y-4 pt-4">
-                <div className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-[#E8F5E9] text-[#1B4D3E] px-2.5 py-1 rounded-full">
-                  <Flame className="w-3.5 h-3.5 text-[#4CAF50] shrink-0" />
-                  Most Popular
-                </div>
+                {/* 5. Print Service (🖨️) */}
+                <motion.div 
+                  animate={{ y: [0, -12, 0], x: [0, 6, 0] }}
+                  transition={{ repeat: Infinity, duration: 5.5, ease: "easeInOut" }}
+                  whileHover={{ scale: 1.08 }}
+                  onClick={onSignIn}
+                  className="absolute bottom-[35%] -left-[18%] bg-white/95 backdrop-blur-md border border-slate-100/10 rounded-2xl p-3 shadow-xl flex items-center gap-3 cursor-pointer max-w-[170px]"
+                >
+                  <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-2xl shrink-0">🖨️</div>
+                  <div className="text-left leading-tight">
+                    <h4 className="font-bold text-slate-855 text-[11px] whitespace-nowrap">Print Service</h4>
+                    <span className="text-[10px] font-bold text-slate-450 font-mono">Fast Copy</span>
+                  </div>
+                </motion.div>
 
-                <div className="space-y-2">
-                  <div className="text-4xl text-slate-850">🍔</div>
-                  <h3 className="font-display font-black text-[#1B4D3E] text-2xl tracking-tight leading-tight uppercase mt-2">
-                    Food Delivery
-                  </h3>
-                  <p className="text-xs text-slate-500 font-sans font-medium leading-relaxed">
-                    Order fresh, steaming hot culinary dishes from the main canteens instantly. No queues, pay digitally, and fetch when token buzzes!
-                  </p>
-                </div>
-              </div>
+                {/* 6. Snacks (🍟) */}
+                <motion.div 
+                  animate={{ y: [0, 10, 0], x: [0, -6, 0] }}
+                  transition={{ repeat: Infinity, duration: 4.8, ease: "easeInOut" }}
+                  whileHover={{ scale: 1.08 }}
+                  onClick={onSignIn}
+                  className="absolute -bottom-[8%] -right-[8%] bg-white/95 backdrop-blur-md border border-slate-100/10 rounded-2xl p-3 shadow-xl flex items-center gap-3 cursor-pointer max-w-[170px]"
+                >
+                  <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-2xl shrink-0">🍟</div>
+                  <div className="text-left leading-tight">
+                    <h4 className="font-bold text-slate-855 text-[11px] whitespace-nowrap">Hot Snacks</h4>
+                    <span className="text-[10px] font-bold text-[#4CAF50] font-mono">₹20</span>
+                  </div>
+                </motion.div>
 
-              <div className="flex items-center justify-between pt-4">
-                <span className="text-[#1B4D3E] group-hover:text-[#4CAF50] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all">
-                  Browse Menu Catalogue
-                  <ChevronRight className="w-4 h-4" />
-                </span>
-                <span className="h-8 w-8 rounded-full bg-[#1B4D3E] group-hover:bg-[#4CAF50] text-white flex items-center justify-center font-bold font-mono text-xs transition-transform group-hover:scale-110">
-                  →
-                </span>
-              </div>
-            </div>
-
-            {/* Card 2: Campus Bookstore */}
-            <div 
-              onClick={onSignIn}
-              className="group cursor-pointer bg-white hover:bg-white border border-[#E8F5E9] hover:border-[#1B4D3E] p-8 rounded-[32px] shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between space-y-6 relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-36 h-36 bg-[#E8F5E9]/50 rounded-bl-[100px] shrink-0 -z-10 group-hover:bg-[#E8F5E9] transition-all" />
-
-              <div className="space-y-4 pt-4">
-                <div className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-[#E8F5E9] text-[#1B4D3E] px-2.5 py-1 rounded-full">
-                  <Clock className="w-3.5 h-3.5 text-[#4CAF50] shrink-0" />
-                  10 Minute Delivery
-                </div>
-
-                <div className="space-y-2">
-                  <div className="text-4xl text-slate-850">📚</div>
-                  <h3 className="font-display font-black text-[#1B4D3E] text-2xl tracking-tight leading-tight uppercase mt-2">
-                    Campus Store
-                  </h3>
-                  <p className="text-xs text-slate-500 font-sans font-medium leading-relaxed">
-                    Secure books, geometric kits, lab manuals, official white papers, premium pens, highlighters, and scientific calculators immediately.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-4">
-                <span className="text-[#1B4D3E] group-hover:text-[#4CAF50] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all">
-                  Explore Bookstore
-                  <ChevronRight className="w-4 h-4" />
-                </span>
-                <span className="h-8 w-8 rounded-full bg-[#1B4D3E] group-hover:bg-[#4CAF50] text-white flex items-center justify-center font-bold font-mono text-xs transition-transform group-hover:scale-110">
-                  →
-                </span>
-              </div>
-            </div>
-
-            {/* Card 3: Queue-Free Pickup */}
-            <div 
-              onClick={onSignIn}
-              className="group cursor-pointer bg-white hover:bg-white border border-[#E8F5E9] hover:border-[#1B4D3E] p-8 rounded-[32px] shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between space-y-6 relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-36 h-36 bg-[#E8F5E9]/50 rounded-bl-[100px] shrink-0 -z-10 group-hover:bg-[#E8F5E9] transition-all" />
-
-              <div className="space-y-4 pt-4">
-                <div className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-[#E8F5E9] text-[#1B4D3E] px-2.5 py-1 rounded-full">
-                  <Zap className="w-3.5 h-3.5 text-[#4CAF50] shrink-0" />
-                  Skip Waiting
-                </div>
-
-                <div className="space-y-2">
-                  <div className="text-4xl text-slate-850">☕</div>
-                  <h3 className="font-display font-black text-[#1B4D3E] text-2xl tracking-tight leading-tight uppercase mt-2">
-                    Queue-Free Pickup
-                  </h3>
-                  <p className="text-xs text-slate-500 font-sans font-medium leading-relaxed">
-                    On your way to block B? Reserve beverages or records. Instantly capture your generated tokens and scoop them without standard wait cycles.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-4">
-                <span className="text-[#1B4D3E] group-hover:text-[#4CAF50] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all">
-                  Advance Pre-Ordering
-                  <ChevronRight className="w-4 h-4" />
-                </span>
-                <span className="h-8 w-8 rounded-full bg-[#1B4D3E] group-hover:bg-[#4CAF50] text-white flex items-center justify-center font-bold font-mono text-xs transition-transform group-hover:scale-110">
-                  →
-                </span>
               </div>
             </div>
 
           </div>
-
         </div>
       </section>
 
       {/* 6. Featured SPHN Categories (Horizontal layout scroll) */}
-      <section className="bg-[#E8F5E9]/30 py-16 w-full border-y border-slate-100 select-none">
+      <section className="bg-[#E8F5E9]/30 py-16 w-full rounded-t-[32px] sm:rounded-t-[48px] -mt-6 relative z-20 border-t border-slate-100 select-none">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
@@ -468,69 +449,7 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
         </div>
       </section>
 
-      {/* 7. Popular SPHN Stores Section (Swiggy restaurant style layout) */}
-      <section className="bg-white py-16 w-full">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          
-          <div className="space-y-1">
-            <h2 className="text-2xl font-display font-black text-[#1B4D3E] tracking-tight">
-              Popular SPHN Stores
-            </h2>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Top-rated campus suppliers for engineering student kits & food</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {popularStores.map((store, idx) => (
-              <div 
-                key={idx}
-                onClick={onSignIn}
-                className="group cursor-pointer bg-[#F8FAFC]/60 hover:bg-white border border-slate-100 hover:border-[#1B4D3E]/30 rounded-[28px] overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col justify-between"
-              >
-                
-                {/* Simulated Store Hero banner */}
-                <div className={`h-36 ${store.color} flex items-center justify-center relative`}>
-                  <span className="text-5xl group-hover:scale-110 transition-transform duration-300 select-none">{store.image}</span>
-                  
-                  {/* Floating Absolute SPHN Store Badge */}
-                  <span className="absolute top-3 left-3 text-[9px] font-black text-white bg-[#1B4D3E] px-2.5 py-1 rounded-md tracking-wider uppercase shadow-sm">
-                    {store.tag}
-                  </span>
-                </div>
-
-                <div className="p-6 space-y-4">
-                  <div className="space-y-1.5">
-                    <h3 className="font-display font-black text-slate-900 group-hover:text-[#1B4D3E] transition-colors leading-tight text-base sm:text-lg">
-                      {store.name}
-                    </h3>
-                    <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                      {store.category}
-                    </p>
-                  </div>
-
-                  {/* SPHN Badges (Swiggy format) */}
-                  <div className="flex items-center gap-4 text-xs font-bold font-mono border-t border-slate-100 pt-3 text-slate-500">
-                    <span className="flex items-center gap-1 text-[#2E7D5A]">
-                      <Star className="w-3.5 h-3.5 fill-current text-[#4CAF50]" />
-                      {store.rating}
-                    </span>
-                    <span className="text-slate-300">•</span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      {store.time}
-                    </span>
-                    <span className="text-slate-300">•</span>
-                    <span className="text-[10px] uppercase font-black bg-[#EBF7F2] text-[#1B4D3E] px-1.5 py-0.5 rounded">
-                      SPHN HUB
-                    </span>
-                  </div>
-                </div>
-
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </section>
+      {/* Removed Popular Stores */}
 
 
 
