@@ -62,6 +62,7 @@ export default function App() {
   const [filteredStoreId, setFilteredStoreId] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isMenuLoading, setIsMenuLoading] = useState<boolean>(true);
+  const [hasEnteredApp, setHasEnteredApp] = useState<boolean>(false);
 
   // Mobile Redesign states
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -326,6 +327,7 @@ export default function App() {
     setCart({});
     setOrders([]);
     setActiveTab('menu');
+    setHasEnteredApp(false);
   };
 
   // Order status progression & admin updates with automatic cancellation refunds (Feature 30)
@@ -493,10 +495,13 @@ export default function App() {
     );
   }
 
-  if (!user) {
+  if (!user || !hasEnteredApp) {
     return (
       <div className="min-h-screen bg-[#F2F7F5]">
         <LandingPage
+          isLoggedIn={!!user}
+          onEnterApp={() => setHasEnteredApp(true)}
+          onSignOut={handleLogout}
           onSignIn={() => {
             setShowAuthModal(true);
             setComplianceModal(null);
