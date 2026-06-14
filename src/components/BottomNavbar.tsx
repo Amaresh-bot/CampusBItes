@@ -78,7 +78,7 @@ export const BottomNavbar = memo(function BottomNavbar({
   return (
     <nav
       aria-label="Mobile Bottom Navigation"
-      className="fixed bottom-0 left-0 right-0 z-[45] flex items-end justify-center pb-safe"
+      className="fixed bottom-0 left-0 right-0 z-[45] flex items-center justify-center pb-safe"
       style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 6px)' }}
     >
       <Dock
