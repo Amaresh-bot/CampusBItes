@@ -500,7 +500,12 @@ export default function App() {
       <div className="min-h-screen bg-[#F2F7F5]">
         <LandingPage
           isLoggedIn={!!user}
-          onEnterApp={() => setHasEnteredApp(true)}
+          onEnterApp={(query, category) => {
+            if (query !== undefined) setSearchQuery(query || '');
+            if (category !== undefined) setSelectedCategory(category || 'All');
+            setHasEnteredApp(true);
+            setActiveTab('menu');
+          }}
           onSignOut={handleLogout}
           onSignIn={() => {
             setShowAuthModal(true);

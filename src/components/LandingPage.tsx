@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Search, 
   ChevronRight, 
+  ChevronLeft,
   Sparkles, 
   HelpCircle, 
   MapPin, 
@@ -9,7 +10,8 @@ import {
   GraduationCap, 
   CreditCard,
   ShoppingBag,
-  ArrowRight
+  ArrowRight,
+  ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FallbackImage } from './FallbackImage';
@@ -18,7 +20,7 @@ interface LandingPageProps {
   onSignIn: () => void;
   onContactUs: () => void;
   isLoggedIn: boolean;
-  onEnterApp: () => void;
+  onEnterApp: (searchQuery?: string, categoryFilter?: string) => void;
   onSignOut: () => void;
 }
 
@@ -26,24 +28,42 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
   const [selectedCollege, setSelectedCollege] = useState('Sphoorthy Engineering College (Main Campus)');
   const [searchVal, setSearchVal] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoggedIn) {
-      onEnterApp();
+      onEnterApp(searchVal, 'All');
     } else {
       onSignIn(); // Prompts user registration/login
     }
   };
 
-  // Modern Featured Categories
+  // Modern Featured Categories mapping exact items available in canteen menu
   const categories = [
-    { id: 'meals', name: 'Meals', icon: '🍱', count: '12 items' },
-    { id: 'snacks', name: 'Snacks', icon: '🍟', count: '18 items' },
-    { id: 'beverages', name: 'Beverages', icon: '🥤', count: '9 items' },
-    { id: 'stationery', name: 'Stationery', icon: '📚', count: '24 items' },
-    { id: 'printouts', name: 'Printouts', icon: '🖨️', count: 'Fast Docs' },
-    { id: 'lab_materials', name: 'Lab Materials', icon: '🔬', count: 'SPHN Kits' },
+    { id: 'dosa', name: 'Crispy Dosa', icon: '🥞', searchQuery: 'Dosa', categoryName: 'Breakfast' },
+    { id: 'samosa', name: 'Golden Samosa', icon: '🥟', searchQuery: 'Samosa', categoryName: 'Snacks' },
+    { id: 'chai', name: 'Masala Chai', icon: '☕', searchQuery: 'Chai', categoryName: 'Beverages' },
+    { id: 'paneer', name: 'Paneer Naan', icon: '🍲', searchQuery: 'Paneer', categoryName: 'Meals' },
+    { id: 'chole', name: 'Chole Bhature', icon: '🍛', searchQuery: 'Chole', categoryName: 'Breakfast' },
+    { id: 'noodles', name: 'Hakka Noodles', icon: '🍜', searchQuery: 'Noodles', categoryName: 'Chinese' },
+    { id: 'gulab', name: 'Gulab Jamun', icon: '🍮', searchQuery: 'Jamun', categoryName: 'Desserts' },
+    { id: 'stationery', name: 'Stationery', icon: '📚', searchQuery: '', categoryName: 'Stationery' },
+    { id: 'printouts', name: 'Printouts', icon: '🖨️', searchQuery: '', categoryName: 'Stationery' },
+    { id: 'lab_materials', name: 'Lab Materials', icon: '🔬', searchQuery: '', categoryName: 'Stationery' },
   ];
 
   // Removed popularStores
@@ -277,63 +297,99 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
         </div>
       </section>
 
-      {/* 6. Featured SPHN Categories (3 columns per row on desktop) */}
+      {/* 6. Featured SPHN Categories (Swiggy food options circular slider layout) */}
       <section 
-        className="py-16 w-full rounded-t-[32px] sm:rounded-t-[48px] -mt-6 relative z-20 border-t border-slate-100 select-none"
+        className="py-16 w-full rounded-t-[32px] sm:rounded-t-[48px] -mt-6 relative z-20 border-t border-slate-100 select-none overflow-hidden"
         style={{
           background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 1))'
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        {/* Style tag to hide scrollbars cleanly on WebKit browsers */}
+        <style dangerouslySetInnerHTML={{__html: `
+          .no-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}} />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-slate-100 pb-6">
+          <div className="flex justify-between items-end gap-4 border-b border-slate-100 pb-6">
             <div>
-              <h2 className="text-3xl font-display font-black text-[#1B4D3E] tracking-tight">
-                Featured Categories
+              <h2 className="text-2xl sm:text-3xl font-display font-black text-[#1B4D3E] tracking-tight">
+                Order our best food options
               </h2>
-              <p className="text-sm text-slate-400 font-bold mt-1 uppercase tracking-wide">Browse campus essentials</p>
+              <p className="text-xs sm:text-sm text-slate-400 font-bold mt-1 uppercase tracking-wide">Freshly prepared in SPHN kitchens & stores</p>
             </div>
             
-            <button 
-              onClick={isLoggedIn ? onEnterApp : onSignIn}
-              className="text-xs font-black text-[#1B4D3E] hover:text-[#2E7D5A] flex items-center gap-1 cursor-pointer bg-[#E8F5E9] px-4 py-2 rounded-full transition-colors"
-            >
-              See All Items ({categories.length} sections)
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              <button 
+                onClick={isLoggedIn ? () => onEnterApp() : onSignIn}
+                className="text-[10px] sm:text-xs font-black text-[#1B4D3E] hover:text-[#2E7D5A] hidden sm:flex items-center gap-1 cursor-pointer bg-[#E8F5E9] px-4 py-2 rounded-full transition-colors"
+              >
+                See All Items ({categories.length} options)
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={scrollLeft}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer transition-colors shadow-xs active:scale-95"
+                  title="Scroll Left"
+                >
+                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
+                </button>
+                <button 
+                  onClick={scrollRight}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer transition-colors shadow-xs active:scale-95"
+                  title="Scroll Right"
+                >
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Premium Statistics Banner counters */}
-          <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-3xl mx-auto py-6 border-b border-slate-100 mb-6 text-center">
+          <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-3xl mx-auto py-4 border-b border-slate-100 text-center">
             <div className="space-y-1">
-              <div className="text-xl sm:text-3xl font-extrabold text-[#1B4D3E]">5000+</div>
-              <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Orders Delivered</div>
+              <div className="text-xl sm:text-3.5xl font-extrabold text-[#1B4D3E]">5000+</div>
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Orders Delivered</div>
             </div>
             <div className="space-y-1">
-              <div className="text-xl sm:text-3xl font-extrabold text-[#1B4D3E]">1200+</div>
-              <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Students Served</div>
+              <div className="text-xl sm:text-3.5xl font-extrabold text-[#1B4D3E]">1200+</div>
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Students Served</div>
             </div>
             <div className="space-y-1">
-              <div className="text-xl sm:text-3xl font-extrabold text-[#1B4D3E]">15+</div>
-              <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Campus Stores</div>
+              <div className="text-xl sm:text-3.5xl font-extrabold text-[#1B4D3E]">15+</div>
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Campus Stores</div>
             </div>
           </div>
 
-          {/* Categories Grid (2 cols on mobile, 3 cols on desktop) */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto justify-items-center">
+          {/* Swiggy-Style Category Horizontal Slider */}
+          <div 
+            ref={scrollRef}
+            className="flex gap-4 sm:gap-8 overflow-x-auto pb-4 pt-2 no-scrollbar scroll-smooth w-full select-none"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
             {categories.map((cat) => (
               <div
                 key={cat.id}
-                onClick={isLoggedIn ? onEnterApp : onSignIn}
-                className="group cursor-pointer bg-white border border-slate-100 hover:border-[#1B4D3E]/30 rounded-2xl sm:rounded-[28px] p-6 flex flex-col items-center justify-between shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2.5 w-[160px] h-[180px] sm:w-[220px] sm:h-[220px]"
+                onClick={() => {
+                  if (isLoggedIn) {
+                    onEnterApp(cat.searchQuery, cat.categoryName);
+                  } else {
+                    onSignIn();
+                  }
+                }}
+                className="group flex flex-col items-center select-none cursor-pointer shrink-0 w-16 sm:w-24 text-center"
               >
-                <span className="text-6xl sm:text-[100px] leading-none select-none transition-transform duration-300 group-hover:scale-108 mt-2">{cat.icon}</span>
-                <div className="w-full text-center mt-auto">
-                  <h4 className="text-xs sm:text-sm font-extrabold text-[#1B4D3E] tracking-tight leading-none group-hover:text-[#4CAF50] transition-colors uppercase">
-                    {cat.name}
-                  </h4>
-                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mt-1 uppercase font-mono">{cat.count}</p>
+                {/* Circular background card */}
+                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white border border-slate-100/80 flex items-center justify-center shadow-xs group-hover:shadow-md transition-all duration-300 group-hover:scale-108 group-hover:-translate-y-1">
+                  <span className="text-3xl sm:text-5xl select-none leading-none">{cat.icon}</span>
                 </div>
+                <h4 className="mt-3 text-[10px] sm:text-xs font-extrabold text-slate-700 tracking-tight leading-tight group-hover:text-[#1B4D3E] transition-colors w-full truncate">
+                  {cat.name}
+                </h4>
               </div>
             ))}
           </div>
