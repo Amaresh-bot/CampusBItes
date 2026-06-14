@@ -64,14 +64,21 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
         id="hero" 
         className="relative text-white overflow-hidden min-h-screen flex flex-col justify-center pt-32 pb-20 selection:bg-[#4CAF50]/30"
         style={{
-          background: '#1B4D3E'
+          background: 'rgba(27, 77, 62, 0.9)',
+          backdropFilter: 'blur(20px)'
         }}
       >
+        {/* Glowing glassmorphism & background gradients behind content but inside section */}
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
+          <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-[#4CAF50]/15 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/5 right-1/10 w-80 h-80 bg-[#E8F5E9]/10 rounded-full blur-3xl animate-pulse" />
+        </div>
+
         {/* Transparent Absolute Navbar Overlay inside Hero */}
         <nav className="absolute top-0 left-0 right-0 z-50 w-full bg-transparent border-none">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-0 min-h-[72px] sm:h-24 flex items-center justify-between gap-2">
             
-            {/* Logo Brand Identity with White-Text Contrast (Swiggy Logo Style) */}
+            {/* Logo Brand Identity with White-Text Contrast (Swiggy Logo Style) - SMALL */}
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <FallbackImage
                 srcs={[
@@ -83,22 +90,22 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                 ]}
                 alt="Sphoorthy Engineering College CampusBites Logo"
                 type="logo"
-                className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-2xl shrink-0 p-1.5 shadow-md bg-white"
+                className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-xl shrink-0 p-1 shadow-md bg-white"
               />
               <div className="flex flex-col text-left min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-display font-black text-xl sm:text-3xl tracking-tight text-white uppercase leading-none">
+                <div className="flex items-center gap-1">
+                  <span className="font-display font-black text-base sm:text-xl tracking-tight text-white uppercase leading-none">
                     CampusBites
                   </span>
-                  <span className="text-[8px] sm:text-[9px] font-mono font-bold bg-white/10 text-white px-1 sm:px-1.5 py-0.5 rounded border border-white/20 shrink-0">
+                  <span className="text-[7px] sm:text-[8px] font-mono font-bold bg-white/10 text-white px-1 py-0.5 rounded border border-white/20 shrink-0">
                     SPHN
                   </span>
                 </div>
-                <span className="text-[8px] sm:text-[9px] text-white/70 font-bold tracking-wider uppercase hidden sm:block truncate mt-0.5">Sphoorthy Engineering</span>
+                <span className="text-[7px] sm:text-[8px] text-white/70 font-bold tracking-wider uppercase hidden sm:block truncate mt-0.5">Sphoorthy Engineering</span>
               </div>
             </div>
 
-            {/* Right Area Controls with high contrasts */}
+            {/* Right Area Controls with high contrasts - Lighter main color button */}
             <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
               {isLoggedIn ? (
                 <>
@@ -110,10 +117,10 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                   </button>
                   <button
                     onClick={onEnterApp}
-                    className="text-[11px] sm:text-xs font-extrabold bg-white hover:bg-slate-50 hover:scale-[1.02] text-[#1B4D3E] px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
+                    className="text-[11px] sm:text-xs font-extrabold bg-[#2E7D5A] hover:bg-[#245B49] hover:scale-[1.02] text-white px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
                   >
                     <span>Go to Menu</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#1B4D3E] hidden xs:block" />
+                    <ArrowRight className="w-3.5 h-3.5 text-white hidden xs:block" />
                   </button>
                 </>
               ) : (
@@ -126,10 +133,10 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                   </button>
                   <button
                     onClick={onSignIn}
-                    className="text-[11px] sm:text-xs font-extrabold bg-white hover:bg-slate-50 hover:scale-[1.02] text-[#1B4D3E] px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
+                    className="text-[11px] sm:text-xs font-extrabold bg-[#2E7D5A] hover:bg-[#245B49] hover:scale-[1.02] text-white px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
                   >
                     <span>Get Started</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#1B4D3E] hidden xs:block" />
+                    <ArrowRight className="w-3.5 h-3.5 text-white hidden xs:block" />
                   </button>
                 </>
               )}
