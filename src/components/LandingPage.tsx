@@ -92,7 +92,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-0 min-h-[72px] sm:h-24 flex items-center justify-between gap-2">
             
             {/* Logo Brand Identity with White-Text Contrast (Swiggy Logo Style) - SMALL */}
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="flex items-center gap-3 min-w-0">
               <FallbackImage
                 srcs={[
                   '/assets/college_logo.png',
@@ -103,18 +103,18 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                 ]}
                 alt="Sphoorthy Engineering College CampusBites Logo"
                 type="logo"
-                className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-xl shrink-0 p-1 shadow-md bg-white"
+                className="w-10 h-10 object-contain rounded-xl shrink-0 p-1 shadow-md bg-white"
               />
               <div className="flex flex-col text-left min-w-0">
                 <div className="flex items-center gap-1">
-                  <span className="font-display font-black text-base sm:text-xl tracking-tight text-white uppercase leading-none">
+                  <span className="font-display font-black text-xl tracking-tight text-white uppercase leading-none">
                     CampusBites
                   </span>
-                  <span className="text-[7px] sm:text-[8px] font-mono font-bold bg-white/10 text-white px-1 py-0.5 rounded border border-white/20 shrink-0">
+                  <span className="text-[8px] font-mono font-bold bg-white/10 text-white px-1 py-0.5 rounded border border-white/20 shrink-0">
                     SPHN
                   </span>
                 </div>
-                <span className="text-[7px] sm:text-[8px] text-white/70 font-bold tracking-wider uppercase hidden sm:block truncate mt-0.5">Sphoorthy Engineering</span>
+                <span className="text-[8px] text-white/70 font-bold tracking-wider uppercase hidden sm:block truncate mt-0.5">Sphoorthy Engineering</span>
               </div>
             </div>
 
@@ -129,7 +129,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                     Sign Out
                   </button>
                   <button
-                    onClick={onEnterApp}
+                    onClick={() => onEnterApp()}
                     className="text-[11px] sm:text-xs font-extrabold bg-[#2E7D5A] hover:bg-[#245B49] hover:scale-[1.02] text-white px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
                   >
                     <span>Go to Menu</span>
@@ -139,16 +139,16 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
               ) : (
                 <>
                   <button
-                    onClick={onSignIn}
+                    onClick={() => onSignIn()}
                     className="text-[11px] sm:text-xs font-black text-white/90 hover:text-white px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-sans shrink-0"
                   >
                     Sign In
                   </button>
                   <button
-                    onClick={onSignIn}
+                    onClick={() => onSignIn()}
                     className="text-[11px] sm:text-xs font-extrabold bg-[#2E7D5A] hover:bg-[#245B49] hover:scale-[1.02] text-white px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
                   >
-                    <span>Get Started</span>
+                    <span>Go to Menu</span>
                     <ArrowRight className="w-3.5 h-3.5 text-white hidden xs:block" />
                   </button>
                 </>
@@ -358,13 +358,13 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                     onSignIn();
                   }
                 }}
-                className="group flex flex-col items-center select-none cursor-pointer shrink-0 w-16 sm:w-24 text-center"
+                className="group flex flex-col items-center select-none cursor-pointer shrink-0 w-24 text-center"
               >
                 {/* Circular background card */}
-                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white border border-slate-100/80 flex items-center justify-center shadow-xs group-hover:shadow-md transition-all duration-300 group-hover:scale-108 group-hover:-translate-y-1">
-                  <span className="text-3xl sm:text-5xl select-none leading-none">{cat.icon}</span>
+                <div className="w-24 h-24 rounded-full bg-white border border-slate-100/80 flex items-center justify-center shadow-xs group-hover:shadow-md transition-all duration-300 group-hover:scale-108 group-hover:-translate-y-1">
+                  <span className="text-5xl select-none leading-none">{cat.icon}</span>
                 </div>
-                <h4 className="mt-3 text-[10px] sm:text-xs font-extrabold text-slate-700 tracking-tight leading-tight group-hover:text-[#1B4D3E] transition-colors w-full truncate">
+                <h4 className="mt-3 text-xs font-extrabold text-slate-700 tracking-tight leading-tight group-hover:text-[#1B4D3E] transition-colors w-full truncate">
                   {cat.name}
                 </h4>
               </div>
