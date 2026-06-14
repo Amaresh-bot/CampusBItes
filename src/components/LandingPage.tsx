@@ -64,14 +64,14 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
         id="hero" 
         className="relative text-white overflow-hidden min-h-screen flex flex-col justify-center pt-32 pb-20 selection:bg-[#4CAF50]/30"
         style={{
-          background: `radial-gradient(circle at top left, rgba(76,175,80,0.2), transparent 40%), linear-gradient(135deg, #1B4D3E 0%, #245B49 50%, #2E7D5A 100%)`
+          background: '#1B4D3E'
         }}
       >
         {/* Transparent Absolute Navbar Overlay inside Hero */}
         <nav className="absolute top-0 left-0 right-0 z-50 w-full bg-transparent border-none">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-0 min-h-[72px] sm:h-24 flex items-center justify-between gap-2">
             
-            {/* Logo Brand Identity with White-Text Contrast */}
+            {/* Logo Brand Identity with White-Text Contrast (Swiggy Logo Style) */}
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <FallbackImage
                 srcs={[
@@ -83,40 +83,19 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                 ]}
                 alt="Sphoorthy Engineering College CampusBites Logo"
                 type="logo"
-                className="w-9 h-9 sm:w-12 sm:h-12 object-contain rounded-xl shrink-0 border border-white/10 p-0.5 shadow-sm bg-white/5 backdrop-blur-md"
+                className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-2xl shrink-0 p-1.5 shadow-md bg-white"
               />
               <div className="flex flex-col text-left min-w-0">
-                <div className="flex items-center gap-1 sm:gap-1.5">
-                  <span className="font-display font-black text-lg sm:text-2xl tracking-tight text-white">
-                    Campus<span className="text-[#4CAF50]">Bites</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-display font-black text-xl sm:text-3xl tracking-tight text-white uppercase leading-none">
+                    CampusBites
                   </span>
-                  <span className="text-[8px] sm:text-[9px] font-mono font-bold bg-[#4CAF50]/20 text-[#E8F5E9] px-1 sm:px-1.5 py-0.5 rounded border border-[#4CAF50]/30 shrink-0">
+                  <span className="text-[8px] sm:text-[9px] font-mono font-bold bg-white/10 text-white px-1 sm:px-1.5 py-0.5 rounded border border-white/20 shrink-0">
                     SPHN
                   </span>
                 </div>
-                <span className="text-[8px] sm:text-[9px] text-[#A2C2B9] font-bold tracking-wider uppercase hidden sm:block truncate">Sphoorthy Engineering</span>
+                <span className="text-[8px] sm:text-[9px] text-white/70 font-bold tracking-wider uppercase hidden sm:block truncate mt-0.5">Sphoorthy Engineering</span>
               </div>
-            </div>
-
-            {/* Center Navigation Links - Soft green text with white hover effect */}
-            <div className="hidden md:flex items-center gap-10 font-bold text-xs tracking-wider uppercase text-[#E8F5E9]">
-              <a href="#hero" className="hover:text-white transition-colors relative group py-2">
-                Home
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#4CAF50] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
-              </a>
-              <button onClick={onSignIn} className="hover:text-white cursor-pointer transition-colors relative group py-2">
-                Stores
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#4CAF50] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
-              </button>
-              <button onClick={onSignIn} className="hover:text-white cursor-pointer transition-colors relative group py-2">
-                Categories
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#4CAF50] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
-              </button>
-              <button onClick={onContactUs} className="hover:text-white cursor-pointer flex items-center gap-1.5 transition-colors relative group py-2">
-                <HelpCircle className="w-3.5 h-3.5 text-[#4CAF50]" />
-                Contact
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#4CAF50] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
-              </button>
             </div>
 
             {/* Right Area Controls with high contrasts */}
@@ -125,44 +104,38 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                 <>
                   <button
                     onClick={onSignOut}
-                    className="text-[11px] sm:text-xs font-black text-[#E8F5E9] hover:text-white px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-sans shrink-0"
+                    className="text-[11px] sm:text-xs font-black text-white/90 hover:text-white px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-sans shrink-0"
                   >
                     Sign Out
                   </button>
                   <button
                     onClick={onEnterApp}
-                    className="text-[11px] sm:text-xs font-extrabold bg-[#1B4D3E] hover:bg-[#12352B] hover:scale-[1.02] text-white px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg shadow-[#1B4D3E]/20 active:scale-95 border border-white/10 hover:border-white/20 transition-all flex items-center gap-1.5 shrink-0"
+                    className="text-[11px] sm:text-xs font-extrabold bg-white hover:bg-slate-50 hover:scale-[1.02] text-[#1B4D3E] px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
                   >
                     <span>Go to Menu</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-white hidden xs:block" />
+                    <ArrowRight className="w-3.5 h-3.5 text-[#1B4D3E] hidden xs:block" />
                   </button>
                 </>
               ) : (
                 <>
                   <button
                     onClick={onSignIn}
-                    className="text-[11px] sm:text-xs font-black text-[#E8F5E9] hover:text-white px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-sans shrink-0"
+                    className="text-[11px] sm:text-xs font-black text-white/90 hover:text-white px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-sans shrink-0"
                   >
                     Sign In
                   </button>
                   <button
                     onClick={onSignIn}
-                    className="text-[11px] sm:text-xs font-extrabold bg-[#1B4D3E] hover:bg-[#12352B] hover:scale-[1.02] text-white px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg shadow-[#1B4D3E]/20 active:scale-95 border border-white/10 hover:border-white/20 transition-all flex items-center gap-1.5 shrink-0"
+                    className="text-[11px] sm:text-xs font-extrabold bg-white hover:bg-slate-50 hover:scale-[1.02] text-[#1B4D3E] px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
                   >
                     <span>Get Started</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-white hidden xs:block" />
+                    <ArrowRight className="w-3.5 h-3.5 text-[#1B4D3E] hidden xs:block" />
                   </button>
                 </>
               )}
             </div>
           </div>
         </nav>
-
-        {/* Glowing glassmorphism & background gradients */}
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-          <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-[#4CAF50]/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/5 right-1/10 w-80 h-80 bg-[#E8F5E9]/5 rounded-full blur-3xl animate-pulse" />
-        </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
