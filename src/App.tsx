@@ -688,7 +688,10 @@ export default function App() {
         
         {/* Compact Swiggy-style Sticky Mobile Header (Height: 70px) */}
         <header className="sticky top-0 z-45 h-[70px] bg-white border-none flex items-center justify-between px-4 shadow-[0_2px_12px_rgba(0,0,0,0.02)] shrink-0">
-          <div className="flex items-center gap-2 text-left">
+          <button
+            onClick={() => { setHasEnteredApp(false); setActiveTab('menu'); setFilteredStoreId(null); }}
+            className="flex items-center gap-2 text-left bg-transparent border-none outline-none cursor-pointer hover:opacity-90 transition-all"
+          >
             <div className="w-8 h-8 rounded-lg bg-[#1B4D3E] flex items-center justify-center text-white font-black text-sm">
               <ChefHat className="w-4.5 h-4.5 text-white" />
             </div>
@@ -696,7 +699,7 @@ export default function App() {
               <span className="text-slate-900 text-xs font-black tracking-tight leading-none uppercase block">CampusBites</span>
               <span className="text-[#4CAF50] text-[8px] uppercase font-extrabold block tracking-normal leading-none mt-0.5">SPHOORTHY HUB</span>
             </div>
-          </div>
+          </button>
 
           <div className="flex items-center gap-3">
             {/* Direct self-contained Notifications Bell Component */}
@@ -1053,7 +1056,7 @@ export default function App() {
           
           {/* Logo Brand area (Swiggy Signature Locator Layout) */}
           <button 
-            onClick={() => { setActiveTab('menu'); setFilteredStoreId(null); }}
+            onClick={() => { setHasEnteredApp(false); setActiveTab('menu'); setFilteredStoreId(null); }}
             className="flex items-center gap-3 hover:opacity-90 transition-all text-left bg-transparent border-none outline-none cursor-pointer"
           >
             <FallbackImage
