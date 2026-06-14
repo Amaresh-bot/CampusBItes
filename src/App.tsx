@@ -63,6 +63,7 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isMenuLoading, setIsMenuLoading] = useState<boolean>(true);
   const [hasEnteredApp, setHasEnteredApp] = useState<boolean>(false);
+  const [pendingFilter, setPendingFilter] = useState<{ query: string; category: string } | null>(null);
 
   // Mobile Redesign states
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -320,6 +321,14 @@ export default function App() {
     } else {
       setActiveTab('menu');
     }
+    
+    // Automatically redirect and apply any category/query filter selected on the landing page
+    if (pendingFilter) {
+      setSearchQuery(pendingFilter.query || '');
+      setSelectedCategory(pendingFilter.category || 'All');
+      setPendingFilter(null);
+    }
+    setHasEnteredApp(true);
   };
 
   const handleLogout = () => {
@@ -507,7 +516,12 @@ export default function App() {
             setActiveTab('menu');
           }}
           onSignOut={handleLogout}
-          onSignIn={() => {
+          onSignIn={(query, category) => {
+            if (query || category) {
+              setPendingFilter({ query: query || '', category: category || 'All' });
+            } else {
+              setPendingFilter(null);
+            }
             setShowAuthModal(true);
             setComplianceModal(null);
           }}

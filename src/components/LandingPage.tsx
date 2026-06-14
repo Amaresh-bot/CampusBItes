@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { FallbackImage } from './FallbackImage';
 
 interface LandingPageProps {
-  onSignIn: () => void;
+  onSignIn: (searchQuery?: string, categoryFilter?: string) => void;
   onContactUs: () => void;
   isLoggedIn: boolean;
   onEnterApp: (searchQuery?: string, categoryFilter?: string) => void;
@@ -208,7 +208,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                 <motion.div
                   whileHover={{ y: -8 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                  onClick={isLoggedIn ? onEnterApp : onSignIn}
+                  onClick={() => isLoggedIn ? onEnterApp('', 'All') : onSignIn('', 'All')}
                   className="cursor-pointer bg-white rounded-[32px] p-6 shadow-md flex flex-col justify-between h-[280px] border border-slate-100 hover:border-[#4CAF50]/20 hover:shadow-2xl transition-shadow duration-300 relative overflow-hidden group select-none text-left"
                 >
                   <div className="absolute -right-6 -bottom-6 text-[120px] sm:text-[150px] lg:text-[180px] leading-none select-none transition-transform duration-300 ease-out group-hover:scale-108 origin-bottom-right drop-shadow-lg z-0">
@@ -236,7 +236,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                 <motion.div
                   whileHover={{ y: -8 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                  onClick={isLoggedIn ? onEnterApp : onSignIn}
+                  onClick={() => isLoggedIn ? onEnterApp('', 'Stationery') : onSignIn('', 'Stationery')}
                   className="cursor-pointer bg-white rounded-[32px] p-6 shadow-md flex flex-col justify-between h-[280px] border border-slate-100 hover:border-[#4CAF50]/20 hover:shadow-2xl transition-shadow duration-300 relative overflow-hidden group select-none text-left"
                 >
                   <div className="absolute -right-6 -bottom-6 text-[120px] sm:text-[150px] lg:text-[180px] leading-none select-none transition-transform duration-300 ease-out group-hover:scale-108 origin-bottom-right drop-shadow-lg z-0">
@@ -264,7 +264,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                 <motion.div
                   whileHover={{ y: -8 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                  onClick={isLoggedIn ? onEnterApp : onSignIn}
+                  onClick={() => isLoggedIn ? onEnterApp('', 'Stationery') : onSignIn('', 'Stationery')}
                   className="cursor-pointer bg-white rounded-[32px] p-6 shadow-md flex flex-col justify-between h-[280px] border border-slate-100 hover:border-[#4CAF50]/20 hover:shadow-2xl transition-shadow duration-300 relative overflow-hidden group select-none text-left"
                 >
                   <div className="absolute -right-6 -bottom-6 text-[120px] sm:text-[150px] lg:text-[180px] leading-none select-none transition-transform duration-300 ease-out group-hover:scale-108 origin-bottom-right drop-shadow-lg z-0">
@@ -323,7 +323,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
             
             <div className="flex items-center gap-3 shrink-0">
               <button 
-                onClick={isLoggedIn ? () => onEnterApp() : onSignIn}
+                onClick={() => isLoggedIn ? onEnterApp() : onSignIn()}
                 className="text-[10px] sm:text-xs font-black text-[#1B4D3E] hover:text-[#2E7D5A] hidden sm:flex items-center gap-1 cursor-pointer bg-[#E8F5E9] px-4 py-2 rounded-full transition-colors"
               >
                 See All Items ({categories.length} options)
