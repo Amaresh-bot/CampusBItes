@@ -723,7 +723,7 @@ export function AdminPanel({
                           Token #{order.tokenNumber}
                         </span>
                         <strong className="text-slate-900">{order.userName}</strong>
-                        <span className="text-slate-400 font-mono">({order.rollNo || 'No Profile'})</span>
+                        <span className="text-slate-400 font-mono">({order.userEmail})</span>
                       </div>
 
                       <div className="flex flex-wrap gap-1">
@@ -858,23 +858,21 @@ export function AdminPanel({
       {activeAdminSubTab === 'students' && (
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
           <div>
-            <h4 className="font-sans font-bold text-slate-900 text-sm uppercase tracking-wider">Registered Academic Students</h4>
-            <p className="text-[11px] text-slate-500 mt-0.5">Approve individual student rolls to authorize digital UPI wallet additions.</p>
+            <h4 className="font-sans font-bold text-slate-900 text-sm uppercase tracking-wider">Registered Students & Users</h4>
+            <p className="text-[11px] text-slate-500 mt-0.5">Manage and verify registered student accounts for canteen ordering.</p>
           </div>
           {students.length === 0 ? (
             <div className="text-center py-8 text-slate-400 text-xs italic">
-              No students profiles filled in. Once users save their Academic profiles, they populate here.
+              No student profiles registered yet. Once users complete their profiles, they will appear here.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-slate-500 border-collapse">
                 <thead className="text-slate-400 text-[10px] font-bold uppercase tracking-wider border-b border-slate-100">
                   <tr>
-                    <th className="py-3 px-2">Roll Number</th>
-                    <th className="py-3 px-3">Full Name</th>
-                    <th className="py-3 px-3">Branch</th>
-                    <th className="py-3 px-3">Year</th>
-                    <th className="py-3 px-3">Contact</th>
+                    <th className="py-3 px-2">Full Name</th>
+                    <th className="py-3 px-3">Email Address</th>
+                    <th className="py-3 px-3">Contact Number</th>
                     <th className="py-3 px-3">Status</th>
                     <th className="py-3 px-3 text-right">Actions</th>
                   </tr>
@@ -885,12 +883,10 @@ export function AdminPanel({
                     const studentId = stud.userId || (stud as any).user_id;
 
                     return (
-                      <tr key={stud.rollNo} className="hover:bg-slate-50/50">
-                        <td className="py-3 px-2 font-mono font-bold text-slate-900">{stud.rollNo}</td>
-                        <td className="py-3 px-3 font-semibold text-slate-800">{stud.fullName}</td>
-                        <td className="py-3 px-3">{stud.branch}</td>
-                        <td className="py-3 px-3">{stud.year}</td>
-                        <td className="py-3 px-3">{stud.contactNo}</td>
+                      <tr key={studentId || stud.email} className="hover:bg-slate-50/50">
+                        <td className="py-3 px-2 font-semibold text-slate-800">{stud.fullName}</td>
+                        <td className="py-3 px-3 font-mono text-slate-600">{stud.email || '—'}</td>
+                        <td className="py-3 px-3 font-mono text-slate-700">{stud.contactNo}</td>
                         <td className="py-3 px-3">
                           <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                             isVerified 
@@ -1716,7 +1712,7 @@ WITH CHECK (
                           </td>
                           <td className="p-3 whitespace-nowrap">
                             <div className="font-sans font-bold text-slate-900">{log.userName || 'Student'}</div>
-                            <div className="text-[10px] text-slate-400 font-mono">({log.rollNo || log.userId || log.user_id})</div>
+                            <div className="text-[10px] text-slate-400 font-mono">({log.userEmail || log.userId || log.user_id})</div>
                           </td>
                           <td className="p-3">
                             <span className={`px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest ${

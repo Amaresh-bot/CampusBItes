@@ -2984,6 +2984,7 @@ async function getAllTransactions(): Promise<any[]> {
     return {
       ...t,
       userName: profile?.fullName || t.userName || "Student",
+      userEmail: profile?.email || t.userEmail || "",
       rollNo: profile?.rollNo || t.rollNo || ""
     };
   }).sort((a, b) => b.id.localeCompare(a.id));
