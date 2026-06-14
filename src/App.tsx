@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { ShoppingBag, ChefHat, Sparkles, LogOut, Clock, BookOpen, User, Bell, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Store, Tag, MapPin, Gift, Percent, Search, Home, ChevronDown, Mic, ShoppingCart } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ShoppingBag, ChefHat, Sparkles, LogOut, BookOpen, User, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Search, Home, Mic, ShoppingCart } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import Dock from '@/components/ui/dock';
 import { FoodItem, Order, StudentProfile, PaymentSettings, SystemNotification } from './types';
+import { useUser } from './context/UserContext';
 import { AuthScreen } from './components/AuthScreen';
 import { CanteenMenu } from './components/CanteenMenu';
 import { CartDrawer } from './components/CartDrawer';
@@ -16,10 +16,21 @@ import { LandingPage } from './components/LandingPage';
 import { StoreList } from './components/StoreList';
 import { OffersPanel } from './components/OffersPanel';
 import { TodaysSpecialsSlider } from './components/TodaysSpecialsSlider';
+import { ProfileTab } from './components/ProfileTab';
+import { BottomNavbar } from './components/BottomNavbar';
 import MenuItemCardDemo from '@/demo';
 
 export default function App() {
-  const [user, setUser] = useState<{ id: string; name: string; email: string; role: 'customer' | 'admin' } | null>(null);
+  const {
+    user,
+    setUser,
+    studentProfile,
+    setStudentProfile,
+    isProfileLoading,
+    fetchStudentProfile,
+    prefetchStudentProfile,
+    logout: contextLogout,
+  } = useUser();
   const [isPopupBootstrapping, setIsPopupBootstrapping] = useState<boolean>(false);
 
   // Intercept popup bootstrap flow to prevent reverse proxy OAuth bridge failures
@@ -84,8 +95,6 @@ export default function App() {
   const [showLocationSelector, setShowLocationSelector] = useState<boolean>(false);
 
   // Advanced Integrated State features
-  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(null);
-  const [isProfileLoading, setIsProfileLoading] = useState<boolean>(true);
   const [allStudents, setAllStudents] = useState<StudentProfile[]>([]);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>({
     upiId: 'canteen@axisbank',
@@ -99,31 +108,7 @@ export default function App() {
   const [complianceModal, setComplianceModal] = useState<'terms' | 'privacy' | 'refund' | 'contact' | null>(null);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState<boolean>(false);
 
-  // 1. Session restore
-  useEffect(() => {
-    const cached = localStorage.getItem('canteen_user');
-    if (cached) {
-      try {
-        const parsedUser = JSON.parse(cached);
-        setUser(parsedUser);
-        
-        // Restore pre-cached student profile instantly on startup/reload
-        const cachedProfile = localStorage.getItem(`student_profile_${parsedUser.id}`);
-        if (cachedProfile) {
-          try {
-            setStudentProfile(JSON.parse(cachedProfile));
-            setIsProfileLoading(false);
-          } catch (pe) {
-            console.error("Could not parse cached student profile:", pe);
-          }
-        }
-      } catch (e) {
-        console.error("Could not parse user session:", e);
-      }
-    } else {
-      setIsProfileLoading(false);
-    }
-  }, []);
+  // 1. Session restore — handled by UserContext (SWR pattern with localStorage)
 
   // 1b. Expose global alert register for payments / bookings triggers
   useEffect(() => {
@@ -202,68 +187,7 @@ export default function App() {
     }
   };
 
-  // 5. Fetch student profiles with ultra-reliable local cache fallback and background auto-sync recover
-  const fetchStudentProfile = async () => {
-    if (!user) {
-      setIsProfileLoading(false);
-      return;
-    }
-    try {
-      setIsProfileLoading(true);
-      const response = await fetch(`/api/student/profile/${user.id}?email=${encodeURIComponent(user.email || '')}`);
-      if (response.ok && response.headers.get("content-type")?.includes("application/json")) {
-        const data = await response.json();
-        if (data && Object.keys(data).length > 0) {
-          setStudentProfile(data);
-          localStorage.setItem(`student_profile_${user.id}`, JSON.stringify(data));
-        } else {
-          // Check local cache too before showing the modal
-          const localCheck = localStorage.getItem(`student_profile_${user.id}`);
-          if (localCheck) {
-            try {
-              const parsed = JSON.parse(localCheck);
-              setStudentProfile(parsed);
-              // Proactively restore / sync this profile to the server database
-              fetch('/api/student/profile/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id, profile: parsed })
-              }).catch(syncErr => console.warn("Auto-sync profile on recovery failed:", syncErr));
-            } catch (pErr) {
-              setStudentProfile(null);
-              if (user.role === 'customer') {
-                setShowProfileModal(true);
-              }
-            }
-          } else {
-            setStudentProfile(null);
-            if (user.role === 'customer') {
-              setShowProfileModal(true);
-            }
-          }
-        }
-      } else {
-        // Fallback to cache if request was not successful
-        const localCheck = localStorage.getItem(`student_profile_${user.id}`);
-        if (localCheck) {
-          try {
-            setStudentProfile(JSON.parse(localCheck));
-          } catch (_) {}
-        }
-      }
-    } catch (err) {
-      console.warn("Could not fetch student profiles:", err);
-      // Fallback to cache on complete connection failure
-      const localCheck = localStorage.getItem(`student_profile_${user.id}`);
-      if (localCheck) {
-        try {
-          setStudentProfile(JSON.parse(localCheck));
-        } catch (_) {}
-      }
-    } finally {
-      setIsProfileLoading(false);
-    }
-  };
+  // 5. fetchStudentProfile — delegated to UserContext (deduped, cached, SWR)
 
   // 6. Fetch Admin students summaries
   const fetchAllStudents = async () => {
@@ -314,7 +238,7 @@ export default function App() {
   useEffect(() => {
     if (user) {
       fetchUserOrders();
-      fetchStudentProfile();
+      fetchStudentProfile(); // via UserContext — deduped
       if (user.role === 'admin') {
         fetchAllStudents();
       }
@@ -323,7 +247,7 @@ export default function App() {
       }, 4000); // Poll tracking statuses
       return () => clearInterval(interval);
     }
-  }, [user]);
+  }, [user?.id]);
 
   // Sync stateful notification dispatch additions
   const addNotification = (title: string, message: string, type: 'info' | 'success' | 'alert' | 'email') => {
@@ -381,7 +305,9 @@ export default function App() {
     setUser(authUser);
     if (authUser?.studentProfile) {
       setStudentProfile(authUser.studentProfile);
-      localStorage.setItem(`student_profile_${authUser.id}`, JSON.stringify(authUser.studentProfile));
+      if (authUser?.id) {
+        localStorage.setItem(`student_profile_${authUser.id}`, JSON.stringify(authUser.studentProfile));
+      }
     }
     addNotification(
       'Session Approved',
@@ -396,11 +322,9 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('canteen_user');
-    setUser(null);
+    contextLogout();
     setCart({});
     setOrders([]);
-    setStudentProfile(null);
     setActiveTab('menu');
   };
 
@@ -536,7 +460,6 @@ export default function App() {
           localStorage.setItem(`student_profile_${user.id}`, JSON.stringify(profilePayload));
         }
         setShowProfileModal(false);
-        
         if (data.savedToCloud) {
           addNotification(
             'Academic Profile Synced to Supabase',
@@ -546,21 +469,15 @@ export default function App() {
         } else {
           addNotification(
             'Profile Saved (Sandbox Fallback Mode)',
-            `Registry locked in local server-memory. Connect Supabase database in Settings to persist to cloud.`,
+            `Registry locked in local server-memory. Connect Supabase to persist to cloud.`,
             'info'
           );
         }
-        if (user?.role === 'admin') {
-          fetchAllStudents();
-        }
+        if (user?.role === 'admin') fetchAllStudents();
       }
     } catch (err) {
       console.error(err);
-      addNotification(
-         'Sync Failure',
-         'Could not establish registry lock with canteen terminals.',
-         'alert'
-      );
+      addNotification('Sync Failure', 'Could not establish registry lock with canteen terminals.', 'alert');
     }
   };
 
@@ -762,7 +679,7 @@ export default function App() {
     ];
 
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex flex-col justify-between pb-28 select-none relative overflow-x-hidden">
+      <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex flex-col justify-between pb-24 select-none relative overflow-x-hidden">
         
         {/* Compact Swiggy-style Sticky Mobile Header (Height: 70px) */}
         <header className="sticky top-0 z-45 h-[70px] bg-white border-none flex items-center justify-between px-4 shadow-[0_2px_12px_rgba(0,0,0,0.02)] shrink-0">
@@ -836,10 +753,10 @@ export default function App() {
             {mobileTab === 'home' && (
               <motion.div
                 key="home"
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.18 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.10, ease: 'easeOut' }}
                 className="space-y-0"
               >
                 {/* 1. Greeting Section */}
@@ -958,11 +875,11 @@ export default function App() {
             {mobileTab === 'orders' && (
               <motion.div
                 key="orders"
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
+                exit={{ opacity: 0, y: -10 }}
                 className="p-4 bg-slate-50 min-h-[75vh]"
-                transition={{ duration: 0.18 }}
+                transition={{ duration: 0.10, ease: 'easeOut' }}
               >
                 <OrderProgress 
                   orders={orders} 
@@ -976,11 +893,11 @@ export default function App() {
             {mobileTab === 'cart' && (
               <motion.div
                 key="cart"
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
+                exit={{ opacity: 0, y: -10 }}
                 className="p-4 bg-white min-h-[75vh] text-left"
-                transition={{ duration: 0.18 }}
+                transition={{ duration: 0.10, ease: 'easeOut' }}
               >
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4 select-none">
                   <h3 className="font-display font-black text-slate-800 text-xs uppercase tracking-wider">Your Canteen Cart</h3>
@@ -1006,92 +923,21 @@ export default function App() {
             )}
 
             {mobileTab === 'profile' && (
-              <motion.div
-                key="profile"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                className="p-4 bg-slate-50 min-h-[75vh] space-y-4"
-                transition={{ duration: 0.18 }}
-              >
-                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs text-xs space-y-4">
-                  <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border text-[#1B4D3E]">
-                      <User className="w-5 h-5 text-swiggy-orange" />
-                    </div>
-                    <div className="text-left">
-                      <h4 className="font-bold text-slate-950 text-sm">Canteen User Profile</h4>
-                      <p className="text-slate-400 text-[11px]">Manage your food delivery details</p>
-                    </div>
-                  </div>
-
-                  {studentProfile ? (
-                    <div className="space-y-3 font-sans">
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-left">
-                        <span className="text-[9.5px] uppercase font-bold text-slate-400 block tracking-wider mb-0.5">Your Full Name</span>
-                        <strong className="text-slate-900 text-xs">{studentProfile.fullName}</strong>
-                      </div>
-
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-left">
-                        <span className="text-[9.5px] uppercase font-bold text-slate-400 block tracking-wider mb-0.5">Verified Email Address</span>
-                        <strong className="text-slate-900 text-xs break-all">{studentProfile.email || user.email}</strong>
-                      </div>
-
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-left">
-                        <span className="text-[9.5px] uppercase font-bold text-slate-400 block tracking-wider mb-0.5">Contact mobile number</span>
-                        <strong className="text-slate-900 font-mono text-xs">{studentProfile.contactNo}</strong>
-                      </div>
-
-                      <button
-                        onClick={() => setShowProfileModal(true)}
-                        className="w-full py-2.5 bg-[#1B4D3E] hover:bg-[#2E7D5A] active:scale-95 text-white font-bold rounded-xl transition-all cursor-pointer text-center text-xs"
-                      >
-                        Modify Profile Details
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="text-center py-6 space-y-3">
-                      <p className="text-slate-500 font-medium">No active Swiggy Profile found.</p>
-                      <button
-                        onClick={() => setShowProfileModal(true)}
-                        className="bg-[#1B4D3E] text-white font-bold px-4 py-2 rounded-xl text-xs active:scale-95 cursor-pointer transition-all"
-                      >
-                        Set Up My Profile Now
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Account details card */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs text-xs space-y-3 text-left">
-                  <h3 className="font-bold text-slate-950 text-sm">Account Settings</h3>
-                  <p className="text-slate-400 text-[11px] leading-relaxed">Logged in as <strong className="text-slate-600 font-mono">{user.email}</strong> • Access level: <strong className="capitalize text-[#1B4D3E]">{user.role}</strong></p>
-                  
-                  <div className="flex gap-2 pt-2 flex-wrap">
-                    {user.role === 'admin' && (
-                      <button
-                        onClick={() => { setActiveTab('admin'); setIsMobile(false); }}
-                        className="flex-1 py-2.5 border border-slate-200 bg-slate-50 text-slate-800 text-center rounded-xl font-bold cursor-pointer hover:bg-slate-100 text-xs"
-                      >
-                        Open Admin Box (PC view)
-                      </button>
-                    )}
-                    <button
-                      onClick={handleLogout}
-                      className="flex-1 py-2.5 bg-red-50 text-red-650 text-red-600 rounded-xl font-bold text-center cursor-pointer border border-red-100 hover:bg-red-100 text-xs"
-                    >
-                      Log Out Session
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
+              <ProfileTab
+                user={user!}
+                studentProfile={studentProfile}
+                isProfileLoading={isProfileLoading}
+                onEditProfile={() => setShowProfileModal(true)}
+                onOpenAdmin={() => { setActiveTab('admin'); setIsMobile(false); }}
+                onLogout={handleLogout}
+              />
             )}
           </AnimatePresence>
         </main>
 
-        {/* Floating Custom Swiggy Bottom Basket Bar (When count > 0 and not on cart tab) */}
+        {/* Floating cart bar — raised above floating nav capsule */}
         {mobileCartItemCount > 0 && mobileTab !== 'cart' && (
-          <div className="fixed bottom-[100px] left-4 right-4 z-40 select-none">
+          <div className="fixed bottom-[88px] left-4 right-4 z-40 select-none">
             <button
               onClick={() => setMobileTab('cart')}
               className="w-full bg-[#1B4D3E] text-white px-4.5 py-3.5 rounded-2xl shadow-lg flex items-center justify-between font-sans hover:bg-[#2E7D5A] active:scale-[0.98] transition-all cursor-pointer"
@@ -1115,57 +961,19 @@ export default function App() {
           </div>
         )}
 
-        {/* Sticky Mobile Bottom Navigation — Dock Style */}
-        <nav className="fixed bottom-0 left-0 right-0 z-45 bg-white/80 backdrop-blur-xl border-t border-slate-100 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] shrink-0">
-          <Dock
-            activeLabel={mobileTab === 'home' ? 'Home' : mobileTab === 'orders' ? 'Orders' : mobileTab === 'cart' ? 'Cart' : 'Profile'}
-            className="py-2"
-            items={[
-              {
-                icon: Home,
-                label: 'Home',
-                onClick: () => {
-                  setMobileTab('home');
-                  setActiveTab('menu');
-                }
-              },
-              {
-                icon: ShoppingBag,
-                label: 'Orders',
-                onClick: () => {
-                  setMobileTab('orders');
-                  setActiveTab('orders');
-                  fetchUserOrders();
-                }
-              },
-              {
-                icon: () => (
-                  <div className="relative">
-                    <ShoppingCart className="h-5 w-5" />
-                    {mobileCartItemCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white font-mono text-[8px] h-3.5 min-w-[14px] px-0.5 rounded-full flex items-center justify-center font-bold border border-white">
-                        {mobileCartItemCount > 9 ? '9+' : mobileCartItemCount}
-                      </span>
-                    )}
-                  </div>
-                ),
-                label: 'Cart',
-                onClick: () => {
-                  setMobileTab('cart');
-                }
-              },
-              {
-                icon: User,
-                label: 'Profile',
-                onClick: () => {
-                  setMobileTab('profile');
-                  setActiveTab('profile');
-                  fetchStudentProfile();
-                }
-              }
-            ]}
-          />
-        </nav>
+        {/* Premium Floating Bottom Navigation */}
+        <BottomNavbar
+          mobileTab={mobileTab}
+          cartItemCount={mobileCartItemCount}
+          onTabChange={(tab) => {
+            setMobileTab(tab);
+            if (tab === 'home') setActiveTab('menu');
+            if (tab === 'orders') setActiveTab('orders');
+            if (tab === 'profile') setActiveTab('profile');
+          }}
+          onOrdersClick={fetchUserOrders}
+          onProfileHover={prefetchStudentProfile}
+        />
 
         {/* Global Compliance overlay triggers for the policy screens */}
         {complianceModal && (
