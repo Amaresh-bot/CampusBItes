@@ -789,11 +789,9 @@ export default function App() {
                 {/* 1. Greeting Section */}
                 {!searchQuery && (
                   <div className="px-4 py-3 bg-white text-left">
-                    <span className="text-xs text-slate-400 font-medium block">Good {getTimeOfDay()} 👋</span>
-                    <h2 className="text-base font-black text-slate-900 tracking-tight leading-tight mt-0.5">
+                    <h2 className="text-xl font-black text-slate-900 tracking-tight leading-tight pt-1">
                       {studentProfile?.fullName || user.name || 'Mummadi Shiva Ganesh'}
                     </h2>
-                    <p className="text-[11px] text-slate-400 font-medium mt-0.5">What would you like today to supercharge your study day?</p>
                   </div>
                 )}
 

@@ -96,20 +96,15 @@ export function TodaysSpecialsSlider({
           <div className="h-7 w-7 rounded-lg bg-orange-500 text-white flex items-center justify-center shadow-xs animate-bounce">
             <Flame className="w-4 h-4 fill-current" />
           </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <h2 className="font-display font-extrabold text-xs sm:text-sm text-slate-900 tracking-tight uppercase">
-                {isFallback ? "🔥 Today's Staff Picks" : "🔥 Today's Chef Specials"}
-              </h2>
-              {isFallback && (
-                <span className="text-[8px] bg-slate-100 text-slate-500 font-bold px-1.5 py-0.5 rounded-full uppercase">
-                  Featured Recommendations
-                </span>
-              )}
-            </div>
-            <p className="text-[10px] text-slate-500 font-medium">
-              Daily hand-crafted culinary recommendations at Sphoorthy Engineering College Network
-            </p>
+          <div className="flex items-center gap-1.5 py-1">
+            <h2 className="font-display font-extrabold text-sm sm:text-base text-slate-900 tracking-tight uppercase">
+              {isFallback ? "🔥 Today's Staff Picks" : "🔥 Today's Chef Specials"}
+            </h2>
+            {isFallback && (
+              <span className="text-[8px] bg-slate-100 text-slate-500 font-bold px-1.5 py-0.5 rounded-full uppercase">
+                Featured Recommendations
+              </span>
+            )}
           </div>
         </div>
 
