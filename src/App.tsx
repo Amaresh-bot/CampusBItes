@@ -760,13 +760,15 @@ export default function App() {
                 className="space-y-0"
               >
                 {/* 1. Greeting Section */}
-                <div className="px-4 py-3 bg-white text-left">
-                  <span className="text-xs text-slate-400 font-medium block">Good {getTimeOfDay()} 👋</span>
-                  <h2 className="text-base font-black text-slate-900 tracking-tight leading-tight mt-0.5">
-                    {studentProfile?.fullName || user.name || 'Mummadi Shiva Ganesh'}
-                  </h2>
-                  <p className="text-[11px] text-slate-400 font-medium mt-0.5">What would you like today to supercharge your study day?</p>
-                </div>
+                {!searchQuery && (
+                  <div className="px-4 py-3 bg-white text-left">
+                    <span className="text-xs text-slate-400 font-medium block">Good {getTimeOfDay()} 👋</span>
+                    <h2 className="text-base font-black text-slate-900 tracking-tight leading-tight mt-0.5">
+                      {studentProfile?.fullName || user.name || 'Mummadi Shiva Ganesh'}
+                    </h2>
+                    <p className="text-[11px] text-slate-400 font-medium mt-0.5">What would you like today to supercharge your study day?</p>
+                  </div>
+                )}
 
                 {/* 2. Full-Width Sticky Search Bar */}
                 <div className="px-4 pb-3 bg-white sticky top-[70px] z-30">
@@ -809,18 +811,20 @@ export default function App() {
                 </div>
 
                 {/* 3. Today's Specials Dynamic Slider */}
-                <div className="px-4 py-1 bg-white">
-                  <TodaysSpecialsSlider
-                    items={menuItems}
-                    cart={cart}
-                    onUpdateCart={handleUpdateCart}
-                    userRole={user?.role}
-                    onGoToAdmin={() => {
-                      setIsMobile(false);
-                      setActiveTab('admin');
-                    }}
-                  />
-                </div>
+                {!searchQuery && (
+                  <div className="px-4 py-1 bg-white">
+                    <TodaysSpecialsSlider
+                      items={menuItems}
+                      cart={cart}
+                      onUpdateCart={handleUpdateCart}
+                      userRole={user?.role}
+                      onGoToAdmin={() => {
+                        setIsMobile(false);
+                        setActiveTab('admin');
+                      }}
+                    />
+                  </div>
+                )}
 
 
 
@@ -831,7 +835,9 @@ export default function App() {
                   ) : (
                     <>
                       <div className="flex justify-between items-center mb-3">
-                        <h3 className="font-display font-black text-slate-800 text-[11px] uppercase tracking-wider">Recommended Items list</h3>
+                        <h3 className="font-display font-black text-slate-800 text-[11px] uppercase tracking-wider">
+                          {searchQuery ? `Search Results for "${searchQuery}"` : "Recommended Items list"}
+                        </h3>
                         <button
                           onClick={() => setVegetarianOnly(!vegetarianOnly)}
                           className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold border transition-all ${
