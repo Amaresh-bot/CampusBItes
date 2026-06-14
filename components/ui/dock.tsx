@@ -18,15 +18,10 @@ interface DockProps {
 }
 
 export default function Dock({ items, className, activeLabel }: DockProps) {
-  const [active, setActive] = React.useState<string | null>(activeLabel || null)
+  // Derive active tab directly from prop — no internal state lag
+  const active = activeLabel ?? null
   const [hovered, setHovered] = React.useState<number | null>(null)
   const [tapped, setTapped] = React.useState<number | null>(null)
-
-  React.useEffect(() => {
-    if (activeLabel !== undefined) {
-      setActive(activeLabel)
-    }
-  }, [activeLabel])
 
   return (
     <div className={cn("flex items-end justify-center w-full py-2", className)}>
@@ -65,7 +60,6 @@ export default function Dock({ items, className, activeLabel }: DockProps) {
                   }}
                   transition={{ type: "spring", stiffness: 400, damping: 22 }}
                   onClick={() => {
-                    setActive(item.label)
                     setTapped(i)
                     setTimeout(() => setTapped(null), 300)
                     item.onClick?.()
@@ -75,24 +69,34 @@ export default function Dock({ items, className, activeLabel }: DockProps) {
                     "relative flex items-center justify-center",
                     "w-[52px] h-[52px] rounded-full",
                     "-mt-5 mb-1",
-                    "shadow-[0_4px_18px_rgba(27,77,62,0.45)]",
                     "border-[3px] border-white",
+                    "transition-all duration-200",
                     isActive
-                      ? "bg-[#1B4D3E]"
-                      : "bg-[#1B4D3E] hover:bg-[#2E7D5A]",
-                    "transition-colors duration-200"
+                      ? [
+                          "bg-[#1B4D3E]",
+                          "shadow-[0_4px_18px_rgba(27,77,62,0.50)]",
+                        ].join(" ")
+                      : [
+                          "bg-white",
+                          "border-[#1B4D3E]/30",
+                          "shadow-[0_2px_10px_rgba(0,0,0,0.10)]",
+                          "hover:bg-[#E8F5E9]",
+                        ].join(" ")
                   )}
                 >
                   <item.icon
-                    className="w-[22px] h-[22px] text-white stroke-[2.2]"
+                    className={cn(
+                      "w-[22px] h-[22px] stroke-[2.2] transition-colors duration-200",
+                      isActive ? "text-white" : "text-[#1B4D3E]"
+                    )}
                   />
-                  {/* Active pulse ring */}
+                  {/* Active pulse ring — only when Cart is the active tab */}
                   {isActive && (
                     <motion.span
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1.4, opacity: 0 }}
                       transition={{ duration: 1.2, repeat: Infinity, ease: "easeOut" }}
-                      className="absolute inset-0 rounded-full bg-[#1B4D3E]/30 pointer-events-none"
+                      className="absolute inset-0 rounded-full bg-[#1B4D3E]/25 pointer-events-none"
                     />
                   )}
                 </motion.button>
@@ -106,7 +110,6 @@ export default function Dock({ items, className, activeLabel }: DockProps) {
                   whileTap={{ scale: 0.88 }}
                   transition={{ type: "spring", stiffness: 400, damping: 22 }}
                   onClick={() => {
-                    setActive(item.label)
                     setTapped(i)
                     setTimeout(() => setTapped(null), 300)
                     item.onClick?.()
