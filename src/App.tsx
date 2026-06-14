@@ -1712,7 +1712,7 @@ export default function App() {
                     <div className="bg-slate-50 p-3 rounded-lg space-y-1 border border-slate-100 mt-2 font-mono text-[10px]">
                       <p><strong>Merchant Legal Identity:</strong> Amaresh Katuri (CampusBites Consortium)</p>
                       <p><strong>Support Email:</strong> amareshkaturi@gmail.com</p>
-                      <p><strong>Operational Address:</strong> Block B, Central Canteen & Dining, Academic Campus Area, Chennai / Hyderabad, India</p>
+                      <p><strong>Operational Address:</strong> Block B, Central Canteen & Dining, Academic Campus Area, Sphoorthy Engineering College, Chennai / Hyderabad, India</p>
                       <p><strong>Helpline Representative:</strong> Digital Dining Desk</p>
                     </div>
                   </>

@@ -257,7 +257,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
             };
             localStorage.setItem('canteen_user', JSON.stringify(u));
             localStorage.setItem(`student_profile_${u.id}`, JSON.stringify(profile));
-            setSuccessMsg("Firebase login accomplished! Loading Swiggy Canteen...");
+            setSuccessMsg("Firebase login accomplished! Loading CampusBites...");
             setTimeout(() => {
               onSuccess({ ...u, studentProfile: profile });
             }, 1000);
@@ -295,7 +295,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
         };
         localStorage.setItem('canteen_user', JSON.stringify(u));
         localStorage.setItem(`student_profile_${u.id}`, JSON.stringify(profile));
-        setSuccessMsg("Firebase login successful! Accessing Swiggy Canteen...");
+        setSuccessMsg("Firebase login successful! Accessing CampusBites...");
         setTimeout(() => {
           onSuccess({ ...u, studentProfile: profile });
         }, 1000);
@@ -717,7 +717,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
           localStorage.setItem('canteen_user', JSON.stringify(finalUser));
           localStorage.setItem(`student_profile_${payload.userId}`, JSON.stringify(responseData.profile));
           
-          setSuccessMsg("Profile saved successfully! Loading Swiggy Canteen...");
+          setSuccessMsg("Profile saved successfully! Loading CampusBites...");
           setTimeout(() => {
             onSuccess({
               ...finalUser,
@@ -759,24 +759,11 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
         className="w-full max-w-md p-6 sm:p-8 bg-white border border-slate-200 rounded-3xl shadow-sm space-y-6"
       >
         <div className="flex flex-col items-center">
-          <FallbackImage
-            srcs={[
-              '/assets/college_logo.png',
-              '/assets/logo.png',
-              '/logo.png',
-              '/assets/logo.jpg',
-              '/assets/logo.svg'
-            ]}
-            id="college_launcher_logo"
-            alt="Sphoorthy Engineering College Logo"
-            type="logo"
-            className="w-14 h-14 object-contain rounded-2xl shrink-0 mb-3 bg-slate-50 p-1 select-none"
-          />
-          <h2 className="text-xl font-black text-swiggy-orange tracking-tight text-center">
-            CampusBites
+          <h2 className="text-xl font-black text-[#1B4D3E] tracking-tight text-center">
+            Campus<span className="text-[#4CAF50]">Bites</span>
           </h2>
-          <p className="text-[10px] font-bold text-swiggy-gray mt-0.5 text-center uppercase tracking-widest">
-            Fast. Fresh. Delivered.
+          <p className="text-[10px] font-bold text-[#2E7D5A] mt-0.5 text-center uppercase tracking-widest">
+            CampusBites Fast. Fresh. Delivered.
           </p>
           <p className="text-xs text-slate-500 mt-1 text-center font-sans">
             {mode === 'login' 
@@ -820,7 +807,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
                 className="w-full flex items-center justify-center gap-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold py-3.5 px-4 rounded-xl active:scale-[0.98] transition-all cursor-pointer shadow-sm disabled:opacity-55"
               >
                 {loading ? (
-                  <div className="w-4 h-4 border-2 border-slate-300 border-t-swiggy-orange rounded-full animate-spin" />
+                   <div className="w-4 h-4 border-2 border-slate-300 border-t-[#1B4D3E] rounded-full animate-spin" />
                 ) : (
                   <>
                     <svg className="w-4.5 h-4.5 shrink-0" viewBox="0 0 24 24">
@@ -841,12 +828,12 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
               onSubmit={handleProfileSubmit} 
               className="space-y-4 text-left"
             >
-              <div className="bg-orange-55/10 p-3.5 border border-orange-100 rounded-2xl mb-2">
-                <h4 className="font-sans font-black text-orange-950 text-xs flex items-center gap-1.5">
-                  <Sparkles className="w-4.5 h-4.5 text-swiggy-orange animate-pulse" />
-                  {isGoogleLogin ? `Welcome, ${fullName || "Foodie"}!` : "Complete Your Profile"}
+              <div className="bg-[#1B4D3E]/10 p-3.5 border border-[#1B4D3E]/20 rounded-2xl mb-2">
+                <h4 className="font-sans font-black text-[#1B4D3E] text-xs flex items-center gap-1.5">
+                  <Sparkles className="w-4.5 h-4.5 text-[#1B4D3E] animate-pulse" />
+                  {isGoogleLogin ? `Welcome, ${fullName || "Student"}!` : "Complete Your Profile"}
                 </h4>
-                <p className="text-[11px] text-orange-900/80 mt-1 font-sans">
+                <p className="text-[11px] text-[#1B4D3E]/80 mt-1 font-sans">
                   {isGoogleLogin 
                     ? "Your Google account has been authenticated successfully. Please confirm your name and enter your mobile contact number below to finalize setup."
                     : "Please enter your profile details below to complete your setup in CampusBites."}
@@ -891,14 +878,14 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
               </div>
 
               <div id="locked-disclaimer" className="flex items-center gap-1.5 text-[9px] text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <Shield className="w-3.5 h-3.5 text-swiggy-orange" />
-                <span>Notice: Profile is saved securely. Details can always be updated in your Swiggy Profile later.</span>
+                <Shield className="w-3.5 h-3.5 text-[#1B4D3E]" />
+                <span>Notice: Profile is saved securely. Details can always be updated in your CampusBites Profile later.</span>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 flex items-center justify-center gap-2 bg-swiggy-orange hover:bg-swiggy-orange-hover text-white text-xs font-bold py-3 px-4 rounded-xl active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                className="w-full mt-2 flex items-center justify-center gap-2 bg-[#1B4D3E] hover:bg-[#2E7D5A] text-white text-xs font-bold py-3 px-4 rounded-xl active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 shadow-sm"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -925,12 +912,12 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
             className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-[360px] bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-4 shadow-2xl border border-white/15"
           >
             <div className="flex items-start gap-3 text-left">
-              <div className="p-2 bg-swiggy-orange rounded-xl text-white shrink-0 shadow-sm">
+              <div className="p-2 bg-[#1B4D3E] rounded-xl text-white shrink-0 shadow-sm">
                 <Phone className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black tracking-widest text-swiggy-orange uppercase">Messages</span>
+                  <span className="text-[10px] font-black tracking-widest text-[#1B4D3E] uppercase">Messages</span>
                   <span className="text-[9px] text-slate-400 font-medium font-sans">now</span>
                 </div>
                 <p className="text-[11px] font-black text-white/95 mt-0.5 font-sans">Sphoorthy Canteen OTP</p>
@@ -947,7 +934,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
                         setShowSmsSimulator(false);
                       }
                     }}
-                    className="text-[10px] font-extrabold text-swiggy-orange hover:underline focus:outline-none cursor-pointer font-sans"
+                    className="text-[10px] font-extrabold text-[#1B4D3E] hover:underline focus:outline-none cursor-pointer font-sans"
                   >
                     Auto-Fill OTP
                   </button>

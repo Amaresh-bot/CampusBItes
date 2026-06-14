@@ -202,61 +202,7 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
                 </p>
               </div>
 
-              {/* 4. Swiggy-Style Split Connected Search Section */}
-              <div className="w-full max-w-[900px] mt-8 text-left">
-                <form onSubmit={handleSearchSubmit} className="bg-white text-[#1E293B] md:h-[72px] min-h-[64px] rounded-[20px] shadow-2xl border border-slate-100 flex flex-col md:flex-row items-stretch p-1.5 md:p-2 gap-2 md:gap-0">
-                  
-                  {/* Box 1: 📍 Select Campus dropdown */}
-                  <div className="flex items-center gap-2 pl-3 pr-3 md:border-r border-slate-100 shrink-0 w-full md:w-[250px] relative text-left py-2 md:py-0">
-                    <MapPin className="w-5 h-5 text-[#2E7D5A] shrink-0" />
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest leading-none">Select Campus</span>
-                      <select 
-                        className="text-xs font-black text-[#1B4D3E] bg-transparent outline-none cursor-pointer w-full mt-0.5 truncate pr-5 border-none appearance-none"
-                        value={selectedCollege}
-                        onChange={(e) => setSelectedCollege(e.target.value)}
-                      >
-                        <option value="Sphoorthy Engineering College (Main Campus)">Sphoorthy Main Campus</option>
-                        <option value="Canteen Dining Hall">Central Canteen Block</option>
-                        <option value="SPHN PG Building">Academic Block A</option>
-                        <option value="SPHN Lab complex">Block B Lab Hub</option>
-                        <option value="Sphoorthy Hostel Complex">College Hostels</option>
-                      </select>
-                    </div>
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 font-bold text-[10px]">▼</span>
-                  </div>
 
-                  {/* Box 2: 🔍 Item Search input */}
-                  <div className="flex-1 flex items-center pl-2 md:pl-4 pr-1 py-1 md:py-0 min-w-0 gap-1.5">
-                    <Search className="w-4 h-4 text-slate-400 shrink-0" />
-                    <input 
-                      type="text"
-                      placeholder="Search food, stationery..."
-                      value={searchVal}
-                      onChange={(e) => setSearchVal(e.target.value)}
-                      className="w-full min-w-0 pl-1 pr-1 py-2 text-xs md:text-sm text-slate-900 bg-transparent outline-none placeholder-slate-400 font-bold"
-                    />
-                    
-                    {/* Action Search Button */}
-                    <button
-                      type="submit"
-                      className="bg-[#1B4D3E] hover:bg-[#2E7D5A] active:scale-95 text-white text-[10px] md:text-xs font-black px-3 md:px-6 py-2.5 md:py-0 h-10 md:h-full rounded-[14px] transition-all cursor-pointer flex items-center gap-1 border border-[#143B2F] shadow-sm uppercase shrink-0"
-                    >
-                      <span>Find Food</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#4CAF50] hidden xs:block" />
-                    </button>
-                  </div>
-
-                </form>
-
-                {/* Popular searches indicators */}
-                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold text-slate-300">
-                  <span className="uppercase text-[#4CAF50] font-extrabold text-[10px] tracking-wide">Popular SPHN Searches:</span>
-                  <button type="button" onClick={() => { setSearchVal('Canteen Burger'); onSignIn(); }} className="hover:text-white hover:underline cursor-pointer bg-white/5 py-1 px-3 rounded-full text-[11px] transition-colors border border-white/5">Burger</button>
-                  <button type="button" onClick={() => { setSearchVal('Stationery Pen'); onSignIn(); }} className="hover:text-white hover:underline cursor-pointer bg-white/5 py-1 px-3 rounded-full text-[11px] transition-colors border border-white/5">Lab Stationery</button>
-                  <button type="button" onClick={() => { setSearchVal('Cold Brew'); onSignIn(); }} className="hover:text-white hover:underline cursor-pointer bg-white/5 py-1 px-3 rounded-full text-[11px] transition-colors border border-white/5">Cold Brew</button>
-                </div>
-              </div>
 
             </div>
 
@@ -339,21 +285,7 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
                 </div>
               </motion.div>
 
-              {/* Card 5: Delivery Scooter Card (🛵) */}
-              <motion.div 
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Infinity, duration: 4.8, ease: "easeInOut" }}
-                whileHover={{ scale: 1.05, zIndex: 30 }}
-                onClick={onSignIn}
-                className="absolute bottom-[18%] right-[8%] bg-[#1B4D3E] text-white border border-[#4CAF50]/20 rounded-2xl p-4 shadow-2xl flex items-center gap-3.5 cursor-pointer max-w-[220px] transition-all"
-              >
-                <div className="w-12 h-12 bg-[#4CAF50] rounded-xl flex items-center justify-center text-3xl shrink-0">🛵</div>
-                <div className="text-left">
-                  <span className="text-[9px] font-black text-[#E8F5E9] uppercase tracking-widest bg-white/10 px-1.5 py-0.5 rounded leading-none">Super Fast Run</span>
-                  <h4 className="font-extrabold text-white text-xs mt-1.5 whitespace-nowrap">Instant Delivery</h4>
-                  <p className="text-[10px] text-[#A2C2B9] font-medium font-sans">To any block in 10m</p>
-                </div>
-              </motion.div>
+
 
               {/* Big central beautiful food illustrations background container */}
               <div className="w-72 h-72 md:w-96 md:h-96 rounded-[40px] bg-white/5 border border-white/5 shadow-2xl backdrop-blur-xs flex items-center justify-center relative overflow-hidden text-center p-8">
@@ -608,153 +540,7 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
         </div>
       </section>
 
-      {/* 8. Moved Interactive Live Tracker & Campus Metrics Section */}
-      <section className="bg-[#EBF7F2]/45 py-16 border-t border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          
-          <div className="text-center max-w-xl mx-auto space-y-3">
-            <span className="inline-flex items-center gap-1.5 bg-[#E8F5E9] border border-[#4CAF50]/20 px-3.5 py-1.5 rounded-full text-[10px] sm:text-xs font-black tracking-wide text-[#1B4D3E] uppercase select-none shadow-xs">
-              <span className="inline-flex h-2 w-2 rounded-full bg-[#4CAF50] animate-pulse shrink-0"></span>
-              Live Campus Orders Feed
-            </span>
-            <h2 className="text-3xl font-display font-black tracking-tight text-[#1B4D3E]">
-              Real-Time Campus Marketplace Activity
-            </h2>
-            <p className="text-xs text-slate-450 font-bold uppercase tracking-wider">
-              Monitor active food tokens & academic books pick-ups across Sphoorthy blocks
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-            
-            {/* Live Feed Column */}
-            <div className="lg:col-span-7 bg-white border border-slate-100/80 rounded-[32px] p-6 shadow-sm flex flex-col justify-between space-y-6">
-              <div className="flex justify-between items-center pb-4 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5 text-[#2E7D5A]" />
-                  <span className="text-xs font-extrabold tracking-wider uppercase text-slate-800">Recent Student Reservations</span>
-                </div>
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase bg-[#E8F5E9] text-[#1B4D3E] px-2.5 py-1 rounded-full">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#4CAF50] animate-ping" />
-                  Active SPHN Hub Feed
-                </span>
-              </div>
-
-              <div className="space-y-4">
-                
-                <div className="flex items-center justify-between gap-3 text-xs bg-[#F8FAFC] p-4 rounded-2xl border border-slate-100">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <span className="text-2xl shrink-0">🍔</span>
-                    <div className="min-w-0">
-                      <p className="font-extrabold text-slate-900 truncate">Special Veg Burger + Crispy Fries</p>
-                      <p className="text-[10px] text-slate-400 font-medium mt-0.5">Central Dining Hall • Token SPHN-2015</p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-extrabold text-[#1B4D3E] bg-[#E8F5E9] px-3 py-1.5 rounded-xl shrink-0 font-mono">Token Ready</span>
-                </div>
-
-                <div className="flex items-center justify-between gap-3 text-xs bg-[#F8FAFC] p-4 rounded-2xl border border-slate-100">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <span className="text-2xl shrink-0">📒</span>
-                    <div className="min-w-0">
-                      <p className="font-extrabold text-slate-900 truncate">Chemistry Lab Record Manual</p>
-                      <p className="text-[10px] text-slate-400 font-medium mt-0.5">Student Books Emporium • Block B Depot</p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-extrabold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl shrink-0 font-mono">10 Min Pickup</span>
-                </div>
-
-                <div className="flex items-center justify-between gap-3 text-xs bg-[#F8FAFC] p-4 rounded-2xl border border-slate-100">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <span className="text-2xl shrink-0">☕</span>
-                    <div className="min-w-0">
-                      <p className="font-extrabold text-slate-900 truncate">Double Shot Cold Hazelnut Brew</p>
-                      <p className="text-[10px] text-slate-400 font-medium mt-0.5">Block-B Coffee Lounge • Token SPHN-7811</p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-extrabold text-[#1B4D3E] bg-[#E8F5E9] px-3 py-1.5 rounded-xl shrink-0 font-mono">Ready to Scoop</span>
-                </div>
-
-              </div>
-              
-              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
-                <p className="text-xs text-slate-400 font-bold">Verify your registered college roll number during redemption.</p>
-                <button onClick={onSignIn} className="text-xs font-black text-[#1B4D3E] hover:text-[#2E7D5A] flex items-center gap-1 cursor-pointer">
-                  Connect Wallet
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
-            </div>
-
-            {/* Statistics and Metrics Column */}
-            <div className="lg:col-span-5 grid grid-cols-1 gap-6">
-              
-              <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-sm flex flex-col justify-between">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Operations</span>
-                  <h3 className="text-lg font-black text-[#1B4D3E] tracking-tight">Canteen Efficiency Index</h3>
-                </div>
-                
-                <div className="my-6 space-y-4">
-                  <div>
-                    <div className="flex justify-between text-xs font-bold font-sans text-slate-600 mb-1.5">
-                      <span>Canteen Prep Speed</span>
-                      <span className="text-[#1B4D3E]">94% Faster</span>
-                    </div>
-                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#1B4D3E] rounded-full animate-pulse" style={{ width: '94%' }} />
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs font-bold font-sans text-slate-600 mb-1.5">
-                      <span>Bookstore Pack Time</span>
-                      <span className="text-[#1B4D3E]">98% Accurate</span>
-                    </div>
-                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#4CAF50] rounded-full" style={{ width: '98%' }} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 text-center">
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">Average Queue Save</p>
-                    <p className="text-xl font-black text-slate-900 mt-1">12 Mins</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">Active Runs Today</p>
-                    <p className="text-xl font-black text-[#1B4D3E] mt-1 font-mono">340+</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-[#1B4D3E] to-[#2E7D5A] rounded-[32px] p-6 text-white flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-[#4CAF50]/15 rounded-full blur-2xl" />
-                
-                <div className="space-y-2">
-                  <div className="inline-flex h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center text-lg">⚡</div>
-                  <h4 className="font-display font-black text-lg tracking-tight uppercase">Express SPHN Logistics</h4>
-                  <p className="text-xs text-slate-200 leading-relaxed font-sans font-medium">
-                    Our dedicated peer-to-peer student delivery runners transition items between building canteens and libraries in record times. Join the crew today!
-                  </p>
-                </div>
-
-                <button 
-                  onClick={onSignIn}
-                  className="bg-white text-[#1B4D3E] hover:bg-[#E8F5E9] text-xs font-black py-2.5 px-4 rounded-xl mt-4 cursor-pointer self-start transition-all border border-slate-100/10 shadow-sm"
-                >
-                  Apply as Student Runner
-                </button>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-      </section>
 
       {/* 9. Why CampusBites (4 feature cards) */}
       <section className="bg-slate-50 py-16 border-t border-slate-100">
@@ -782,18 +568,7 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
               </div>
             </div>
 
-            {/* Feature 2 */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 space-y-4 flex flex-col shadow-xs">
-              <div className="h-10 w-10 bg-[#E8F5E9] text-[#1B4D3E] rounded-xl flex items-center justify-center shrink-0">
-                <Zap className="w-5 h-5 text-[#2E7D5A]" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-sm font-black text-slate-900 leading-tight uppercase">Fast Campus Delivery</h4>
-                <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                  Fast logistics across block complex libraries, canteens, physical science wings, and labs.
-                </p>
-              </div>
-            </div>
+
 
             {/* Feature 3 */}
             <div className="bg-white p-6 rounded-2xl border border-slate-100 space-y-4 flex flex-col shadow-xs">
