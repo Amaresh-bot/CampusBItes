@@ -79,10 +79,9 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
         <span className="hidden sm:inline text-[#E8F5E9] font-medium">Canteen Orders & Bookstore Reservation Active</span>
       </div>
 
-      {/* 2. Swiggy-Inspired Seamless Unified Hero Section (with absolute Transparent Navbar Overlay) */}
       <section 
         id="hero" 
-        className="relative text-white overflow-hidden min-h-screen flex flex-col justify-center pt-32 pb-20 selection:bg-[#4CAF50]/30"
+        className="relative text-white overflow-hidden flex flex-col justify-center pt-28 pb-8 sm:pb-12 selection:bg-[#4CAF50]/30"
         style={{
           background: 'rgba(27, 77, 62, 0.9)',
           backdropFilter: 'blur(20px)'
@@ -299,7 +298,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
 
       {/* 6. Featured SPHN Categories (Swiggy food options circular slider layout) */}
       <section 
-        className="py-16 w-full rounded-t-[32px] sm:rounded-t-[48px] -mt-6 relative z-20 border-t border-slate-100 select-none overflow-hidden"
+        className="pt-6 sm:pt-8 pb-16 w-full rounded-t-[32px] sm:rounded-t-[48px] -mt-8 sm:-mt-12 relative z-20 border-t border-slate-100 select-none overflow-hidden"
         style={{
           background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 1))'
         }}
