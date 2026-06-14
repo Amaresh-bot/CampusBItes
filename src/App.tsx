@@ -18,7 +18,7 @@ import { OffersPanel } from './components/OffersPanel';
 import { TodaysSpecialsSlider } from './components/TodaysSpecialsSlider';
 import { ProfileTab } from './components/ProfileTab';
 import { BottomNavbar } from './components/BottomNavbar';
-import MenuItemCardDemo from '@/demo';
+
 
 export default function App() {
   const {
@@ -58,7 +58,7 @@ export default function App() {
   const [menuItems, setMenuItems] = useState<FoodItem[]>([]);
   const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [orders, setOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<'menu' | 'orders' | 'profile' | 'admin' | 'stores' | 'offers' | 'demo'>('menu');
+  const [activeTab, setActiveTab] = useState<'menu' | 'orders' | 'profile' | 'admin' | 'stores' | 'offers'>('menu');
   const [filteredStoreId, setFilteredStoreId] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isMenuLoading, setIsMenuLoading] = useState<boolean>(true);
@@ -1088,15 +1088,7 @@ export default function App() {
                 Menu
               </button>
 
-              <button
-                onClick={() => { setActiveTab('demo'); }}
-                className={`h-20 flex items-center gap-2 px-1.5 transition-all text-xs font-black uppercase tracking-wider cursor-pointer hover:text-[#1B4D3E] ${
-                  activeTab === 'demo' ? 'text-[#1B4D3E] border-[#1B4D3E] border-b-4' : 'text-slate-400 border-transparent hover:border-slate-200 border-b-4'
-                }`}
-              >
-                <Sparkles className="w-4 h-4 text-emerald-650" />
-                Card Demo
-              </button>
+
 
               <button
                 onClick={() => { setActiveTab('orders'); }}
@@ -1202,18 +1194,7 @@ export default function App() {
                 Menu
               </button>
 
-              <button
-                onClick={() => {
-                  setActiveTab('demo');
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`py-2 px-3 text-left text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-                  activeTab === 'demo' ? 'bg-[#E8F5E9] text-[#1B4D3E]' : 'text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <Sparkles className="w-4 h-4 text-emerald-650" />
-                Card Demo
-              </button>
+
 
               <button
                 onClick={() => {
@@ -1271,17 +1252,7 @@ export default function App() {
         )}
 
         <AnimatePresence mode="wait">
-          {activeTab === 'demo' ? (
-            <motion.div
-              key="demo"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.18 }}
-            >
-              <MenuItemCardDemo />
-            </motion.div>
-          ) : activeTab === 'admin' ? (
+          {activeTab === 'admin' ? (
             <motion.div
               key="admin"
               initial={{ opacity: 0, y: 12 }}
