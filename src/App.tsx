@@ -67,7 +67,7 @@ export default function App() {
 
   // Mobile Redesign states
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [mobileTab, setMobileTab] = useState<'home' | 'orders' | 'stores' | 'cart' | 'profile'>('home');
+  const [mobileTab, setMobileTab] = useState<'home' | 'orders' | 'stores' | 'cart' | 'profile' | 'admin'>('home');
   const [promoIndex, setPromoIndex] = useState<number>(0);
 
   // Clean event listener to identify handheld devices dynamically
@@ -844,8 +844,7 @@ export default function App() {
                       onUpdateCart={handleUpdateCart}
                       userRole={user?.role}
                       onGoToAdmin={() => {
-                        setIsMobile(false);
-                        setActiveTab('admin');
+                        setMobileTab('admin');
                       }}
                     />
                   </div>
@@ -959,9 +958,34 @@ export default function App() {
                 studentProfile={studentProfile}
                 isProfileLoading={isProfileLoading}
                 onEditProfile={() => setShowProfileModal(true)}
-                onOpenAdmin={() => { setActiveTab('admin'); setIsMobile(false); }}
+                onOpenAdmin={() => { setMobileTab('admin'); }}
                 onLogout={handleLogout}
               />
+            )}
+
+            {mobileTab === 'admin' && (
+              <motion.div
+                key="admin"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.12, ease: 'easeOut' }}
+                className="p-4 bg-slate-50 min-h-[75vh]"
+              >
+                <AdminPanel 
+                  onBack={() => setMobileTab('profile')}
+                  orders={orders}
+                  onUpdateOrderStatus={handleUpdateOrderStatus}
+                  foodItems={menuItems}
+                  onAddMenuItem={handleAddMenuItem}
+                  onEditMenuItem={handleEditMenuItem}
+                  onDeleteMenuItem={handleDeleteMenuItem}
+                  students={allStudents}
+                  paymentSettings={paymentSettings}
+                  onUpdatePaymentSettings={handleUpdatePaymentSettings}
+                  onToggleStudentVerify={handleToggleStudentVerify}
+                />
+              </motion.div>
             )}
           </AnimatePresence>
         </main>

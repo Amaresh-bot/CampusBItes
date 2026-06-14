@@ -2,7 +2,7 @@ import React, { memo, useCallback } from 'react';
 import { Home, ShoppingBag, ShoppingCart, User } from 'lucide-react';
 import Dock from '@/components/ui/dock';
 
-type MobileTab = 'home' | 'orders' | 'stores' | 'cart' | 'profile';
+type MobileTab = 'home' | 'orders' | 'stores' | 'cart' | 'profile' | 'admin';
 
 interface BottomNavbarProps {
   mobileTab: MobileTab;
@@ -44,7 +44,7 @@ export const BottomNavbar = memo(function BottomNavbar({
       ? 'Orders'
       : mobileTab === 'cart'
       ? 'Cart'
-      : mobileTab === 'profile'
+      : mobileTab === 'profile' || mobileTab === 'admin'
       ? 'Profile'
       : 'Home';
 
