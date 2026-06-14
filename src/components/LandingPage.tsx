@@ -167,19 +167,19 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             
             {/* Hero Left Content Accent Block */}
-            <div className="col-span-1 lg:col-span-12 space-y-6 text-center lg:text-left flex flex-col justify-center max-w-5xl mx-auto w-full">
+            <div className="col-span-1 lg:col-span-12 space-y-6 text-center flex flex-col items-center justify-center max-w-5xl mx-auto w-full">
               
               {/* Mega Heavy Premium Headings */}
-              <div className="space-y-4">
-                <h1 className="text-3xl sm:text-5xl lg:text-[72px] font-display font-extrabold tracking-tight text-white leading-[1.15] sm:leading-[1.08]">
+              <div className="space-y-4 w-full flex flex-col items-center text-center">
+                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-display font-extrabold tracking-tight text-white leading-[1.15] sm:leading-[1.08]">
                   Order Food & Essentials.
                 </h1>
                 
-                <p className="text-xs sm:text-base md:text-lg text-slate-200 mt-2 font-semibold max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                <p className="text-xs sm:text-sm md:text-base text-slate-200 mt-2 font-semibold max-w-xl mx-auto leading-relaxed">
                   Everything students need inside campus. Fresh meals, snacks, stationery, printouts, and essentials.
                 </p>
                 {/* Swiggy-like Item Search Container */}
-              <form onSubmit={handleSearchSubmit} className="w-full max-w-xl mt-8 relative z-30">
+              <form onSubmit={handleSearchSubmit} className="w-full max-w-xl mt-8 mx-auto relative z-30">
                 <div className="flex items-center bg-white/10 hover:bg-white/15 focus-within:bg-white focus-within:text-[#1E293B] rounded-2xl border border-white/20 focus-within:border-white/40 shadow-lg backdrop-blur-md transition-all duration-300 overflow-hidden">
                   <div className="relative flex-1 flex items-center">
                     <Search className="w-5 h-5 text-[#4CAF50] absolute left-4 pointer-events-none" />
