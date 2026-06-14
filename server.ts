@@ -544,6 +544,7 @@ async function saveWallet(wallet: any): Promise<boolean> {
       const dbRow = mapRowToDb(TABLES.WALLETS, wallet);
       const { error } = await supabase.from(TABLES.WALLETS).upsert([dbRow], { onConflict: "user_id" });
       if (error) {
+        console.error("[Supabase Sync Error] Failed to save wallet:", error.message || error);
         console.log(`[Storage] Handled backend save via high-reliability local disk persistence. Note: Cloud sync status: pending.`);
         supabaseFailedWallets.add(wallet.userId);
       } else {
@@ -551,6 +552,7 @@ async function saveWallet(wallet: any): Promise<boolean> {
         return true;
       }
     } catch (err: any) {
+      console.error("[Supabase Exception] Exception saving wallet:", err.message || err);
       console.log(`[Storage] Handled backend save via high-reliability local disk persistence.`);
       supabaseFailedWallets.add(wallet.userId);
     }
@@ -591,11 +593,13 @@ async function addTransaction(tx: any): Promise<boolean> {
       const dbRow = mapRowToDb(TABLES.WALLET_TRANSACTIONS, tx);
       const { error } = await supabase.from(TABLES.WALLET_TRANSACTIONS).insert([dbRow]);
       if (error) {
+        console.error("[Supabase Sync Error] Failed to insert transaction:", error.message || error);
         console.log("[Storage] Transaction saved to local persistent database.");
       } else {
         return true;
       }
     } catch (err: any) {
+      console.error("[Supabase Exception] Exception inserting transaction:", err.message || err);
       console.log("[Storage] Transaction saved to local persistent database.");
     }
   }
@@ -639,11 +643,13 @@ async function addMealBooking(booking: any): Promise<boolean> {
       const dbRow = mapRowToDb(TABLES.MEAL_BOOKINGS, booking);
       const { error } = await supabase.from(TABLES.MEAL_BOOKINGS).insert([dbRow]);
       if (error) {
+        console.error("[Supabase Sync Error] Failed to insert meal booking:", error.message || error);
         console.log("[Storage] Meal booking synchronized to local disk persistence.");
       } else {
         return true;
       }
     } catch (err: any) {
+      console.error("[Supabase Exception] Exception inserting meal booking:", err.message || err);
       console.log("[Storage] Meal booking synchronized to local disk persistence.");
     }
   }
@@ -657,9 +663,11 @@ async function updateMealBookingCollected(bookingId: string): Promise<any> {
       if (!error && data && data.length > 0) {
         return mapRowFromDb(TABLES.MEAL_BOOKINGS, data[0]);
       } else if (error) {
+        console.error("[Supabase Sync Error] Failed to update meal collection status:", error.message || error);
         console.log("[Storage] Meal collection updated in local disk persistence.");
       }
     } catch (err: any) {
+      console.error("[Supabase Exception] Exception updating meal collection status:", err.message || err);
       console.log("[Storage] Meal collection updated in local disk persistence.");
     }
   }
@@ -907,11 +915,13 @@ async function addOrder(order: any): Promise<boolean> {
       const dbRow = mapRowToDb(TABLES.ORDERS, order);
       const { error } = await supabase.from(TABLES.ORDERS).insert([dbRow]);
       if (error) {
+        console.error("[Supabase Sync Error] Failed to insert order:", error.message || error);
         console.log("[Storage] Order saved to high-reliability local database.");
       } else {
         return true;
       }
     } catch (err: any) {
+      console.error("[Supabase Exception] Exception inserting order:", err.message || err);
       console.log("[Storage] Order saved to high-reliability local database.");
     }
   }
@@ -925,9 +935,11 @@ async function updateOrderStatus(orderId: string, status: string): Promise<any> 
       if (!error && data && data.length > 0) {
         return mapRowFromDb(TABLES.ORDERS, data[0]);
       } else if (error) {
+        console.error("[Supabase Sync Error] Failed to update order status:", error.message || error);
         console.log("[Storage] Order status updated in local database.");
       }
     } catch (err: any) {
+      console.error("[Supabase Exception] Exception updating order status:", err.message || err);
       console.log("[Storage] Order status updated in local database.");
     }
   }

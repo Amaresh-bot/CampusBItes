@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS public.canteen_orders (
     status TEXT DEFAULT 'Pending',
     payment_method TEXT,
     payment_status TEXT,
+    payment_id TEXT,
     token_number TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
