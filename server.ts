@@ -317,6 +317,7 @@ function mapRowToDb(table: string, row: any): any {
       status: row.status || "Pending",
       payment_method: row.paymentMethod || row.payment_method,
       payment_status: row.paymentStatus || row.payment_status,
+      payment_id: row.paymentId || row.payment_id,
       token_number: row.tokenNumber || row.token_number,
       created_at: row.createdAt || row.created_at || new Date().toISOString()
     };
@@ -428,6 +429,7 @@ function mapRowFromDb(table: string, row: any): any {
       status: row.status,
       paymentMethod: row.payment_method,
       paymentStatus: row.payment_status,
+      paymentId: row.payment_id,
       tokenNumber: row.token_number,
       createdAt: row.created_at
     };

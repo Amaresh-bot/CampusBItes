@@ -121,7 +121,10 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
                         {getStatusLabelText(order.status)}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 font-medium">Ordered {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Via {order.paymentMethod.toUpperCase()}</p>
+                    <p className="text-xs text-slate-400 font-medium">
+                      Ordered {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Via {order.paymentMethod.toUpperCase()}
+                      {order.paymentId && ` • Tx ID: ${order.paymentId}`}
+                    </p>
                   </div>
 
                   {/* Token ticket layout exactly like Swiggy */}
