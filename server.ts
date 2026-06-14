@@ -285,9 +285,7 @@ function mapRowToDb(table: string, row: any): any {
   }
 
   if (table === TABLES.STUDENTS || table === "students" || table === "canteen_student_profiles") {
-    const rollNo = row.rollNo || row.roll_no || row.roll_number || "";
     const phoneNo = row.contactNo || row.contact_no || row.phone_number || "9876543210";
-    const yearVal = row.year || row.academic_year || "1st Year";
     const fullNameVal = row.fullName || row.userName || row.user_name || "Sphoorthy Student";
     const emailVal = row.email || row.user_email || "";
     const profileLockedVal = row.profileLocked !== undefined ? Boolean(row.profileLocked) : (row.profile_locked !== undefined ? Boolean(row.profile_locked) : true);
@@ -296,9 +294,6 @@ function mapRowToDb(table: string, row: any): any {
       return {
         id: row.userId || row.id || row.user_id || "",
         full_name: fullNameVal,
-        roll_number: rollNo,
-        branch: row.branch || "Computer Science (CSE)",
-        academic_year: yearVal,
         phone_number: phoneNo,
         is_verified: true
       };
@@ -308,11 +303,7 @@ function mapRowToDb(table: string, row: any): any {
       id: row.userId || row.id || row.user_id || "",
       email: emailVal,
       full_name: fullNameVal,
-      roll_number: rollNo,
-      branch: row.branch || "Computer Science (CSE)",
-      academic_year: yearVal,
       phone_number: phoneNo,
-      college_name: row.collegeName || row.college_name || "Spoorthy Engineering College",
       profile_locked: profileLockedVal
     };
   }
