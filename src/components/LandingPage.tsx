@@ -170,25 +170,14 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
             {/* Hero Left Content Accent Block */}
             <div className="col-span-1 lg:col-span-12 space-y-6 text-center lg:text-left flex flex-col justify-center max-w-5xl mx-auto w-full">
               
-              {/* Premium College Incubated Badge */}
-              <div className="inline-flex self-center lg:self-start items-center gap-1.5 bg-[#E8F5E9]/15 border border-[#4CAF50]/20 px-3.5 py-1.5 rounded-full text-[10px] sm:text-xs font-black tracking-wide text-[#E8F5E9] uppercase select-none shadow-xs backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5 text-[#4CAF50] shrink-0 animate-pulse" />
-                <span>Next-Gen Sphoorthy College Marketplace</span>
-              </div>
-
               {/* Mega Heavy Premium Headings */}
               <div className="space-y-4">
                 <h1 className="text-3xl sm:text-5xl lg:text-[72px] font-display font-extrabold tracking-tight text-white leading-[1.15] sm:leading-[1.08]">
-                  Order Food & Essentials.<br />
-                  Discover Campus Stores.<br />
-                  <span className="text-[#4CAF50] relative inline-block">
-                    CampusBites It.
-                    <span className="absolute left-0 bottom-2 w-full h-1 bg-[#4CAF50]/40 rounded-full" />
-                  </span>
+                  Order Food & Essentials.
                 </h1>
                 
                 <p className="text-xs sm:text-base md:text-lg text-slate-200 mt-2 font-semibold max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                  Everything students need inside campus. Fresh meals, snacks, stationery, printouts, and essentials delivered faster.
+                  Everything students need inside campus. Fresh meals, snacks, stationery, printouts, and essentials.
                 </p>
                 {/* Swiggy-like Item Search Container */}
               <form onSubmit={handleSearchSubmit} className="w-full max-w-xl mt-8 relative z-30">

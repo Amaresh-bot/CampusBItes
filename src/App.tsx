@@ -1387,12 +1387,7 @@ export default function App() {
 
                     <div className="space-y-2">
                       <h1 className="text-2xl sm:text-3.5xl lg:text-[44px] font-display font-extrabold tracking-tight text-white leading-tight">
-                        Order Food & Essentials.<br />
-                        Discover Campus Stores.<br />
-                        <span className="text-[#4CAF50] relative inline-block">
-                          CampusBites It.
-                          <span className="absolute left-0 bottom-1 w-full h-1 bg-[#4CAF50]/40 rounded-full" />
-                        </span>
+                        Order Food & Essentials.
                       </h1>
                       <p className="text-[11px] sm:text-xs text-slate-200 font-semibold max-w-md leading-relaxed mt-1">
                         Fresh meals, snacks, stationery, printouts and more. Delivered fast to your campus. Welcome back, <strong className="text-white">{user?.name}</strong>!
