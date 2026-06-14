@@ -192,14 +192,14 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
               </form>
 
               {/* Quick Access Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-10 w-full">
+              <div className="flex sm:grid sm:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-10 w-full overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4 sm:pb-0">
                 
                 {/* Card 1: Food Delivery */}
                 <motion.div
                   whileHover={{ y: -8 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                   onClick={() => isLoggedIn ? onEnterApp('', 'All') : onSignIn('', 'All')}
-                  className="cursor-pointer bg-white rounded-[32px] p-6 shadow-md flex flex-col justify-between h-[280px] border border-slate-100 hover:border-[#4CAF50]/20 hover:shadow-2xl transition-shadow duration-300 relative overflow-hidden group select-none text-left"
+                  className="cursor-pointer bg-white rounded-[32px] p-6 shadow-md flex flex-col justify-between h-[280px] w-[80%] max-w-[300px] sm:w-auto sm:max-w-none shrink-0 snap-center border border-slate-100 hover:border-[#4CAF50]/20 hover:shadow-2xl transition-shadow duration-300 relative overflow-hidden group select-none text-left"
                 >
                   <div className="absolute -right-6 -bottom-6 text-[120px] sm:text-[150px] lg:text-[180px] leading-none select-none transition-transform duration-300 ease-out group-hover:scale-108 origin-bottom-right drop-shadow-lg z-0">
                     🍔
@@ -227,7 +227,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                   whileHover={{ y: -8 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                   onClick={() => isLoggedIn ? onEnterApp('', 'Stationery') : onSignIn('', 'Stationery')}
-                  className="cursor-pointer bg-white rounded-[32px] p-6 shadow-md flex flex-col justify-between h-[280px] border border-slate-100 hover:border-[#4CAF50]/20 hover:shadow-2xl transition-shadow duration-300 relative overflow-hidden group select-none text-left"
+                  className="cursor-pointer bg-white rounded-[32px] p-6 shadow-md flex flex-col justify-between h-[280px] w-[80%] max-w-[300px] sm:w-auto sm:max-w-none shrink-0 snap-center border border-slate-100 hover:border-[#4CAF50]/20 hover:shadow-2xl transition-shadow duration-300 relative overflow-hidden group select-none text-left"
                 >
                   <div className="absolute -right-6 -bottom-6 text-[120px] sm:text-[150px] lg:text-[180px] leading-none select-none transition-transform duration-300 ease-out group-hover:scale-108 origin-bottom-right drop-shadow-lg z-0">
                     🛒
@@ -255,7 +255,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                   whileHover={{ y: -8 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                   onClick={() => isLoggedIn ? onEnterApp('', 'Stationery') : onSignIn('', 'Stationery')}
-                  className="cursor-pointer bg-white rounded-[32px] p-6 shadow-md flex flex-col justify-between h-[280px] border border-slate-100 hover:border-[#4CAF50]/20 hover:shadow-2xl transition-shadow duration-300 relative overflow-hidden group select-none text-left"
+                  className="cursor-pointer bg-white rounded-[32px] p-6 shadow-md flex flex-col justify-between h-[280px] w-[80%] max-w-[300px] sm:w-auto sm:max-w-none shrink-0 snap-center border border-slate-100 hover:border-[#4CAF50]/20 hover:shadow-2xl transition-shadow duration-300 relative overflow-hidden group select-none text-left"
                 >
                   <div className="absolute -right-6 -bottom-6 text-[120px] sm:text-[150px] lg:text-[180px] leading-none select-none transition-transform duration-300 ease-out group-hover:scale-108 origin-bottom-right drop-shadow-lg z-0">
                     🖨️
