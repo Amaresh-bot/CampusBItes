@@ -77,15 +77,12 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
         id="hero" 
         className="relative text-white overflow-hidden min-h-screen flex flex-col justify-center pt-28 pb-8 sm:pb-10 selection:bg-[#4CAF50]/30"
         style={{
-          background: 'rgba(27, 77, 62, 0.9)',
-          backdropFilter: 'blur(20px)'
+          backgroundImage: 'linear-gradient(rgba(27, 77, 62, 0.3), rgba(27, 77, 62, 0.35)), url(/assets/hero_bg.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
         }}
       >
-        {/* Glowing glassmorphism & background gradients behind content but inside section */}
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-          <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-[#4CAF50]/15 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/5 right-1/10 w-80 h-80 bg-[#E8F5E9]/10 rounded-full blur-3xl animate-pulse" />
-        </div>
 
         {/* Transparent Absolute Navbar Overlay inside Hero */}
         <nav className="absolute top-0 left-0 right-0 z-50 w-full bg-transparent border-none">
@@ -166,7 +163,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
               {/* Mega Heavy Premium Headings */}
               <div className="space-y-4 w-full flex flex-col items-center text-center">
                 <h1 className="text-2xl sm:text-4xl lg:text-5xl font-display font-extrabold tracking-tight text-white leading-[1.15] sm:leading-[1.08]">
-                  Order Food & Essentials.
+                  Order <span className="text-[#4CAF50]">Food &</span> <span className="relative inline-block pb-1">Essentials.<span className="absolute bottom-0 left-0 w-full h-[4px] bg-[#4CAF50] rounded-full" /></span>
                 </h1>
                 
                 <p className="text-xs sm:text-sm md:text-base text-slate-200 mt-2 font-semibold max-w-xl mx-auto leading-relaxed">
