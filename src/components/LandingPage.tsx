@@ -168,7 +168,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             
             {/* Hero Left Content Accent Block */}
-            <div className="col-span-1 lg:col-span-7 space-y-6 text-center lg:text-left flex flex-col justify-center">
+            <div className="col-span-1 lg:col-span-12 space-y-6 text-center lg:text-left flex flex-col justify-center max-w-5xl mx-auto w-full">
               
               {/* Premium College Incubated Badge */}
               <div className="inline-flex self-center lg:self-start items-center gap-1.5 bg-[#E8F5E9]/15 border border-[#4CAF50]/20 px-3.5 py-1.5 rounded-full text-[10px] sm:text-xs font-black tracking-wide text-[#E8F5E9] uppercase select-none shadow-xs backdrop-blur-md">
@@ -302,130 +302,6 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
 
               </div>
 
-            </div>
-
-            {/* Hero Right visual column: Premium marketplace showcase */}
-            <div className="hidden lg:flex col-span-1 lg:col-span-5 relative h-[500px] items-center justify-center select-none overflow-visible">
-              
-              {/* Central Pulsating Halo Backdrops */}
-              <div className="absolute w-[400px] h-[400px] rounded-full bg-radial from-[#4CAF50]/20 to-transparent blur-3xl pointer-events-none" />
-
-              {/* Large Glassmorphism Card */}
-              <div 
-                className="w-full max-w-[380px] h-[380px] rounded-[48px] shadow-2xl backdrop-blur-[20px] border flex flex-col items-center justify-center relative overflow-visible text-center p-8 transition-all duration-500 hover:border-white/25"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  borderColor: 'rgba(255, 255, 255, 0.15)',
-                }}
-              >
-                {/* Center Content */}
-                <div className="space-y-4 relative z-10 max-w-[280px]">
-                  <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mx-auto border border-white/20 shadow-inner">
-                    <ShoppingBag className="w-10 h-10 text-[#4CAF50]" />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-black text-white text-xl tracking-tight uppercase leading-tight">
-                      SPHN Campus Marketplace
-                    </h3>
-                    <p className="text-xs text-[#A2C2B9] mt-2 font-medium leading-relaxed">
-                      Discover food, drinks, files, records, and exam prep tools right inside Sphoorthy.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Floating animated product cards around the center */}
-                
-                {/* 1. Burger (🍔) */}
-                <motion.div 
-                  animate={{ y: [0, -10, 0], x: [0, 5, 0] }}
-                  transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-                  whileHover={{ scale: 1.08 }}
-                  onClick={onSignIn}
-                  className="absolute -top-[12%] -left-[10%] bg-white/95 backdrop-blur-md border border-slate-100/10 rounded-2xl p-3 shadow-xl flex items-center gap-3 cursor-pointer max-w-[170px]"
-                >
-                  <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-2xl shrink-0">🍔</div>
-                  <div className="text-left leading-tight">
-                    <h4 className="font-bold text-slate-850 text-[11px] whitespace-nowrap">Canteen Burger</h4>
-                    <span className="text-[10px] font-bold text-slate-450 font-mono">₹45</span>
-                  </div>
-                </motion.div>
-
-                {/* 2. Coffee (☕) */}
-                <motion.div 
-                  animate={{ y: [0, 12, 0], x: [0, -4, 0] }}
-                  transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
-                  whileHover={{ scale: 1.08 }}
-                  onClick={onSignIn}
-                  className="absolute top-[20%] -right-[15%] bg-white/95 backdrop-blur-md border border-slate-100/10 rounded-2xl p-3 shadow-xl flex items-center gap-3 cursor-pointer max-w-[170px]"
-                >
-                  <div className="w-10 h-10 bg-[#EBF7F2] rounded-xl flex items-center justify-center text-2xl shrink-0">☕</div>
-                  <div className="text-left leading-tight">
-                    <h4 className="font-bold text-slate-855 text-[11px] whitespace-nowrap">Cold Brew</h4>
-                    <span className="text-[10px] font-bold text-slate-450 font-mono">₹35</span>
-                  </div>
-                </motion.div>
-
-                {/* 3. Notebook (📚) */}
-                <motion.div 
-                  animate={{ y: [0, -14, 0], x: [0, -5, 0] }}
-                  transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-                  whileHover={{ scale: 1.08 }}
-                  onClick={onSignIn}
-                  className="absolute -bottom-[10%] -left-[5%] bg-white/95 backdrop-blur-md border border-slate-100/10 rounded-2xl p-3 shadow-xl flex items-center gap-3 cursor-pointer max-w-[175px]"
-                >
-                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-2xl shrink-0">📚</div>
-                  <div className="text-left leading-tight">
-                    <h4 className="font-bold text-slate-855 text-[11px] whitespace-nowrap">Lab Record</h4>
-                    <span className="text-[10px] font-bold text-slate-450 font-mono">₹25</span>
-                  </div>
-                </motion.div>
-
-                {/* 4. Pen (🖊️) */}
-                <motion.div 
-                  animate={{ y: [0, 8, 0], x: [0, 4, 0] }}
-                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                  whileHover={{ scale: 1.08 }}
-                  onClick={onSignIn}
-                  className="absolute -top-[5%] -right-[5%] bg-white/95 backdrop-blur-md border border-slate-100/10 rounded-2xl p-2.5 shadow-lg flex items-center gap-2.5 cursor-pointer max-w-[130px]"
-                >
-                  <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-xl shrink-0">🖊️</div>
-                  <div className="text-left min-w-0 leading-tight">
-                    <h4 className="font-bold text-slate-855 text-[10px] truncate">Drawing Pen</h4>
-                    <span className="text-[9px] font-bold text-slate-450 font-mono">₹10</span>
-                  </div>
-                </motion.div>
-
-                {/* 5. Print Service (🖨️) */}
-                <motion.div 
-                  animate={{ y: [0, -12, 0], x: [0, 6, 0] }}
-                  transition={{ repeat: Infinity, duration: 5.5, ease: "easeInOut" }}
-                  whileHover={{ scale: 1.08 }}
-                  onClick={onSignIn}
-                  className="absolute bottom-[35%] -left-[18%] bg-white/95 backdrop-blur-md border border-slate-100/10 rounded-2xl p-3 shadow-xl flex items-center gap-3 cursor-pointer max-w-[170px]"
-                >
-                  <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-2xl shrink-0">🖨️</div>
-                  <div className="text-left leading-tight">
-                    <h4 className="font-bold text-slate-855 text-[11px] whitespace-nowrap">Print Service</h4>
-                    <span className="text-[10px] font-bold text-slate-450 font-mono">Fast Copy</span>
-                  </div>
-                </motion.div>
-
-                {/* 6. Snacks (🍟) */}
-                <motion.div 
-                  animate={{ y: [0, 10, 0], x: [0, -6, 0] }}
-                  transition={{ repeat: Infinity, duration: 4.8, ease: "easeInOut" }}
-                  whileHover={{ scale: 1.08 }}
-                  onClick={onSignIn}
-                  className="absolute -bottom-[8%] -right-[8%] bg-white/95 backdrop-blur-md border border-slate-100/10 rounded-2xl p-3 shadow-xl flex items-center gap-3 cursor-pointer max-w-[170px]"
-                >
-                  <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-2xl shrink-0">🍟</div>
-                  <div className="text-left leading-tight">
-                    <h4 className="font-bold text-slate-855 text-[11px] whitespace-nowrap">Hot Snacks</h4>
-                    <span className="text-[10px] font-bold text-[#4CAF50] font-mono">₹20</span>
-                  </div>
-                </motion.div>
-
-              </div>
             </div>
 
           </div>
