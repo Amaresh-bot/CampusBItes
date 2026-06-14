@@ -66,15 +66,7 @@ export function LandingPage({ onSignIn, onContactUs }: LandingPageProps) {
       image: "📚",
       color: "bg-[#F3F4F6]"
     },
-    {
-      name: "Block-B Coffee Lounge",
-      category: "Cold Brews • Hot Tea • Premium Pastries • Puffs",
-      rating: "4.7",
-      time: "8-12 Min",
-      tag: "Student Favorite",
-      image: "☕",
-      color: "bg-[#EBF7F2]"
-    }
+
   ];
 
   return (
