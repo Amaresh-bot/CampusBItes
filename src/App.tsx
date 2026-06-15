@@ -246,6 +246,14 @@ export default function App() {
     return () => clearInterval(menuInterval);
   }, []);
 
+  const hasActiveOrders = orders.some(o => 
+    o.status === 'Pending' || 
+    o.status === 'Approved' || 
+    o.status === 'Preparing' || 
+    o.status === 'Ready for Pickup'
+  );
+
+  // Fetch user profile and orders once on user or tab transitions
   useEffect(() => {
     if (user) {
       fetchUserOrders();
@@ -253,12 +261,15 @@ export default function App() {
       if (user.role === 'admin') {
         fetchAllStudents();
       }
+    }
+  }, [user?.id, activeTab, mobileTab]);
 
-      // Optimize polling: Only run the 4s loop when the user is actively viewing their orders list
-      // or if they are an admin actively viewing the admin panel dashboard.
+  // Set up polling interval only if the user has active orders to track
+  useEffect(() => {
+    if (user) {
       const shouldPoll = user.role === 'admin'
         ? (activeTab === 'admin' || mobileTab === 'admin')
-        : (activeTab === 'orders' || mobileTab === 'orders');
+        : (activeTab === 'orders' || mobileTab === 'orders') && hasActiveOrders;
 
       if (shouldPoll) {
         const interval = setInterval(() => {
@@ -267,7 +278,7 @@ export default function App() {
         return () => clearInterval(interval);
       }
     }
-  }, [user?.id, activeTab, mobileTab]);
+  }, [user?.id, activeTab, mobileTab, hasActiveOrders]);
 
   // Sync stateful notification dispatch additions
   const addNotification = (title: string, message: string, type: 'info' | 'success' | 'alert' | 'email') => {
