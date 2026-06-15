@@ -192,7 +192,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
               </form>
 
               {/* Quick Access Cards */}
-              <div className="flex sm:grid sm:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-10 w-full overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4 sm:pb-0">
+              <div className="flex sm:grid sm:grid-cols-2 gap-4 sm:gap-6 mt-8 sm:mt-10 w-full overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4 sm:pb-0 max-w-3xl mx-auto">
                 
                 {/* Card 1: Campus Canteen */}
                 <div
@@ -212,32 +212,6 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                     </h3>
                     <p className="text-xs text-slate-500 font-semibold leading-normal">
                       Fresh meals from campus canteens
-                    </p>
-                  </div>
-
-                  <div className="relative z-10 w-10 h-10 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center group-hover:bg-[#4CAF50] transition-colors mt-auto">
-                    <ChevronRight className="w-5 h-5" />
-                  </div>
-                </div>
-
-                {/* Card 2: Campus Store */}
-                <div
-                  onClick={() => isLoggedIn ? onEnterApp('', 'Stationery') : onSignIn('', 'Stationery')}
-                  className="cursor-pointer bg-white rounded-[32px] p-6 shadow-md flex flex-col justify-between h-[280px] w-[80%] max-w-[300px] sm:w-auto sm:max-w-none shrink-0 snap-center border border-slate-100 hover:border-[#4CAF50]/30 hover:shadow-2xl hover:scale-103 hover:-translate-y-3 transition-all duration-300 relative overflow-hidden group select-none text-left"
-                >
-                  <div className="absolute -right-6 -bottom-6 text-[120px] sm:text-[150px] lg:text-[180px] leading-none select-none transition-transform duration-300 ease-out group-hover:scale-108 origin-bottom-right drop-shadow-lg z-0">
-                    🛒
-                  </div>
-
-                  <div className="space-y-2 relative z-10 max-w-[65%]">
-                    <span className="text-[9px] font-black uppercase text-[#1B4D3E] tracking-wider bg-[#E8F5E9] px-2.5 py-1 rounded-full">
-                      Student Rates
-                    </span>
-                    <h3 className="font-extrabold text-[#1B4D3E] text-xl sm:text-2xl tracking-tight leading-tight uppercase mt-2">
-                      Campus Store
-                    </h3>
-                    <p className="text-xs text-slate-500 font-semibold leading-normal">
-                      Stationery and daily essentials
                     </p>
                   </div>
 
