@@ -920,7 +920,7 @@ export default function App() {
                 className="p-4 bg-slate-50 min-h-[75vh]"
                 transition={{ duration: 0.10, ease: 'easeOut' }}
               >
-                {isOrdersLoading ? (
+                {isOrdersLoading && orders.length === 0 ? (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center bg-white p-5 border border-slate-100 rounded-3xl gap-3">
                       <div className="h-6 w-36 bg-slate-200 rounded-lg animate-pulse" />
@@ -1383,7 +1383,7 @@ export default function App() {
               className="max-w-3xl mx-auto"
               transition={{ duration: 0.18 }}
             >
-              {isOrdersLoading ? (
+              {isOrdersLoading && orders.length === 0 ? (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center bg-white p-5 border border-slate-100 rounded-3xl gap-3">
                     <div className="h-6 w-36 bg-slate-200 rounded-lg animate-pulse" />
