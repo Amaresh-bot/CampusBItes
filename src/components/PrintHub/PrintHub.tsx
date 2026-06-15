@@ -791,6 +791,122 @@ export default function App({ onBackToCanteen, user, studentProfile }: PrintHubP
     });
   };
 
+  const showComingSoon = true;
+  if (showComingSoon) {
+    return (
+      <div className="min-h-screen bg-[#04281E] text-slate-100 font-sans selection:bg-[#4CAF50] selection:text-white antialiased flex flex-col justify-between relative overflow-hidden">
+        {/* Decorative gradient glowing spheres */}
+        <div className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-[#2E7D5A]/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-[#4CAF50]/10 rounded-full blur-3xl pointer-events-none" />
+        
+        {/* Subtle grid pattern background overlay */}
+        <div className="absolute inset-0 opacity-5 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
+        {/* Header Area with back button */}
+        <header className="w-full max-w-7xl mx-auto px-6 py-6 flex justify-between items-center z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-center">
+              <Printer className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <span className="font-display font-black text-lg tracking-tight text-white">CampusBites</span>
+              <span className="text-emerald-400 text-[9px] uppercase font-bold block tracking-wider leading-none">Print & Services</span>
+            </div>
+          </div>
+
+          {onBackToCanteen && (
+            <button 
+              onClick={onBackToCanteen}
+              className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-emerald-400 hover:text-white bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-500/20 hover:border-emerald-500/40 px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95"
+              title="Return to Canteen Dashboard"
+            >
+              ← Back to Canteen
+            </button>
+          )}
+        </header>
+
+        {/* Main Content Area */}
+        <main className="flex-1 flex items-center justify-center p-6 z-10">
+          <div className="w-full max-w-2xl bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 md:p-12 shadow-2xl text-center space-y-8 relative overflow-hidden">
+            {/* Glass Card inner glowing border highlight */}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+            
+            <div className="space-y-4 relative z-10">
+              {/* Animated Icon Container */}
+              <div className="relative w-20 h-20 mx-auto flex items-center justify-center bg-gradient-to-tr from-emerald-500/20 to-lime-500/20 border border-emerald-500/30 rounded-3xl shadow-inner animate-pulse">
+                <Printer className="w-10 h-10 text-emerald-400" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-lime-500 rounded-full border-2 border-emerald-950 animate-bounce" />
+              </div>
+              
+              <div className="space-y-2">
+                <span className="inline-block bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                  Sphoorthy Hub Exclusive
+                </span>
+                <h1 className="text-3xl md:text-5xl font-display font-black tracking-tight text-white leading-tight">
+                  Print & Hub <span className="text-emerald-400">Coming Soon</span>
+                </h1>
+                <p className="text-xs md:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+                  We are currently building the ultimate digital stationery hub for SPHN. Skip queue lines by placing requests on your mobile terminals!
+                </p>
+              </div>
+            </div>
+
+            {/* Feature highlights grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left relative z-10">
+              <div className="bg-emerald-950/20 border border-emerald-500/10 rounded-2xl p-4 space-y-2 hover:border-emerald-500/20 transition-all">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                  <Upload className="w-4 h-4 text-emerald-400" />
+                </div>
+                <h3 className="font-bold text-xs text-white">Instant Document Upload</h3>
+                <p className="text-[10px] text-slate-400 leading-relaxed">
+                  Upload lab records, lecture notes, or syllabus PDFs directly from your device.
+                </p>
+              </div>
+
+              <div className="bg-emerald-950/20 border border-emerald-500/10 rounded-2xl p-4 space-y-2 hover:border-emerald-500/20 transition-all">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                  <BookOpen className="w-4 h-4 text-emerald-400" />
+                </div>
+                <h3 className="font-bold text-xs text-white">Bookstore Reservation</h3>
+                <p className="text-[10px] text-slate-400 leading-relaxed">
+                  Pre-order notebooks, manual kits, and reference materials with one tap.
+                </p>
+              </div>
+
+              <div className="bg-emerald-950/20 border border-emerald-500/10 rounded-2xl p-4 space-y-2 hover:border-emerald-500/20 transition-all">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-emerald-400" />
+                </div>
+                <h3 className="font-bold text-xs text-white">Queue-Free Pickups</h3>
+                <p className="text-[10px] text-slate-400 leading-relaxed">
+                  Receive instant notifications when storekeepers package your items.
+                </p>
+              </div>
+            </div>
+
+            {/* Back Action button for mobile/easy exit */}
+            {onBackToCanteen && (
+              <div className="pt-2 relative z-10 flex justify-center">
+                <button
+                  onClick={onBackToCanteen}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl cursor-pointer shadow-lg hover:shadow-emerald-500/25 active:scale-98 transition-all"
+                >
+                  Go to Canteen Menu
+                  <ArrowRight className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            )}
+          </div>
+        </main>
+
+        {/* Footer Area */}
+        <footer className="w-full py-6 text-center text-[10px] text-slate-500 font-mono tracking-tight z-10">
+          © 2026 CampusBites Consortium • Digital Dining & Service Hubs
+        </footer>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F6F8F6] text-[#0A261D] font-sans selection:bg-[#0B4C38] selection:text-white antialiased">
       
