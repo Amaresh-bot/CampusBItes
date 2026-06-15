@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, CheckCircle2, RefreshCw, XSquare, MessageSquare, AlertCircle, Sparkles, MapPin, ChefHat, Check, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { Clock, CheckCircle2, RefreshCw, XSquare, MessageSquare, AlertCircle, Sparkles, ChefHat, Check, ShoppingBag, ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Order, OrderStatus } from '../types';
 
@@ -241,11 +241,6 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
                   </div>
                 </div>
 
-                {/* Location pin tag */}
-                <div className="flex items-center gap-2 text-xs text-slate-450 font-medium">
-                  <MapPin className="w-3.5 h-3.5 text-[#1B4D3E]" />
-                  <span>Pickup counter location: <strong>Block B Dining Canteen counter, Main Campus</strong>.</span>
-                </div>
 
               </div>
             );
