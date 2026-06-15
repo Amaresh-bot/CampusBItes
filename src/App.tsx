@@ -242,7 +242,7 @@ export default function App() {
     fetchPaymentSettings();
     const menuInterval = setInterval(() => {
       fetchMenu();
-    }, 10000); // Dynamic real-time menu cache updates (every 10s)
+    }, 30000); // Dynamic real-time menu cache updates (every 30s)
     return () => clearInterval(menuInterval);
   }, []);
 
@@ -253,12 +253,21 @@ export default function App() {
       if (user.role === 'admin') {
         fetchAllStudents();
       }
-      const interval = setInterval(() => {
-        fetchUserOrders();
-      }, 4000); // Poll tracking statuses
-      return () => clearInterval(interval);
+
+      // Optimize polling: Only run the 4s loop when the user is actively viewing their orders list
+      // or if they are an admin actively viewing the admin panel dashboard.
+      const shouldPoll = user.role === 'admin'
+        ? (activeTab === 'admin' || mobileTab === 'admin')
+        : (activeTab === 'orders' || mobileTab === 'orders');
+
+      if (shouldPoll) {
+        const interval = setInterval(() => {
+          fetchUserOrders();
+        }, 4000); // Poll tracking statuses
+        return () => clearInterval(interval);
+      }
     }
-  }, [user?.id]);
+  }, [user?.id, activeTab, mobileTab]);
 
   // Sync stateful notification dispatch additions
   const addNotification = (title: string, message: string, type: 'info' | 'success' | 'alert' | 'email') => {
