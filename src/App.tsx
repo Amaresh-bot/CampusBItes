@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ShoppingBag, ChefHat, Sparkles, LogOut, BookOpen, User, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Search, Home, Mic, ShoppingCart } from 'lucide-react';
+import { ShoppingBag, ChefHat, Sparkles, LogOut, BookOpen, User, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Search, Home, Mic, ShoppingCart, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FoodItem, Order, StudentProfile, PaymentSettings, SystemNotification } from './types';
 import { useUser } from './context/UserContext';
@@ -64,6 +64,8 @@ export default function App() {
   const [isMenuLoading, setIsMenuLoading] = useState<boolean>(true);
   const [hasEnteredApp, setHasEnteredApp] = useState<boolean>(false);
   const [pendingFilter, setPendingFilter] = useState<{ query: string; category: string } | null>(null);
+  const [isOrdersLoading, setIsOrdersLoading] = useState<boolean>(false);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
 
   // Mobile Redesign states
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -146,6 +148,8 @@ export default function App() {
   // 3. Fetch active user orders from backend database
   const fetchUserOrders = async () => {
     if (!user || !user.id) return;
+    setIsOrdersLoading(true);
+    setOrdersError(null);
     try {
       const isAdmin = user.role === 'admin';
       const endpoint = isAdmin ? '/api/admin/orders' : `/api/orders/user/${user.id}`;
@@ -169,10 +173,15 @@ export default function App() {
           }
         }
       } else {
-        console.warn("Orders user endpoint returned non-JSON or offline fallback.");
+        const errText = await response.text();
+        console.warn("Orders user endpoint returned non-JSON or offline fallback:", errText);
+        setOrdersError(`Server returned error: ${response.statusText || response.status}. Please make sure database is initialized.`);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn("Could not pull user orders safely:", e);
+      setOrdersError(e.message || "Failed to fetch orders from database. Make sure server is online.");
+    } finally {
+      setIsOrdersLoading(false);
     }
   };
 
@@ -911,12 +920,53 @@ export default function App() {
                 className="p-4 bg-slate-50 min-h-[75vh]"
                 transition={{ duration: 0.10, ease: 'easeOut' }}
               >
-                <OrderProgress 
-                  orders={orders} 
-                  onCancelOrder={(id) => handleUpdateOrderStatus(id, 'Cancelled')} 
-                  onRefresh={fetchUserOrders} 
-                  onGoToMenu={() => setMobileTab('home')}
-                />
+                {isOrdersLoading ? (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center bg-white p-5 border border-slate-100 rounded-3xl gap-3">
+                      <div className="h-6 w-36 bg-slate-200 rounded-lg animate-pulse" />
+                      <div className="h-8 w-24 bg-slate-200 rounded-lg animate-pulse" />
+                    </div>
+                    {[1, 2].map((i) => (
+                      <div key={i} className="bg-white border border-slate-100 rounded-3xl p-6 space-y-4 animate-pulse">
+                        <div className="flex justify-between border-b border-slate-100 pb-4">
+                          <div className="space-y-2">
+                            <div className="h-4 w-32 bg-slate-200 rounded-md" />
+                            <div className="h-3.5 w-48 bg-slate-150 rounded-md" />
+                          </div>
+                          <div className="h-10 w-20 bg-slate-200 rounded-xl" />
+                        </div>
+                        <div className="h-2 w-full bg-slate-150 rounded-full" />
+                        <div className="flex justify-between pt-2">
+                          <div className="h-3 w-16 bg-slate-150 rounded-md" />
+                          <div className="h-3 w-12 bg-slate-150 rounded-md" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : ordersError ? (
+                  <div className="bg-white rounded-3xl border border-red-100 p-8 text-center space-y-4">
+                    <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto border border-red-100">
+                      <AlertCircle className="w-6 h-6" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-display font-black text-slate-800 text-sm">Failed to Load Orders</h4>
+                      <p className="text-xs text-red-650 max-w-sm mx-auto leading-relaxed font-semibold">{ordersError}</p>
+                    </div>
+                    <button
+                      onClick={fetchUserOrders}
+                      className="px-5 py-2.5 bg-[#1B4D3E] hover:bg-[#2E7D5A] text-white font-black text-xs rounded-xl cursor-pointer"
+                    >
+                      Retry Connection
+                    </button>
+                  </div>
+                ) : (
+                  <OrderProgress 
+                    orders={orders} 
+                    onCancelOrder={(id) => handleUpdateOrderStatus(id, 'Cancelled')} 
+                    onRefresh={fetchUserOrders} 
+                    onGoToMenu={() => setMobileTab('home')}
+                  />
+                )}
               </motion.div>
             )}
 
@@ -1333,11 +1383,52 @@ export default function App() {
               className="max-w-3xl mx-auto"
               transition={{ duration: 0.18 }}
             >
-              <OrderProgress 
-                orders={orders} 
-                onCancelOrder={(id) => handleUpdateOrderStatus(id, 'Cancelled')} 
-                onRefresh={fetchUserOrders} 
-              />
+              {isOrdersLoading ? (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center bg-white p-5 border border-slate-100 rounded-3xl gap-3">
+                    <div className="h-6 w-36 bg-slate-200 rounded-lg animate-pulse" />
+                    <div className="h-8 w-24 bg-slate-200 rounded-lg animate-pulse" />
+                  </div>
+                  {[1, 2].map((i) => (
+                    <div key={i} className="bg-white border border-slate-100 rounded-3xl p-6 space-y-4 animate-pulse">
+                      <div className="flex justify-between border-b border-slate-100 pb-4">
+                        <div className="space-y-2">
+                          <div className="h-4 w-32 bg-slate-200 rounded-md" />
+                          <div className="h-3.5 w-48 bg-slate-150 rounded-md" />
+                        </div>
+                        <div className="h-10 w-20 bg-slate-200 rounded-xl" />
+                      </div>
+                      <div className="h-2 w-full bg-slate-150 rounded-full" />
+                      <div className="flex justify-between pt-2">
+                        <div className="h-3 w-16 bg-slate-150 rounded-md" />
+                        <div className="h-3 w-12 bg-slate-150 rounded-md" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : ordersError ? (
+                <div className="bg-white rounded-3xl border border-red-100 p-12 text-center space-y-4">
+                  <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto border border-red-100">
+                    <AlertCircle className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-display font-black text-slate-800 text-sm">Failed to Load Orders</h4>
+                    <p className="text-xs text-red-650 max-w-sm mx-auto leading-relaxed font-semibold">{ordersError}</p>
+                  </div>
+                  <button
+                    onClick={fetchUserOrders}
+                    className="px-5 py-2.5 bg-[#1B4D3E] hover:bg-[#2E7D5A] text-white font-black text-xs rounded-xl cursor-pointer"
+                  >
+                    Retry Connection
+                  </button>
+                </div>
+              ) : (
+                <OrderProgress 
+                  orders={orders} 
+                  onCancelOrder={(id) => handleUpdateOrderStatus(id, 'Cancelled')} 
+                  onRefresh={fetchUserOrders} 
+                />
+              )}
             </motion.div>
           ) : activeTab === 'profile' ? (
             <motion.div

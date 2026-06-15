@@ -145,7 +145,7 @@ function createPersistentDb<T extends object>(filename: string, initialValue: T)
   return new Proxy(loaded, handler);
 }
 
-const ordersDb: any[] = createPersistentDb("orders.json", []);
+// Removed local in-memory/file orders database fallback to enforce single source of truth (Supabase)
 const walletsDb: Record<string, { userId: string; balance: number; pin: string; isAutoTopupEnabled: boolean }> = createPersistentDb("wallets.json", {});
 const supabaseFailedWallets = new Set<string>();
 const walletTransactionsDb: any[] = createPersistentDb("wallet_transactions.json", []);
@@ -855,6 +855,7 @@ async function saveStudentProfile(userId: string, profile: any): Promise<boolean
 }
 
 async function getOrders(userId?: string): Promise<any[]> {
+  console.log(`[Storage/API] Fetching orders from Supabase. Filter userId: ${userId || "ALL"}`);
   let dbOrders: any[] = [];
   if (supabase) {
     try {
@@ -863,23 +864,21 @@ async function getOrders(userId?: string): Promise<any[]> {
         query = query.eq("user_id", userId);
       }
       const { data, error } = await query;
-      if (!error && data) {
-        dbOrders = data.map((d: any) => mapRowFromDb(TABLES.ORDERS, d));
-      } else if (error) {
-        console.log("[Storage] Reading high-reliability local orders cache.");
+      if (error) {
+        console.error(`[Database Error] Failed to fetch orders from Supabase: ${error.code} - ${error.message}`);
+        throw error;
       }
+      if (data) {
+        dbOrders = data.map((d: any) => mapRowFromDb(TABLES.ORDERS, d));
+      }
+      console.log(`[Storage/API] Successfully retrieved ${dbOrders.length} orders from Supabase.`);
     } catch (err: any) {
-      console.log("[Storage] Reading high-reliability local orders cache.");
+      console.error(`[Database Exception] Exception fetching orders from Supabase: ${err.message || err}`);
+      throw err;
     }
-  }
-
-  const localOrders = userId ? ordersDb.filter(o => o.userId === userId) : ordersDb;
-  const orderMap = new Map();
-  for (const o of localOrders) {
-    orderMap.set(o.id, o);
-  }
-  for (const o of dbOrders) {
-    orderMap.set(o.id, o);
+  } else {
+    console.error("[Database Status] Supabase is not configured.");
+    throw new Error("Supabase is not configured");
   }
 
   let profiles: any[] = [];
@@ -897,7 +896,7 @@ async function getOrders(userId?: string): Promise<any[]> {
     }
   }
 
-  const enrichedOrders = Array.from(orderMap.values()).map(o => {
+  const enrichedOrders = dbOrders.map(o => {
     const profile = o.userId ? profileMap.get(o.userId.toLowerCase()) : null;
     return {
       ...o,
@@ -910,39 +909,45 @@ async function getOrders(userId?: string): Promise<any[]> {
 }
 
 async function addOrder(order: any): Promise<boolean> {
+  console.log(`[Storage/API] Inserting order ${order.id} into Supabase. Payload:`, JSON.stringify(order));
   if (supabase) {
     try {
       const dbRow = mapRowToDb(TABLES.ORDERS, order);
       const { error } = await supabase.from(TABLES.ORDERS).insert([dbRow]);
       if (error) {
-        console.error("[Supabase Sync Error] Failed to insert order:", error.message || error);
-        console.log("[Storage] Order saved to high-reliability local database.");
-      } else {
-        return true;
+        console.error(`[Supabase Sync Error] Failed to insert order ${order.id}: ${error.code} - ${error.message}`);
+        return false;
       }
+      console.log(`[Storage/API] Order ${order.id} successfully inserted into Supabase.`);
+      return true;
     } catch (err: any) {
-      console.error("[Supabase Exception] Exception inserting order:", err.message || err);
-      console.log("[Storage] Order saved to high-reliability local database.");
+      console.error(`[Supabase Exception] Exception inserting order ${order.id}:`, err.message || err);
+      return false;
     }
   }
+  console.error("[Database Status] Supabase is not configured.");
   return false;
 }
 
 async function updateOrderStatus(orderId: string, status: string): Promise<any> {
+  console.log(`[Storage/API] Updating order ${orderId} status to ${status} in Supabase.`);
   if (supabase) {
     try {
       const { data, error } = await supabase.from(TABLES.ORDERS).update({ status }).eq("id", orderId).select();
-      if (!error && data && data.length > 0) {
+      if (error) {
+        console.error(`[Supabase Sync Error] Failed to update order status for ${orderId}: ${error.code} - ${error.message}`);
+        return null;
+      }
+      if (data && data.length > 0) {
+        console.log(`[Storage/API] Order ${orderId} status successfully updated to ${status} in Supabase.`);
         return mapRowFromDb(TABLES.ORDERS, data[0]);
-      } else if (error) {
-        console.error("[Supabase Sync Error] Failed to update order status:", error.message || error);
-        console.log("[Storage] Order status updated in local database.");
       }
     } catch (err: any) {
-      console.error("[Supabase Exception] Exception updating order status:", err.message || err);
-      console.log("[Storage] Order status updated in local database.");
+      console.error(`[Supabase Exception] Exception updating order status for ${orderId}:`, err.message || err);
+      return null;
     }
   }
+  console.error("[Database Status] Supabase is not configured.");
   return null;
 }
 
@@ -3047,9 +3052,15 @@ app.post("/api/orders/create", async (req, res) => {
     status: "Pending"
   };
 
-  // Persists to Server Memory database & Supabase
-  ordersDb.push(completedOrder);
-  await addOrder(completedOrder);
+  // Persist exclusively to Supabase database (Single source of truth)
+  const isSaved = await addOrder(completedOrder);
+  if (!isSaved) {
+    console.error(`[API Error] Failed to persist order ${completedOrder.id} to Supabase.`);
+    return res.status(500).json({ 
+      error: "Database Save Failed", 
+      message: "Could not save your order. Please check if your Supabase schema (user_id and payment_id) is set up correctly." 
+    });
+  }
 
   // Register checkout/payment transaction ledger audit log
   try {
@@ -3097,17 +3108,17 @@ app.patch("/api/orders/:orderId/status", async (req, res) => {
     return res.status(400).json({ error: "Requested status is not recognized" });
   }
 
-  const orderIndex = ordersDb.findIndex((o) => o.id === orderId);
-  if (orderIndex !== -1) {
-    ordersDb[orderIndex].status = status;
+  try {
+    const updatedDb = await updateOrderStatus(orderId, status);
+    if (!updatedDb) {
+      console.error(`[API Error] Order status update failed for orderId: ${orderId}`);
+      return res.status(404).json({ error: "Order not found in database or update failed" });
+    }
+    res.json({ success: true, order: updatedDb });
+  } catch (err: any) {
+    console.error(`[API Exception] Failed to update status for orderId ${orderId}:`, err.message || err);
+    res.status(500).json({ error: "Failed to update order status" });
   }
-
-  const updatedDb = await updateOrderStatus(orderId, status);
-  if (!updatedDb && orderIndex === -1) {
-    return res.status(404).json({ error: "Order not found" });
-  }
-
-  res.json({ success: true, order: updatedDb || ordersDb[orderIndex] });
 });
 
 // Admin Panel global order monitoring
@@ -3195,8 +3206,102 @@ app.all("/api/*", (req, res) => {
   res.status(404).json({ error: `API route ${req.method} ${req.url} not found` });
 });
 
+async function runStartupDiagnostics() {
+  if (!supabase) {
+    console.warn("\n=======================================================");
+    console.warn("⚠️ DATABASE WARNING: Supabase is NOT configured!");
+    console.warn("The server will not be able to load or save orders.");
+    console.warn("=======================================================\n");
+    return;
+  }
+
+  console.log("[Diagnostics] Starting database schema diagnostics...");
+  
+  // 1. Check payment_id column
+  try {
+    const { error } = await supabase.from("canteen_orders").select("payment_id").limit(1);
+    if (error && error.code === "42703") {
+      console.error("\n=======================================================");
+      console.error("❌ DATABASE SCHEMA ERROR: 'payment_id' column is missing!");
+      console.error("Please run the SQL migration in your Supabase SQL editor:");
+      console.error("ALTER TABLE public.canteen_orders ADD COLUMN IF NOT EXISTS payment_id TEXT;");
+      console.error("=======================================================\n");
+    } else {
+      console.log("[Diagnostics] Column 'payment_id' exists in 'canteen_orders'.");
+    }
+  } catch (e) {}
+
+  // 2. Check user_id type mapping (test inserting non-UUID string)
+  try {
+    const dummyId = "diagnostics_test_id_" + Date.now();
+    const { error } = await supabase.from("canteen_orders").insert([{
+      id: dummyId,
+      user_id: "non_uuid_test_user_id",
+      items: [],
+      total_amount: 0,
+      status: "Pending",
+      payment_method: "test",
+      payment_status: "Unpaid",
+      token_number: "TEST"
+    }]);
+    
+    if (error) {
+      if (error.code === "22P02") {
+        console.error("\n=======================================================");
+        console.error("❌ DATABASE SCHEMA ERROR: 'user_id' in 'canteen_orders' is restricted to UUID!");
+        console.error("Please run the SQL migration in your Supabase SQL editor to change it to TEXT:");
+        console.error("ALTER TABLE public.canteen_orders ALTER COLUMN user_id TYPE TEXT;");
+        console.error("=======================================================\n");
+      } else if (error.code === "42703" && error.message.includes("payment_id")) {
+        // Handled in payment_id check
+      } else {
+        console.warn(`[Diagnostics] Order insert check warning: ${error.code} - ${error.message}`);
+      }
+    } else {
+      console.log("[Diagnostics] Column 'user_id' in 'canteen_orders' accepts custom text UIDs.");
+      // Cleanup
+      await supabase.from("canteen_orders").delete().eq("id", dummyId);
+    }
+  } catch (e) {}
+
+  // 3. Check canteen_student_profiles id type mapping
+  try {
+    const dummyProfileId = "non_uuid_test_profile_id";
+    const { error } = await supabase.from("canteen_student_profiles").insert([{
+      id: dummyProfileId,
+      email: "diagnostics_test@sphoorthy.edu.in",
+      full_name: "Diagnostics Test User",
+      phone_number: "0000000000",
+      profile_locked: false
+    }]);
+
+    if (error) {
+      if (error.code === "22P02") {
+        console.error("\n=======================================================");
+        console.error("❌ DATABASE SCHEMA ERROR: 'id' in 'canteen_student_profiles' is restricted to UUID!");
+        console.error("Please run the SQL migration in your Supabase SQL editor to change it to TEXT:");
+        console.error("ALTER TABLE public.canteen_student_profiles ALTER COLUMN id TYPE TEXT;");
+        console.error("=======================================================\n");
+      } else {
+        console.warn(`[Diagnostics] Student profiles check warning: ${error.code} - ${error.message}`);
+      }
+    } else {
+      console.log("[Diagnostics] Column 'id' in 'canteen_student_profiles' accepts custom text IDs.");
+      // Cleanup
+      await supabase.from("canteen_student_profiles").delete().eq("id", dummyProfileId);
+    }
+  } catch (e) {}
+}
+
 // Boot and integrate Vite bundle inside the process pipeline
 async function startServer() {
+  // Run startup database diagnostics
+  try {
+    await runStartupDiagnostics();
+  } catch (diagErr) {
+    console.warn("Diagnostics warning:", diagErr);
+  }
+
   // Ensure Supabase tables are seeded with default menu catalog if empty
   try {
     await seedSupabaseIfNeeded();
