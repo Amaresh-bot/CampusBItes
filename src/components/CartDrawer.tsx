@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Trash2, ShieldCheck, CreditCard, FileText, ArrowRight, X, AlertCircle, ExternalLink, Sparkles, Percent } from 'lucide-react';
 import { FoodItem, CartItem, Order, OrderCartItem } from '../types';
 
@@ -24,6 +24,21 @@ export function CartDrawer({
   const [paymentMethod] = useState<'razorpay'>('razorpay');
   const [customInstructions, setCustomInstructions] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  // Clean up Razorpay checkout iframe and script tags if this drawer is unmounted
+  useEffect(() => {
+    return () => {
+      try {
+        const razorpayScripts = document.querySelectorAll('script[src*="checkout.razorpay.com"]');
+        razorpayScripts.forEach(script => script.remove());
+        
+        const razorpayIframes = document.querySelectorAll('iframe[src*="checkout.razorpay.com"], .razorpay-container, iframe[id*="rzp-"]');
+        razorpayIframes.forEach(iframe => iframe.remove());
+      } catch (e) {
+        console.warn("Could not clean up Razorpay DOM artifacts on unmount:", e);
+      }
+    };
+  }, []);
   
   // Simulated Razorpay Interactive Modal State
   const [showRzpSimulator, setShowRzpSimulator] = useState<boolean>(false);
@@ -225,6 +240,17 @@ export function CartDrawer({
       }
 
       if (resp.ok && data.success) {
+        // Clean up Razorpay dynamically loaded scripts and any leftover iframes in the document
+        try {
+          const razorpayScripts = document.querySelectorAll('script[src*="checkout.razorpay.com"]');
+          razorpayScripts.forEach(script => script.remove());
+          
+          const razorpayIframes = document.querySelectorAll('iframe[src*="checkout.razorpay.com"], .razorpay-container, iframe[id*="rzp-"]');
+          razorpayIframes.forEach(iframe => iframe.remove());
+        } catch (e) {
+          console.warn("Could not clean up Razorpay DOM artifacts:", e);
+        }
+
         onOrderPlacement(data.order);
         onClearCart();
         setCustomInstructions('');
