@@ -3,9 +3,11 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId || '(default)');
-export const auth = getAuth(app);
+const isMock = !firebaseConfig || firebaseConfig.projectId === 'mock-app';
+
+export const app = isMock ? ({} as any) : initializeApp(firebaseConfig);
+export const db = isMock ? ({} as any) : getFirestore(app, firebaseConfig.firestoreDatabaseId || '(default)');
+export const auth = isMock ? ({} as any) : getAuth(app);
 
 export enum OperationType {
   CREATE = 'create',
@@ -56,6 +58,7 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 
 // Quietly check connection state
 export async function testConnection() {
+  if (isMock) return;
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
     console.log("Firebase connection initialized.");
@@ -67,4 +70,6 @@ export async function testConnection() {
 }
 
 // Run connection validation check
-testConnection();
+if (!isMock) {
+  testConnection();
+}

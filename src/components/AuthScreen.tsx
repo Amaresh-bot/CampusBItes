@@ -195,7 +195,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
 
     const handleMessage = (event: MessageEvent) => {
       const origin = event.origin;
-      if (!origin.endsWith('.run.app') && !origin.includes('localhost') && !origin.includes('127.0.0.1')) {
+      if (origin !== window.location.origin) {
         return;
       }
 

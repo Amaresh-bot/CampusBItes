@@ -79,6 +79,15 @@ if (SUPABASE_URL) {
 
 const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY?.replace(/['"]/g, "").trim() || envKeys["SUPABASE_SERVICE_ROLE_KEY"] || envKeys["SUPABASE_ANON_KEY"] || process.env.SUPABASE_ANON_KEY?.replace(/['"]/g, "").trim())?.trim() || "";
 
+if (SUPABASE_URL && !process.env.SUPABASE_URL) {
+  process.env.SUPABASE_URL = SUPABASE_URL;
+}
+if (SUPABASE_SERVICE_ROLE_KEY && !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  process.env.SUPABASE_SERVICE_ROLE_KEY = SUPABASE_SERVICE_ROLE_KEY;
+}
+console.log("Supabase URL configured:", !!process.env.SUPABASE_URL);
+console.log("Service role configured:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+
 console.log("====================================");
 console.log("RAZORPAY CREDENTIALS DIAGNOSTICS:");
 console.log("RAW PROCESS ENV KEY ID:", process.env.RAZORPAY_KEY_ID ? `[SET] val_raw: ${process.env.RAZORPAY_KEY_ID} (len: ${process.env.RAZORPAY_KEY_ID.length})` : "[NOT SET]");
@@ -3052,15 +3061,20 @@ app.post("/api/orders/create", async (req, res) => {
     status: "Pending"
   };
 
+  console.log("Creating Order:", completedOrder);
+
   // Persist exclusively to Supabase database (Single source of truth)
   const isSaved = await addOrder(completedOrder);
   if (!isSaved) {
+    console.error("Insert Error: Database Save Failed");
     console.error(`[API Error] Failed to persist order ${completedOrder.id} to Supabase.`);
     return res.status(500).json({ 
       error: "Database Save Failed", 
       message: "Could not save your order. Please check if your Supabase schema (user_id and payment_id) is set up correctly." 
     });
   }
+
+  console.log("Insert Result:", { success: true, orderId: completedOrder.id });
 
   // Register checkout/payment transaction ledger audit log
   try {
@@ -3094,7 +3108,10 @@ app.post("/api/orders/create", async (req, res) => {
 // API: Fetch ordered meal logs
 app.get("/api/orders/user/:userId?", async (req, res) => {
   const { userId } = req.params;
-  const orders = await getOrders(userId === "undefined" || userId === "null" ? undefined : userId);
+  const targetUid = userId === "undefined" || userId === "null" ? undefined : userId;
+  console.log("Fetching orders for:", targetUid);
+  const orders = await getOrders(targetUid);
+  console.log("Orders found:", orders.length);
   res.json(orders);
 });
 
