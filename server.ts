@@ -960,6 +960,149 @@ async function updateOrderStatus(orderId: string, status: string): Promise<any> 
   return null;
 }
 
+async function getPrintOrders(userId?: string): Promise<any[]> {
+  console.log(`[Storage/API] Fetching print orders from Supabase. Filter userId: ${userId || "ALL"}`);
+  let dbOrders: any[] = [];
+  if (supabase) {
+    try {
+      let query = supabase.from(TABLES.PRINT_ORDERS).select("*");
+      if (userId) {
+        query = query.eq("user_id", userId);
+      }
+      const { data, error } = await query;
+      if (error) {
+        console.error(`[Database Error] Failed to fetch print orders from Supabase: ${error.code} - ${error.message}`);
+        throw error;
+      }
+      if (data) {
+        dbOrders = data.map((d: any) => ({
+          orderId: d.id,
+          userId: d.user_id,
+          studentName: d.student_name,
+          rollNumber: d.roll_number,
+          department: d.department,
+          contactNumber: d.contact_number,
+          pickupTimeSlot: d.pickup_time_slot,
+          items: typeof d.items === 'string' ? JSON.parse(d.items) : (d.items || []),
+          subtotal: Number(d.subtotal),
+          tax: Number(d.tax),
+          total: Number(d.total),
+          status: d.status,
+          upiUtr: d.upi_utr,
+          upiScreenshot: d.upi_screenshot,
+          upiApp: d.upi_app,
+          createdAt: d.created_at
+        }));
+      }
+      console.log(`[Storage/API] Successfully retrieved ${dbOrders.length} print orders from Supabase.`);
+      return dbOrders.sort((a, b) => b.orderId.localeCompare(a.orderId));
+    } catch (err: any) {
+      console.error(`[Database Exception] Exception fetching print orders from Supabase: ${err.message || err}`);
+      throw err;
+    }
+  }
+  console.error("[Database Status] Supabase is not configured.");
+  throw new Error("Supabase is not configured");
+}
+
+async function addPrintOrder(order: any): Promise<boolean> {
+  console.log(`[Storage/API] Inserting print order ${order.orderId} into Supabase.`);
+  if (supabase) {
+    try {
+      const dbRow = {
+        id: order.orderId,
+        user_id: order.userId || null,
+        student_name: order.studentName,
+        roll_number: order.rollNumber,
+        department: order.department || null,
+        contact_number: order.contactNumber,
+        pickup_time_slot: order.pickupTimeSlot || null,
+        items: typeof order.items === 'string' ? order.items : JSON.stringify(order.items || []),
+        subtotal: order.subtotal,
+        tax: order.tax,
+        total: order.total,
+        status: order.status || 'PENDING',
+        upi_utr: order.upiUtr || null,
+        upi_screenshot: order.upiScreenshot || null,
+        upi_app: order.upiApp || null,
+        created_at: new Date().toISOString()
+      };
+      const { error } = await supabase.from(TABLES.PRINT_ORDERS).insert([dbRow]);
+      if (error) {
+        console.error(`[Supabase Sync Error] Failed to insert print order ${order.orderId}: ${error.code} - ${error.message}`);
+        return false;
+      }
+      console.log(`[Storage/API] Print order ${order.orderId} successfully inserted into Supabase.`);
+      return true;
+    } catch (err: any) {
+      console.error(`[Supabase Exception] Exception inserting print order ${order.orderId}:`, err.message || err);
+      return false;
+    }
+  }
+  console.error("[Database Status] Supabase is not configured.");
+  return false;
+}
+
+async function updatePrintOrderStatus(orderId: string, status: string): Promise<any> {
+  console.log(`[Storage/API] Updating print order ${orderId} status to ${status} in Supabase.`);
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from(TABLES.PRINT_ORDERS).update({ status }).eq("id", orderId).select();
+      if (error) {
+        console.error(`[Supabase Sync Error] Failed to update print order status for ${orderId}: ${error.code} - ${error.message}`);
+        return null;
+      }
+      if (data && data.length > 0) {
+        console.log(`[Storage/API] Print order ${orderId} status successfully updated to ${status} in Supabase.`);
+        const d = data[0];
+        return {
+          orderId: d.id,
+          userId: d.user_id,
+          studentName: d.student_name,
+          rollNumber: d.roll_number,
+          department: d.department,
+          contactNumber: d.contact_number,
+          pickupTimeSlot: d.pickup_time_slot,
+          items: typeof d.items === 'string' ? JSON.parse(d.items) : (d.items || []),
+          subtotal: Number(d.subtotal),
+          tax: Number(d.tax),
+          total: Number(d.total),
+          status: d.status,
+          upiUtr: d.upi_utr,
+          upiScreenshot: d.upi_screenshot,
+          upiApp: d.upi_app,
+          createdAt: d.created_at
+        };
+      }
+    } catch (err: any) {
+      console.error(`[Supabase Exception] Exception updating print order status for ${orderId}:`, err.message || err);
+      return null;
+    }
+  }
+  console.error("[Database Status] Supabase is not configured.");
+  return null;
+}
+
+async function deletePrintOrder(orderId: string): Promise<boolean> {
+  console.log(`[Storage/API] Deleting print order ${orderId} from Supabase.`);
+  if (supabase) {
+    try {
+      const { error } = await supabase.from(TABLES.PRINT_ORDERS).delete().eq("id", orderId);
+      if (error) {
+        console.error(`[Supabase Sync Error] Failed to delete print order ${orderId}: ${error.code} - ${error.message}`);
+        return false;
+      }
+      console.log(`[Storage/API] Print order ${orderId} successfully deleted from Supabase.`);
+      return true;
+    } catch (err: any) {
+      console.error(`[Supabase Exception] Exception deleting print order ${orderId}:`, err.message || err);
+      return false;
+    }
+  }
+  console.error("[Database Status] Supabase is not configured.");
+  return false;
+}
+
 async function seedSupabaseIfNeeded() {
   if (!supabase) return;
   try {
@@ -1107,7 +1250,8 @@ app.get("/api/config-status", async (req, res) => {
         TABLES.MEAL_BOOKINGS,
         TABLES.PAYMENT_SETTINGS,
         TABLES.STUDENTS,
-        TABLES.ORDERS
+        TABLES.ORDERS,
+        TABLES.PRINT_ORDERS
       ];
       
       for (const t of tablesToCheck) {
@@ -3135,6 +3279,85 @@ app.patch("/api/orders/:orderId/status", async (req, res) => {
   } catch (err: any) {
     console.error(`[API Exception] Failed to update status for orderId ${orderId}:`, err.message || err);
     res.status(500).json({ error: "Failed to update order status" });
+  }
+});
+
+// API: Create a Print Order
+app.post("/api/print-orders/create", async (req, res) => {
+  const { order } = req.body;
+  if (!order || !order.orderId || !order.studentName || !order.rollNumber || !order.contactNumber) {
+    return res.status(400).json({ error: "Incomplete print order specification payload" });
+  }
+
+  console.log("Creating Print Order:", order);
+
+  const isSaved = await addPrintOrder(order);
+  if (!isSaved) {
+    console.error(`[API Error] Failed to persist print order ${order.orderId} to Supabase.`);
+    return res.status(500).json({ 
+      error: "Database Save Failed", 
+      message: "Could not save your print order. Please check if your Supabase schema canteen_print_orders is set up correctly." 
+    });
+  }
+
+  res.json({ success: true, order });
+});
+
+// API: Fetch print orders for all users (Admin view)
+app.get("/api/print-orders", async (req, res) => {
+  try {
+    const orders = await getPrintOrders();
+    res.json(orders);
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to retrieve print orders", message: err.message });
+  }
+});
+
+// API: Fetch print orders for a specific user
+app.get("/api/print-orders/user/:userId?", async (req, res) => {
+  const { userId } = req.params;
+  const targetUid = userId === "undefined" || userId === "null" ? undefined : userId;
+  console.log("Fetching print orders for user:", targetUid);
+  try {
+    const orders = await getPrintOrders(targetUid);
+    res.json(orders);
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to retrieve print orders", message: err.message });
+  }
+});
+
+// API: Update print order status (For Admin management page)
+app.patch("/api/print-orders/:orderId/status", async (req, res) => {
+  const { orderId } = req.params;
+  const { status } = req.body;
+
+  const validStatuses = ['PENDING', 'CONFIRMED', 'READY', 'ACCEPTED', 'HOLD', 'CANCELLED', 'PICKED_UP'];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ error: "Requested status is not recognized" });
+  }
+
+  try {
+    const updatedOrder = await updatePrintOrderStatus(orderId, status);
+    if (!updatedOrder) {
+      return res.status(500).json({ error: "Failed to update status in database." });
+    }
+    res.json({ success: true, order: updatedOrder });
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to update print order status", message: err.message });
+  }
+});
+
+// API: Delete print order (For Admin management page)
+app.delete("/api/print-orders/:orderId", async (req, res) => {
+  const { orderId } = req.params;
+  try {
+    const isDeleted = await deletePrintOrder(orderId);
+    if (!isDeleted) {
+      return res.status(500).json({ error: "Failed to delete order from database." });
+    }
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to delete print order", message: err.message });
   }
 });
 

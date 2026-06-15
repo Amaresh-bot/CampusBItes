@@ -18,6 +18,7 @@ import { OffersPanel } from './components/OffersPanel';
 import { TodaysSpecialsSlider } from './components/TodaysSpecialsSlider';
 import { ProfileTab } from './components/ProfileTab';
 import { BottomNavbar } from './components/BottomNavbar';
+import PrintHub from './components/PrintHub/PrintHub';
 
 
 export default function App() {
@@ -58,7 +59,7 @@ export default function App() {
   const [menuItems, setMenuItems] = useState<FoodItem[]>([]);
   const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [orders, setOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<'menu' | 'orders' | 'profile' | 'admin' | 'stores' | 'offers'>('menu');
+  const [activeTab, setActiveTab] = useState<'menu' | 'orders' | 'profile' | 'admin' | 'stores' | 'offers' | 'printhub'>('menu');
   const [filteredStoreId, setFilteredStoreId] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isMenuLoading, setIsMenuLoading] = useState<boolean>(true);
@@ -69,7 +70,7 @@ export default function App() {
 
   // Mobile Redesign states
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [mobileTab, setMobileTab] = useState<'home' | 'orders' | 'stores' | 'cart' | 'profile' | 'admin'>('home');
+  const [mobileTab, setMobileTab] = useState<'home' | 'orders' | 'stores' | 'cart' | 'profile' | 'admin' | 'printhub'>('home');
   const [promoIndex, setPromoIndex] = useState<number>(0);
 
   // Clean event listener to identify handheld devices dynamically
@@ -355,6 +356,10 @@ export default function App() {
     if (pendingFilter) {
       setSearchQuery(pendingFilter.query || '');
       setSelectedCategory(pendingFilter.category || 'All');
+      if (pendingFilter.category === 'printhub') {
+        setActiveTab('printhub');
+        setMobileTab('printhub');
+      }
       setPendingFilter(null);
     }
     setHasEnteredApp(true);
@@ -542,7 +547,13 @@ export default function App() {
             if (query !== undefined) setSearchQuery(query || '');
             if (category !== undefined) setSelectedCategory(category || 'All');
             setHasEnteredApp(true);
-            setActiveTab('menu');
+            if (category === 'printhub') {
+              setActiveTab('printhub');
+              setMobileTab('printhub');
+            } else {
+              setActiveTab('menu');
+              setMobileTab('home');
+            }
           }}
           onSignOut={handleLogout}
           onSignIn={(query, category) => {
@@ -685,6 +696,19 @@ export default function App() {
           )}
         </AnimatePresence>
       </div>
+    );
+  }
+
+  if (user && hasEnteredApp && (activeTab === 'printhub' || mobileTab === 'printhub')) {
+    return (
+      <PrintHub
+        user={user}
+        studentProfile={studentProfile}
+        onBackToCanteen={() => {
+          setActiveTab('menu');
+          setMobileTab('home');
+        }}
+      />
     );
   }
 

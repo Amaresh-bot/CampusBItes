@@ -140,6 +140,33 @@ CREATE POLICY "Permissive select for canteen_orders" ON public.canteen_orders FO
 CREATE POLICY "Permissive insert for canteen_orders" ON public.canteen_orders FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Permissive update for canteen_orders" ON public.canteen_orders FOR UPDATE TO public USING (true);
 
+-- 8. Table: canteen_print_orders
+CREATE TABLE IF NOT EXISTS public.canteen_print_orders (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    student_name TEXT NOT NULL,
+    roll_number TEXT NOT NULL,
+    department TEXT,
+    contact_number TEXT NOT NULL,
+    pickup_time_slot TEXT,
+    items JSONB DEFAULT '[]'::jsonb,
+    subtotal NUMERIC NOT NULL,
+    tax NUMERIC NOT NULL,
+    total NUMERIC NOT NULL,
+    status TEXT DEFAULT 'PENDING',
+    upi_utr TEXT,
+    upi_screenshot TEXT,
+    upi_app TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.canteen_print_orders ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Permissive select for canteen_print_orders" ON public.canteen_print_orders FOR SELECT TO public USING (true);
+CREATE POLICY "Permissive insert for canteen_print_orders" ON public.canteen_print_orders FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Permissive update for canteen_print_orders" ON public.canteen_print_orders FOR UPDATE TO public USING (true);
+CREATE POLICY "Permissive delete for canteen_print_orders" ON public.canteen_print_orders FOR DELETE TO public USING (true);
+
 -- alternative fallback option to fully disable RLS:
 -- ALTER TABLE public.canteen_menu DISABLE ROW LEVEL SECURITY;
 -- ALTER TABLE public.canteen_wallets DISABLE ROW LEVEL SECURITY;
@@ -148,3 +175,4 @@ CREATE POLICY "Permissive update for canteen_orders" ON public.canteen_orders FO
 -- ALTER TABLE public.canteen_payment_settings DISABLE ROW LEVEL SECURITY;
 -- ALTER TABLE public.canteen_student_profiles DISABLE ROW LEVEL SECURITY;
 -- ALTER TABLE public.canteen_orders DISABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.canteen_print_orders DISABLE ROW LEVEL SECURITY;

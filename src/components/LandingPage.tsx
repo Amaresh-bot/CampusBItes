@@ -222,7 +222,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
 
                 {/* Card 3: Print & Services */}
                 <div
-                  onClick={() => isLoggedIn ? onEnterApp('', 'Stationery') : onSignIn('', 'Stationery')}
+                  onClick={() => isLoggedIn ? onEnterApp('', 'printhub') : onSignIn('', 'printhub')}
                   className="cursor-pointer bg-white rounded-[32px] p-6 shadow-md flex flex-col justify-between h-[280px] w-[80%] max-w-[300px] sm:w-auto sm:max-w-none shrink-0 snap-center border border-slate-100 hover:border-[#4CAF50]/30 hover:shadow-2xl hover:scale-103 hover:-translate-y-3 transition-all duration-300 relative overflow-hidden group select-none text-left"
                 >
                   <div className="absolute -right-6 -bottom-6 text-[120px] sm:text-[150px] lg:text-[180px] leading-none select-none transition-transform duration-300 ease-out group-hover:scale-108 origin-bottom-right drop-shadow-lg z-0">

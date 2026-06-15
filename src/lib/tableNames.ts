@@ -1,6 +1,7 @@
 export const TABLES = Object.freeze({
   STUDENTS:  'canteen_student_profiles',
   ORDERS:    'canteen_orders',
+  PRINT_ORDERS: 'canteen_print_orders',
   MENU:      'canteen_menu',
   WALLETS:   'canteen_wallets',
   WALLET_TRANSACTIONS: 'canteen_wallet_transactions',
