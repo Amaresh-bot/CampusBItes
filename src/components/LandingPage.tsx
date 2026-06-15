@@ -104,7 +104,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
               />
               <div className="flex flex-col text-left min-w-0">
                 <div className="flex items-center gap-1">
-                  <span className="font-display font-black text-xl tracking-tight text-white uppercase leading-none">
+                  <span className="font-display font-black text-sm sm:text-xl tracking-tight text-white uppercase leading-none">
                     CampusBites
                   </span>
                   <span className="text-[8px] font-mono font-bold bg-white/10 text-white px-1 py-0.5 rounded border border-white/20 shrink-0">
@@ -121,32 +121,32 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                 <>
                   <button
                     onClick={onSignOut}
-                    className="text-[11px] sm:text-xs font-black text-white/90 hover:text-white px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-sans shrink-0"
+                    className="hidden sm:inline-block text-[11px] sm:text-xs font-black text-white/90 hover:text-white px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-sans shrink-0"
                   >
                     Sign Out
                   </button>
                   <button
                     onClick={() => onEnterApp()}
-                    className="text-[11px] sm:text-xs font-extrabold bg-[#2E7D5A] hover:bg-[#245B49] hover:scale-[1.02] text-white px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
+                    className="text-[10px] sm:text-xs font-extrabold bg-[#2E7D5A] hover:bg-[#245B49] hover:scale-[1.02] text-white px-2.5 sm:px-6 py-1.5 sm:py-3 rounded-[8px] sm:rounded-[15px] cursor-pointer shadow-lg active:scale-95 transition-all flex items-center gap-1 shrink-0"
                   >
                     <span>Go to Menu</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-white hidden xs:block" />
+                    <ArrowRight className="w-3.5 h-3.5 text-white hidden sm:block" />
                   </button>
                 </>
               ) : (
                 <>
                   <button
                     onClick={() => onSignIn()}
-                    className="text-[11px] sm:text-xs font-black text-white/90 hover:text-white px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-sans shrink-0"
+                    className="hidden sm:inline-block text-[11px] sm:text-xs font-black text-white/90 hover:text-white px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-sans shrink-0"
                   >
                     Sign In
                   </button>
                   <button
                     onClick={() => onSignIn()}
-                    className="text-[11px] sm:text-xs font-extrabold bg-[#2E7D5A] hover:bg-[#245B49] hover:scale-[1.02] text-white px-3 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-[15px] cursor-pointer shadow-lg active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
+                    className="text-[10px] sm:text-xs font-extrabold bg-[#2E7D5A] hover:bg-[#245B49] hover:scale-[1.02] text-white px-2.5 sm:px-6 py-1.5 sm:py-3 rounded-[8px] sm:rounded-[15px] cursor-pointer shadow-lg active:scale-95 transition-all flex items-center gap-1 shrink-0"
                   >
                     <span>Go to Menu</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-white hidden xs:block" />
+                    <ArrowRight className="w-3.5 h-3.5 text-white hidden sm:block" />
                   </button>
                 </>
               )}
