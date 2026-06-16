@@ -175,9 +175,11 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                   onClick={() => isLoggedIn ? onEnterApp('', 'All') : onSignIn('', 'All')}
                   className="cursor-pointer bg-white rounded-[32px] p-6 shadow-xl flex flex-col justify-between h-[280px] w-[80%] max-w-[300px] sm:w-auto sm:max-w-none shrink-0 snap-center border border-slate-100 transition-all duration-300 relative overflow-hidden group select-none text-left"
                 >
-                  <div className="absolute -right-6 -bottom-6 text-[120px] sm:text-[150px] lg:text-[180px] leading-none select-none transition-transform duration-300 ease-out origin-bottom-right drop-shadow-lg z-0">
-                    🍔
-                  </div>
+                  <img 
+                    src="/assets/thali.jpg" 
+                    alt="Campus Canteen" 
+                    className="absolute right-0 bottom-0 w-[140px] h-[140px] sm:w-[160px] sm:h-[160px] object-contain select-none transition-transform duration-500 ease-out origin-bottom-right z-0 group-hover:scale-105"
+                  />
                   
                   <div className="space-y-2 relative z-10 max-w-[65%]">
                     <span className="text-[9px] font-black uppercase text-[#1B4D3E] tracking-wider bg-[#E8F5E9] px-2.5 py-1 rounded-full">
@@ -201,9 +203,11 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                   onClick={() => isLoggedIn ? onEnterApp('', 'printhub') : onSignIn('', 'printhub')}
                   className="cursor-pointer bg-white rounded-[32px] p-6 shadow-xl flex flex-col justify-between h-[280px] w-[80%] max-w-[300px] sm:w-auto sm:max-w-none shrink-0 snap-center border border-slate-100 transition-all duration-300 relative overflow-hidden group select-none text-left"
                 >
-                  <div className="absolute -right-6 -bottom-6 text-[120px] sm:text-[150px] lg:text-[180px] leading-none select-none transition-transform duration-300 ease-out origin-bottom-right drop-shadow-lg z-0">
-                    🖨️
-                  </div>
+                  <img 
+                    src="/assets/printer.jpg" 
+                    alt="Print & Hub" 
+                    className="absolute right-0 bottom-0 w-[140px] h-[140px] sm:w-[160px] sm:h-[160px] object-contain select-none transition-transform duration-500 ease-out origin-bottom-right z-0 group-hover:scale-105"
+                  />
 
                   <div className="space-y-2 relative z-10 max-w-[65%]">
                     <span className="text-[9px] font-black uppercase text-[#1B4D3E] tracking-wider bg-[#E8F5E9] px-2.5 py-1 rounded-full">
