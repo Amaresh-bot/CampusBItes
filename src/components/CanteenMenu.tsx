@@ -103,9 +103,7 @@ export function CanteenMenu({
       }
     }
 
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
                           
     const isVeg = item.tags?.includes('Vegetarian') || item.category === 'Desserts' || item.category === 'Beverages' || item.id.includes('bev') || item.id.includes('veg');
     const isVegMatches = !vegetarianOnly || isVeg;

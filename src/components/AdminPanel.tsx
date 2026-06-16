@@ -746,12 +746,9 @@ export function AdminPanel({
                       <strong className="font-mono text-slate-900">₹{order.totalAmount}</strong>
                       <div className="flex gap-1.5">
                         {['Pending', 'Approved', 'Preparing'].includes(order.status) && (
-                          <button
-                            onClick={() => onUpdateOrderStatus(order.id, 'Cancelled')}
-                            className="bg-red-50 text-red-650 hover:bg-red-100 px-2.5 py-1.5 rounded-lg border border-red-100 font-bold"
-                          >
-                            Reject
-                          </button>
+                          <span className="text-[10px] text-amber-700 bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-100 font-bold max-w-[180px] text-center">
+                            Cancellations disabled (Food Wastage Policy)
+                          </span>
                         )}
                         {actionLabel && nextStatus ? (
                           <button

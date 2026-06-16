@@ -137,12 +137,9 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
                     </div>
 
                     {!isCancelled && order.status === 'Pending' && (
-                      <button
-                        onClick={() => onCancelOrder(order.id)}
-                        className="text-xs text-red-650 text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl transition-all cursor-pointer font-bold border border-red-200"
-                      >
-                        Cancel Order
-                      </button>
+                      <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-[10px] text-amber-800 font-bold shrink-0 max-w-[160px] text-center leading-tight">
+                        Orders cannot be cancelled to prevent food wastage.
+                      </div>
                     )}
                   </div>
                 </div>

@@ -37,11 +37,12 @@ import { SafeStorage } from '../../lib/storage';
 
 interface PrintHubProps {
   onBackToCanteen?: () => void;
+  onBackToHome?: () => void;
   user?: any;
   studentProfile?: any;
 }
 
-export default function App({ onBackToCanteen, user, studentProfile }: PrintHubProps) {
+export default function App({ onBackToCanteen, onBackToHome, user, studentProfile }: PrintHubProps) {
   const imageFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDeviceImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -775,13 +776,13 @@ export default function App({ onBackToCanteen, user, studentProfile }: PrintHubP
             </div>
           </div>
 
-          {onBackToCanteen && (
+          {onBackToHome && (
             <button 
-              onClick={onBackToCanteen}
+              onClick={onBackToHome}
               className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-emerald-400 hover:text-white bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-500/20 hover:border-emerald-500/40 px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95"
-              title="Return to Canteen Dashboard"
+              title="Return to Homescreen"
             >
-              ← Back to Canteen
+              ← Back to Home
             </button>
           )}
         </header>

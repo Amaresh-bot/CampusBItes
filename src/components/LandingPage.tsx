@@ -61,9 +61,6 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
     { id: 'chole', name: 'Chole Bhature', icon: '🍛', searchQuery: 'Chole', categoryName: 'Breakfast' },
     { id: 'noodles', name: 'Hakka Noodles', icon: '🍜', searchQuery: 'Noodles', categoryName: 'Chinese' },
     { id: 'gulab', name: 'Gulab Jamun', icon: '🍮', searchQuery: 'Jamun', categoryName: 'Desserts' },
-    { id: 'stationery', name: 'Stationery', icon: '📚', searchQuery: '', categoryName: 'Stationery' },
-    { id: 'printouts', name: 'Printouts', icon: '🖨️', searchQuery: '', categoryName: 'Stationery' },
-    { id: 'lab_materials', name: 'Lab Materials', icon: '🔬', searchQuery: '', categoryName: 'Stationery' },
   ];
 
   // Removed popularStores
@@ -169,27 +166,6 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                 <p className="text-xs sm:text-sm md:text-base text-slate-200 mt-2 font-semibold max-w-xl mx-auto leading-relaxed">
                   Everything students need inside campus. Fresh meals, snacks, stationery, printouts, and essentials.
                 </p>
-                {/* Swiggy-like Item Search Container */}
-              <form onSubmit={handleSearchSubmit} className="w-full max-w-xl mt-8 mx-auto relative z-30">
-                <div className="flex items-center bg-white/10 hover:bg-white/15 focus-within:bg-white focus-within:text-[#1E293B] rounded-2xl border border-white/20 focus-within:border-white/40 shadow-lg backdrop-blur-md transition-all duration-300 overflow-hidden">
-                  <div className="relative flex-1 flex items-center">
-                    <Search className="w-5 h-5 text-[#4CAF50] absolute left-4 pointer-events-none" />
-                    <input
-                      type="text"
-                      value={searchVal}
-                      onChange={(e) => setSearchVal(e.target.value)}
-                      placeholder="Search food, snacks, stationery, stores..."
-                      className="w-full pl-12 pr-12 py-4 bg-transparent text-white focus:text-[#1E293B] placeholder:text-slate-355 focus:placeholder:text-slate-400 focus:outline-none text-sm sm:text-base font-semibold border-none"
-                    />
-                    <button 
-                      type="submit"
-                      className="absolute right-3 text-[#E8F5E9] focus-within:text-[#1E293B]/80 hover:text-white shrink-0 p-1.5 cursor-pointer"
-                    >
-                      <ChevronRight className="w-5 h-5 text-[#4CAF50] hover:translate-x-0.5 transition-transform" />
-                    </button>
-                  </div>
-                </div>
-              </form>
 
               {/* Quick Access Cards */}
               <div className="flex sm:grid sm:grid-cols-2 gap-4 sm:gap-6 mt-8 sm:mt-10 w-full overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4 sm:pb-0 max-w-3xl mx-auto">
@@ -423,13 +399,6 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
 
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-[11px]">
             <p className="text-[#A2C2B9] font-medium">© 2026 CampusBites Consortium • Sphoorthy Engineering College. All rights reserved.</p>
-            <div className="flex justify-center space-x-6">
-              <button onClick={onContactUs} className="hover:underline hover:text-white font-bold cursor-pointer">Support Desk</button>
-              <span className="text-[#A2C2B9]/30">|</span>
-              <button onClick={onSignIn} className="hover:underline hover:text-white font-bold cursor-pointer">Student Access</button>
-              <span className="text-[#A2C2B9]/30">|</span>
-              <button onClick={onSignIn} className="hover:underline hover:text-white font-bold cursor-pointer">Canteen & Books Management</button>
-            </div>
           </div>
         </div>
       </footer>

@@ -89,6 +89,10 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [activeTab, mobileTab, hasEnteredApp]);
+
   // Automatic scrolling promotional carousel trigger
   useEffect(() => {
     const timer = setInterval(() => {
@@ -711,12 +715,14 @@ export default function App() {
                   {complianceModal === 'contact' && (
                     <>
                       <p className="font-semibold text-slate-800">Support & Compliance Desk</p>
-                      <p>Please reach out to our campus dining coordinator team with any payment, operational, or cancellation issues:</p>
-                      <div className="bg-slate-50 p-3 rounded-xl space-y-1 border border-slate-100 mt-2 font-mono text-[10px] text-slate-700">
-                        <p><strong>Merchant Legal Identity:</strong> Amaresh Katuri (CampusBites Consortium)</p>
-                        <p><strong>Support Email:</strong> amareshkaturi@gmail.com</p>
-                        <p><strong>Operational Address:</strong> Block B, Central Canteen & Dining, Academic Campus Area, Sphoorthy Engineering College, Chennai / Hyderabad, India</p>
-                        <p><strong>Helpline Representative:</strong> Digital Dining Desk</p>
+                      <p className="mt-2 text-xs text-slate-500">
+                        Please reach out to our campus support team via email for any payment or operational inquiries:
+                      </p>
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mt-3 text-center">
+                        <span className="block text-[9px] uppercase tracking-wider text-slate-450 font-bold mb-1">Support Email</span>
+                        <a href="mailto:amareshkaturi@gmail.com" className="text-[#1B4D3E] hover:underline font-extrabold text-sm">
+                          amareshkaturi@gmail.com
+                        </a>
                       </div>
                     </>
                   )}
@@ -743,7 +749,17 @@ export default function App() {
       <PrintHub
         user={user}
         studentProfile={studentProfile}
+        onBackToHome={() => {
+          setSelectedCategory('All');
+          setFilteredStoreId(null);
+          setSearchQuery('');
+          setActiveTab('menu');
+          setMobileTab('home');
+        }}
         onBackToCanteen={() => {
+          setSelectedCategory('All');
+          setFilteredStoreId(null);
+          setSearchQuery('');
           setActiveTab('menu');
           setMobileTab('home');
         }}
@@ -886,72 +902,6 @@ export default function App() {
                     </h2>
                   </div>
                 )}
-
-                {/* 2. Full-Width Sticky Search Bar */}
-                <div className="px-4 py-3 bg-[#1B4D3E] sticky top-[70px] z-30 shadow-md">
-                  <div className="flex gap-2 items-center">
-                    {/* Search Input Container */}
-                    <div className="flex-1 relative flex items-center bg-white rounded-[20px] h-[50px] px-4 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-100 transition-all duration-300">
-                      <Search className="w-4.5 h-4.5 text-slate-400 mr-2 shrink-0" />
-                      <input
-                        type="text"
-                        placeholder={searchPlaceholders[currentPlaceholderIdx]}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-transparent border-none outline-none text-xs font-semibold text-slate-800 placeholder-slate-400/90"
-                      />
-                      {searchQuery ? (
-                        <button 
-                          onClick={() => setSearchQuery('')} 
-                          className="text-[10px] font-black text-slate-400 hover:text-slate-650 uppercase tracking-widest mr-1 cursor-pointer shrink-0"
-                        >
-                          Clear
-                        </button>
-                      ) : (
-                        <div className="flex items-center shrink-0">
-                          <div className="w-[1px] h-5 bg-slate-200 mr-2.5" />
-                          <Mic 
-                            className="w-4.5 h-4.5 text-[#FF5722] cursor-pointer hover:scale-105 active:scale-95 transition-all" 
-                            onClick={() => {
-                              const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-                              if (SpeechRecognition) {
-                                const recognition = new SpeechRecognition();
-                                recognition.lang = 'en-US';
-                                recognition.interimResults = false;
-                                recognition.onstart = () => {
-                                  addNotification('🎙️ Voice Search', 'Listening to order cue... speak now', 'info');
-                                };
-                                recognition.onresult = (event: any) => {
-                                  const speakText = event.results[0][0].transcript;
-                                  setSearchQuery(speakText);
-                                  addNotification('🎙️ Voice Capture', `Searched: "${speakText}"`, 'success');
-                                };
-                                recognition.start();
-                              } else {
-                                addNotification('🎙️ Voice Search Info', 'Speak "Dosa" or "Coffee" directly. Custom voice engine init.', 'info');
-                              }
-                            }} 
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Veg Filter Card */}
-                    <button
-                      onClick={() => setVegetarianOnly(!vegetarianOnly)}
-                      className="w-[72px] h-[50px] bg-white rounded-[20px] flex flex-col items-center justify-center border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-all active:scale-95 cursor-pointer shrink-0"
-                    >
-                      <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider mb-0.5 leading-none">VEG</span>
-                      
-                      {/* Custom Veg Toggle Switch */}
-                      <div className={`w-8.5 h-4.5 rounded-full p-[1.5px] relative flex items-center transition-colors duration-200 ${vegetarianOnly ? 'bg-[#0f8a65]' : 'bg-slate-200'}`}>
-                        <div className={`w-3.5 h-3.5 bg-white rounded-[4px] flex items-center justify-center transition-all duration-200 ${vegetarianOnly ? 'translate-x-[16px]' : 'translate-x-0'}`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${vegetarianOnly ? 'bg-[#0f8a65]' : 'bg-slate-350'}`} />
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
 
                 {/* 3. Today's Specials Dynamic Slider */}
                 {!searchQuery && (
@@ -1206,7 +1156,7 @@ export default function App() {
                 {complianceModal === 'terms' && <p>CampusBites Hub manages digital booking logs within Sphoorthy Engineering College dining networks.</p>}
                 {complianceModal === 'privacy' && <p>All payments are securely completed using PCI-compliant token gateways. SPHN does not store credentials.</p>}
                 {complianceModal === 'refund' && <p>A full refund is distributed for unapproved orders. If preparations are cooking, a 50% refund is issued.</p>}
-                {complianceModal === 'contact' && <p>Operational Desk: Block B dining counters, Academic Area. Helpline support available via SPHN terminals.</p>}
+                {complianceModal === 'contact' && <p>Support Email: amareshkaturi@gmail.com. Operational Desk: Block B dining counters, Academic Area.</p>}
               </div>
               <div className="pt-2 flex justify-end">
                 <button onClick={() => setComplianceModal(null)} className="px-4 py-1.5 bg-slate-950 text-white rounded-lg text-[10px] font-bold uppercase transition-all">Close</button>
@@ -1929,12 +1879,14 @@ export default function App() {
                 {complianceModal === 'contact' && (
                   <>
                     <p className="font-semibold text-slate-800">Support & Compliance Desk</p>
-                    <p>Please reach out to our campus dining coordinator team with any payment, operational, or cancellation issues:</p>
-                    <div className="bg-slate-50 p-3 rounded-lg space-y-1 border border-slate-100 mt-2 font-mono text-[10px]">
-                      <p><strong>Merchant Legal Identity:</strong> Amaresh Katuri (CampusBites Consortium)</p>
-                      <p><strong>Support Email:</strong> amareshkaturi@gmail.com</p>
-                      <p><strong>Operational Address:</strong> Block B, Central Canteen & Dining, Academic Campus Area, Sphoorthy Engineering College, Chennai / Hyderabad, India</p>
-                      <p><strong>Helpline Representative:</strong> Digital Dining Desk</p>
+                    <p className="mt-2 text-xs text-slate-500">
+                      Please reach out to our campus support team via email for any payment or operational inquiries:
+                    </p>
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mt-3 text-center">
+                      <span className="block text-[9px] uppercase tracking-wider text-slate-450 font-bold mb-1">Support Email</span>
+                      <a href="mailto:amareshkaturi@gmail.com" className="text-[#1B4D3E] hover:underline font-extrabold text-sm">
+                        amareshkaturi@gmail.com
+                      </a>
                     </div>
                   </>
                 )}

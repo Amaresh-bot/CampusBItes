@@ -698,11 +698,11 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
             Campus<span className="text-[#4CAF50]">Bites</span>
           </h2>
           <p className="text-[10px] font-bold text-[#2E7D5A] mt-0.5 text-center uppercase tracking-widest">
-            CampusBites Fast. Fresh. Delivered.
+            For Students,By Students
           </p>
           <p className="text-xs text-slate-500 mt-1 text-center font-sans">
             {mode === 'login' 
-              ? "Connect instantly using your Google account to access your student wallet and food court ordering."
+              ? "Connect instantly using your Google account to access your food court ordering."
               : "Complete your profile details below"}
           </p>
         </div>
