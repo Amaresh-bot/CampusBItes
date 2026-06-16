@@ -1,5 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { StudentProfile } from '../types';
+import { SafeStorage } from '../lib/storage';
+import { supabase } from '../supabaseClient';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -51,37 +53,113 @@ export function UserProvider({ children }: UserProviderProps) {
 
   // Restore session + profile from localStorage on mount
   useEffect(() => {
-    const cachedUser = localStorage.getItem('canteen_user');
-    if (cachedUser) {
-      try {
-        const parsed: UserState = JSON.parse(cachedUser);
-        setUserState(parsed);
-        // Instantly restore profile from cache (SWR pattern)
-        const cachedProfile = localStorage.getItem(`student_profile_${parsed.id}`);
-        if (cachedProfile) {
-          try {
-            setStudentProfile(JSON.parse(cachedProfile));
-            setIsProfileLoading(false);
-          } catch {
-            setIsProfileLoading(false);
+    async function restoreSession() {
+      setIsProfileLoading(true);
+      
+      let resolvedUserId: string | null = null;
+      let resolvedEmail: string | null = null;
+      let resolvedName: string | null = null;
+
+      // 1. Try Supabase Auth Session
+      if (supabase) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            resolvedUserId = session.user.id;
+            resolvedEmail = session.user.email || null;
+            resolvedName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || null;
+            console.log("[UserContext] Restored session from Supabase Auth:", resolvedUserId);
           }
-        } else {
-          setIsProfileLoading(false);
+        } catch (err) {
+          console.error("[UserContext] Supabase session restore failed:", err);
         }
-      } catch {
-        setIsProfileLoading(false);
       }
-    } else {
+
+      // 2. Fallback to Firebase Auth (if initialized and active)
+      if (!resolvedUserId) {
+        try {
+          const { auth: firebaseAuth } = await import('../firebase/config');
+          if (firebaseAuth && firebaseAuth.currentUser) {
+            const fUser = firebaseAuth.currentUser;
+            resolvedUserId = fUser.uid;
+            resolvedEmail = fUser.email;
+            resolvedName = fUser.displayName;
+            console.log("[UserContext] Restored session from Firebase Auth:", resolvedUserId);
+          }
+        } catch (err) {
+          // Firebase might not be initialized or configured yet
+        }
+      }
+
+      // 3. Fallback to safe whitelisted user ID string
+      if (!resolvedUserId) {
+        resolvedUserId = SafeStorage.getItem('canteen_user_id');
+        if (resolvedUserId) {
+          console.log("[UserContext] Restored session from SafeStorage ID:", resolvedUserId);
+        }
+      }
+
+      if (resolvedUserId) {
+        // We have a logged-in user! Now fetch their student profile from the database
+        try {
+          const res = await fetch(`/api/student/profile/${resolvedUserId}${resolvedEmail ? `?email=${encodeURIComponent(resolvedEmail)}` : ''}`);
+          if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+            const profileData = await res.json();
+            if (profileData && Object.keys(profileData).length > 0) {
+              setStudentProfile(profileData);
+              // Construct UserState in memory
+              const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com') || (profileData.email && profileData.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' : 'customer';
+              setUserState({
+                id: resolvedUserId,
+                name: profileData.fullName || resolvedName || 'Student',
+                email: profileData.email || resolvedEmail || '',
+                role: resolvedRole
+              });
+            } else {
+              // Fallback default in-memory state if profile not fully created yet
+              const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' : 'customer';
+              setUserState({
+                id: resolvedUserId,
+                name: resolvedName || 'Student',
+                email: resolvedEmail || '',
+                role: resolvedRole
+              });
+            }
+          } else {
+            // Reconstruct minimal memory UserState if profile query fails but we have ID
+            const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' : 'customer';
+            setUserState({
+              id: resolvedUserId,
+              name: resolvedName || 'Student',
+              email: resolvedEmail || '',
+              role: resolvedRole
+            });
+          }
+        } catch (err) {
+          console.error("[UserContext] Failed to fetch profile on restore:", err);
+          // Reconstruct minimal memory UserState
+          const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' : 'customer';
+          setUserState({
+            id: resolvedUserId,
+            name: resolvedName || 'Student',
+            email: resolvedEmail || '',
+            role: resolvedRole
+          });
+        }
+      }
       setIsProfileLoading(false);
     }
+
+    restoreSession();
   }, []);
 
   const setUser = useCallback((u: UserState | null) => {
     setUserState(u);
     if (u) {
-      localStorage.setItem('canteen_user', JSON.stringify(u));
+      // Security enforcement: Store ONLY the user ID string, never the email/name object!
+      SafeStorage.setItem('canteen_user_id', u.id);
     } else {
-      localStorage.removeItem('canteen_user');
+      SafeStorage.removeItem('canteen_user_id');
     }
   }, []);
 
@@ -103,29 +181,13 @@ export function UserProvider({ children }: UserProviderProps) {
         const data = await res.json();
         if (data && Object.keys(data).length > 0) {
           setStudentProfile(data);
-          localStorage.setItem(`student_profile_${user.id}`, JSON.stringify(data));
         } else {
-          // Fallback to localStorage cache
-          const localRaw = localStorage.getItem(`student_profile_${user.id}`);
-          if (localRaw) {
-            try { setStudentProfile(JSON.parse(localRaw)); } catch { /* noop */ }
-          } else {
-            setStudentProfile(null);
-          }
-        }
-      } else {
-        // Network/non-200: use cache
-        const localRaw = localStorage.getItem(`student_profile_${user.id}`);
-        if (localRaw) {
-          try { setStudentProfile(JSON.parse(localRaw)); } catch { /* noop */ }
+          setStudentProfile(null);
         }
       }
       lastFetchedUserId.current = user.id;
-    } catch {
-      const localRaw = localStorage.getItem(`student_profile_${user.id}`);
-      if (localRaw) {
-        try { setStudentProfile(JSON.parse(localRaw)); } catch { /* noop */ }
-      }
+    } catch (err) {
+      console.error("[UserContext] fetchStudentProfile failed:", err);
     } finally {
       fetchInFlight.current = false;
       setIsProfileLoading(false);
@@ -148,7 +210,6 @@ export function UserProvider({ children }: UserProviderProps) {
           const data = await res.json();
           if (data && Object.keys(data).length > 0) {
             setStudentProfile(data);
-            localStorage.setItem(`student_profile_${user.id}`, JSON.stringify(data));
           }
         }
         lastFetchedUserId.current = user.id;
@@ -158,7 +219,20 @@ export function UserProvider({ children }: UserProviderProps) {
   }, [user, studentProfile]);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('canteen_user');
+    SafeStorage.removeItem('canteen_user_id');
+    // Also sign out from Supabase Auth if logged in
+    if (supabase) {
+      supabase.auth.signOut().catch(err => console.error("Supabase signOut error:", err));
+    }
+    // Also sign out from Firebase Auth if logged in
+    try {
+      import('../firebase/config').then(({ auth: firebaseAuth }) => {
+        if (firebaseAuth) firebaseAuth.signOut().catch(err => console.error("Firebase signOut error:", err));
+      });
+    } catch (e) {
+      // Firebase might not be configured
+    }
+
     setUserState(null);
     setStudentProfile(null);
     lastFetchedUserId.current = null;

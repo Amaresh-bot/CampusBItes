@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { Product, CartItem, PickupSlip } from './printTypes';
 import { PRODUCTS, CATEGORIES } from './printData';
+import { SafeStorage } from '../../lib/storage';
 
 interface PrintHubProps {
   onBackToCanteen?: () => void;
@@ -66,7 +67,7 @@ export default function App({ onBackToCanteen, user, studentProfile }: PrintHubP
 
   // Products Catalogue State (Durable state for admin controls)
   const [productsList, setProductsList] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('sphn_products');
+    const saved = SafeStorage.getItem('sphn_products');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -77,34 +78,19 @@ export default function App({ onBackToCanteen, user, studentProfile }: PrintHubP
     return PRODUCTS;
   });
 
-  // Save products to localStorage
+  // Save products to SafeStorage
   useEffect(() => {
-    localStorage.setItem('sphn_products', JSON.stringify(productsList));
+    SafeStorage.setItem('sphn_products', JSON.stringify(productsList));
   }, [productsList]);
 
   // Cart State (initialized with empty as requested by user)
   const [cart, setCart] = useState<CartItem[]>([]);
 
   // Orders lists state (storing submitted pickup slips)
-  const [orders, setOrders] = useState<PickupSlip[]>(() => {
-    const saved = localStorage.getItem('sphn_orders');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  // Save orders to localStorage
-  useEffect(() => {
-    localStorage.setItem('sphn_orders', JSON.stringify(orders));
-  }, [orders]);
+  const [orders, setOrders] = useState<PickupSlip[]>([]);
 
   // History state for completed pick-ups
-  const [pickupHistory, setPickupHistory] = useState<PickupSlip[]>(() => {
-    const saved = localStorage.getItem('sphn_orders_history');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem('sphn_orders_history', JSON.stringify(pickupHistory));
-  }, [pickupHistory]);
+  const [pickupHistory, setPickupHistory] = useState<PickupSlip[]>([]);
 
   // Product Sliding/Pagination state
   const [productPageIndex, setProductPageIndex] = useState(0);
@@ -126,16 +112,7 @@ export default function App({ onBackToCanteen, user, studentProfile }: PrintHubP
   const [adminActiveTab, setAdminActiveTab] = useState<'catalog' | 'orders'>('catalog');
   
   // Custom store merchant configurations
-  const [shopUpiId, setShopUpiId] = useState<string>(() => {
-    return localStorage.getItem('sphn_shop_upi') || 'akshith5481@ybl';
-  });
-
-  const [paymentUtr, setPaymentUtr] = useState<string>('');
-  const [paymentScreenshot, setPaymentScreenshot] = useState<{ name: string; url: string } | null>(null);
-
-  useEffect(() => {
-    localStorage.setItem('sphn_shop_upi', shopUpiId);
-  }, [shopUpiId]);
+  const [shopUpiId, setShopUpiId] = useState<string>('akshith5481@ybl');
 
   // Xerox Customization state variables
   const [showXeroxCustomizeModal, setShowXeroxCustomizeModal] = useState(false);
@@ -335,24 +312,24 @@ export default function App({ onBackToCanteen, user, studentProfile }: PrintHubP
   // Authentication & Profile states
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
     if (user) return true;
-    return localStorage.getItem('sphn_logged_in') === 'true';
+    return SafeStorage.getItem('sphn_logged_in') === 'true';
   });
   const [studentName, setStudentName] = useState<string>(() => {
     if (studentProfile?.fullName) return studentProfile.fullName;
     if (user?.name) return user.name;
-    return localStorage.getItem('sphn_student_name') || '';
+    return '';
   });
   const [rollNumber, setRollNumber] = useState<string>(() => {
     if (studentProfile?.rollNo) return studentProfile.rollNo;
-    return localStorage.getItem('sphn_student_roll') || '';
+    return '';
   });
   const [selectedDept, setSelectedDept] = useState<string>(() => {
     if (studentProfile?.branch) return studentProfile.branch;
-    return localStorage.getItem('sphn_student_dept') || 'General CSE';
+    return 'General CSE';
   });
   const [contactNumber, setContactNumber] = useState<string>(() => {
     if (studentProfile?.contactNo) return studentProfile.contactNo;
-    return localStorage.getItem('sphn_student_contact') || '';
+    return '';
   });
   const [pickupTimeSlot, setPickupTimeSlot] = useState('Before 1:30');
 
@@ -363,26 +340,10 @@ export default function App({ onBackToCanteen, user, studentProfile }: PrintHubP
   // User orders sub-tab state
   const [userSubTab, setUserSubTab] = useState<'active' | 'history'>('active');
 
-  // Persistence hooks for user profile & login
+  // Persistence hooks for login state (whitelisted)
   useEffect(() => {
-    localStorage.setItem('sphn_logged_in', isLoggedIn.toString());
+    SafeStorage.setItem('sphn_logged_in', isLoggedIn.toString());
   }, [isLoggedIn]);
-
-  useEffect(() => {
-    localStorage.setItem('sphn_student_name', studentName);
-  }, [studentName]);
-
-  useEffect(() => {
-    localStorage.setItem('sphn_student_roll', rollNumber);
-  }, [rollNumber]);
-
-  useEffect(() => {
-    localStorage.setItem('sphn_student_dept', selectedDept);
-  }, [selectedDept]);
-
-  useEffect(() => {
-    localStorage.setItem('sphn_student_contact', contactNumber);
-  }, [contactNumber]);
 
   // Sync canteen auth and student profile to PrintHub state
   useEffect(() => {
@@ -436,15 +397,15 @@ export default function App({ onBackToCanteen, user, studentProfile }: PrintHubP
     }
   }, [isAdminOpen, user?.id]);
 
-  // Dynamic announcement/notification list (Initially empty as requested, loads from state/localStorage)
+  // Dynamic announcement/notification list (Initially empty as requested, loads from state/SafeStorage)
   const [announcements, setAnnouncements] = useState<{ id: string; text: string; time: string; unread: boolean; type?: string }[]>(() => {
-    const saved = localStorage.getItem('sphn_announcements');
+    const saved = SafeStorage.getItem('sphn_announcements');
     return saved ? JSON.parse(saved) : [];
   });
 
   // Save announcements
   useEffect(() => {
-    localStorage.setItem('sphn_announcements', JSON.stringify(announcements));
+    SafeStorage.setItem('sphn_announcements', JSON.stringify(announcements));
   }, [announcements]);
 
   const addNotification = (text: string, type: 'success' | 'failed' | 'update') => {

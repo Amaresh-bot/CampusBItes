@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Clock, Star, Flame, Tag, Check, ShoppingBag, Grid, HelpCircle, SlidersHorizontal } from 'lucide-react';
+import { Search, Clock, Star, Flame, Tag, Check, ShoppingBag, Grid, HelpCircle, SlidersHorizontal, Mic } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FoodItem } from '../types';
 
@@ -44,6 +44,26 @@ export function CanteenMenu({
 
   const vegetarianOnly = propVegetarianOnly !== undefined ? propVegetarianOnly : localVegetarianOnly;
   const setVegetarianOnly = propSetVegetarianOnly !== undefined ? propSetVegetarianOnly : localSetVegetarianOnly;
+
+  // Rotating Placeholders for Swiggy-style Search Bar
+  const searchPlaceholders = [
+    "Search for 'Cake'",
+    "Search for 'Burger'",
+    "Search for 'Chai'",
+    "Search for 'Hot Coffee'",
+    "Search for 'Samosa'",
+    "Search for 'Notebook'",
+    "Search for 'Dosa'",
+    "Search for 'Cold Coffee'",
+    "Search for 'Biryani'"
+  ];
+  const [currentPlaceholderIdx, setCurrentPlaceholderIdx] = useState<number>(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentPlaceholderIdx(prev => (prev + 1) % searchPlaceholders.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Auto-set category if a store is filtered
   useEffect(() => {
@@ -100,26 +120,62 @@ export function CanteenMenu({
       {!hideSearchHeader && (
         <div className="sticky top-[80px] z-30 bg-[#F2F7F5]/90 backdrop-blur-md pb-4 pt-2 -mx-4 px-4 sm:-mx-6 sm:px-6">
           <div className="space-y-3">
-            {/* Swiggy Search Input */}
-            <div className="relative w-full shadow-md rounded-2xl overflow-hidden bg-white border border-slate-100 flex items-center h-[56px] focus-within:ring-2 focus-within:ring-[#1B4D3E]/20 transition-all duration-300">
-              <div className="pl-5 pr-3 text-slate-400 shrink-0">
-                <Search className="w-5 h-5 text-[#1B4D3E] stroke-[2.5]" />
+            {/* Swiggy-Style Search Input & Veg Filter Row */}
+            <div className="flex gap-3 items-center">
+              {/* Search Card */}
+              <div className="flex-1 relative shadow-md rounded-[20px] bg-white border border-slate-100 flex items-center h-[54px] focus-within:ring-2 focus-within:ring-[#1B4D3E]/20 transition-all duration-300 px-4">
+                <Search className="w-5 h-5 text-slate-400 mr-2.5 shrink-0" />
+                <input
+                  type="text"
+                  placeholder={searchPlaceholders[currentPlaceholderIdx]}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-transparent outline-none border-none text-sm font-semibold text-slate-800 placeholder-slate-400/90"
+                />
+                {searchQuery ? (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="font-bold text-xs text-slate-400 hover:text-slate-600 transition-colors uppercase cursor-pointer shrink-0"
+                  >
+                    Clear
+                  </button>
+                ) : (
+                  <div className="flex items-center shrink-0">
+                    <div className="w-[1px] h-6 bg-slate-200 mr-3" />
+                    <Mic 
+                      className="w-5 h-5 text-[#FF5722] cursor-pointer hover:scale-105 active:scale-95 transition-all" 
+                      onClick={() => {
+                        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                        if (SpeechRecognition) {
+                          const recognition = new SpeechRecognition();
+                          recognition.lang = 'en-US';
+                          recognition.interimResults = false;
+                          recognition.onresult = (event: any) => {
+                            const speakText = event.results[0][0].transcript;
+                            setSearchQuery(speakText);
+                          };
+                          recognition.start();
+                        }
+                      }} 
+                    />
+                  </div>
+                )}
               </div>
-              <input
-                type="text"
-                placeholder="Search for dosa, chai, notebook, pen, Samosa, biryani..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-full bg-transparent outline-none border-none text-sm font-semibold text-slate-800 placeholder-slate-400/95"
-              />
-              {searchQuery && (
-                <button 
-                  onClick={() => setSearchQuery('')}
-                  className="pr-5 font-bold text-xs text-slate-400 hover:text-slate-600 transition-colors uppercase cursor-pointer"
-                >
-                  Clear
-                </button>
-              )}
+
+              {/* Veg Filter Card */}
+              <button
+                onClick={() => setVegetarianOnly(!vegetarianOnly)}
+                className="w-[72px] h-[54px] bg-white rounded-[20px] flex flex-col items-center justify-center border border-slate-100 shadow-md transition-all active:scale-95 cursor-pointer shrink-0"
+              >
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-0.5 leading-none">VEG</span>
+                
+                {/* Custom Veg Toggle Switch */}
+                <div className={`w-8.5 h-4.5 rounded-full p-[1.5px] relative flex items-center transition-colors duration-200 ${vegetarianOnly ? 'bg-[#0f8a65]' : 'bg-slate-200'}`}>
+                  <div className={`w-3.5 h-3.5 bg-white rounded-[4px] flex items-center justify-center transition-all duration-200 ${vegetarianOnly ? 'translate-x-[16px]' : 'translate-x-0'}`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${vegetarianOnly ? 'bg-[#0f8a65]' : 'bg-slate-350'}`} />
+                  </div>
+                </div>
+              </button>
             </div>
 
             {/* Connected Store Filtering Indicator */}
@@ -158,25 +214,6 @@ export function CanteenMenu({
                   </button>
                 );
               })}
-
-              {/* Veg Switcher Button */}
-              <button
-                onClick={() => setVegetarianOnly(!vegetarianOnly)}
-                className={`ml-auto flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-black transition-all border cursor-pointer shrink-0 ${
-                  vegetarianOnly
-                    ? 'bg-[#E8F5E9] border-[#4CAF50] text-[#1B4D3E]'
-                    : 'bg-white border-slate-150 text-slate-600 hover:border-slate-300'
-                }`}
-              >
-                <div className={`w-3.5 h-3.5 border rounded flex items-center justify-center p-0.5 shrink-0 ${
-                  vegetarianOnly ? 'border-emerald-650 bg-[#E8F5E9]' : 'border-slate-350 mr-1'
-                }`}>
-                  <div className={`w-1.5 h-1.5 rounded-full ${
-                    vegetarianOnly ? 'bg-[#4CAF50]' : 'bg-transparent'
-                  }`} />
-                </div>
-                <span className="tracking-wide">Veg Only</span>
-              </button>
             </div>
           </div>
         </div>

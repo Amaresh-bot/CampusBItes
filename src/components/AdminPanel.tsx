@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ChefHat, TrendingUp, ShoppingBag, CheckSquare, ChevronRight, XCircle, ArrowLeft, QrCode, PlusCircle, Trash2, Edit2, Settings, Users, Percent, Sparkles, Smartphone, Check, Database, RefreshCw, AlertTriangle, ShieldCheck, Lock, AlertCircle, BarChart2, DollarSign, Activity } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie, Legend } from 'recharts';
 import { Order, OrderStatus, FoodItem, StudentProfile, PaymentSettings } from '../types';
+import { SafeStorage } from '../lib/storage';
 
 interface AdminPanelProps {
   onBack: () => void;
@@ -241,7 +242,7 @@ export function AdminPanel({
 
   const [adminPasscode, setAdminPasscode] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
-    return sessionStorage.getItem('canteen_admin_unlocked') === 'true';
+    return SafeStorage.getSessionItem('canteen_admin_unlocked') === 'true';
   });
   const [adminPasscodeError, setAdminPasscodeError] = useState<string | null>(null);
 
@@ -250,7 +251,7 @@ export function AdminPanel({
     const cleanPass = adminPasscode.trim();
     if (cleanPass === 'SecurePassword123' || cleanPass === 'CAMPUS2026' || cleanPass === '1234') {
       setIsAdminAuthenticated(true);
-      sessionStorage.setItem('canteen_admin_unlocked', 'true');
+      SafeStorage.setSessionItem('canteen_admin_unlocked', 'true');
       setAdminPasscodeError(null);
     } else {
       setAdminPasscodeError('Incorrect administration passcode. Access denied.');

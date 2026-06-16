@@ -2298,16 +2298,6 @@ app.get(["/api/auth/callback", "/api/auth/callback/"], async (req, res) => {
           <html>
             <body>
               <script>
-                try {
-                  localStorage.setItem('oauth_user', JSON.stringify(${JSON.stringify(authedUser)}));
-                  localStorage.setItem('oauth_session', JSON.stringify(${JSON.stringify(session)}));
-                  localStorage.setItem('oauth_hasProfile', '${hasProfile}');
-                  localStorage.setItem('oauth_profile', JSON.stringify(${profile ? JSON.stringify(profile) : 'null'}));
-                  localStorage.setItem('oauth_status', 'success');
-                } catch(e) {
-                  console.warn("localStorage write error", e);
-                }
-
                 if (window.opener) {
                   window.opener.postMessage({
                     type: 'OAUTH_AUTH_SUCCESS',
@@ -2388,17 +2378,11 @@ app.get(["/api/auth/callback", "/api/auth/callback/"], async (req, res) => {
                     };
                     const session = { access_token: accessToken, user: { id: payload.sub, email: payload.email } };
 
-                    localStorage.setItem('oauth_user', JSON.stringify(realUser));
-                    localStorage.setItem('oauth_session', JSON.stringify(session));
-
                     // Fetch profile status asynchronously from server to correctly identify existing registered students
                     fetch('/api/student/profile/' + realUser.id)
                       .then(function(r) { return r.json(); })
                       .then(function(profile) {
                         var hasProfile = !!(profile && (profile.id || profile.userId));
-                        localStorage.setItem('oauth_hasProfile', hasProfile ? 'true' : 'false');
-                        localStorage.setItem('oauth_profile', profile ? JSON.stringify(profile) : 'null');
-                        localStorage.setItem('oauth_status', 'success');
 
                         if (window.opener) {
                           window.opener.postMessage({
@@ -2412,10 +2396,6 @@ app.get(["/api/auth/callback", "/api/auth/callback/"], async (req, res) => {
                         window.close();
                       })
                       .catch(function(err) {
-                        localStorage.setItem('oauth_hasProfile', 'false');
-                        localStorage.setItem('oauth_profile', 'null');
-                        localStorage.setItem('oauth_status', 'success');
-
                         if (window.opener) {
                           window.opener.postMessage({
                             type: 'OAUTH_AUTH_SUCCESS',
@@ -2435,16 +2415,6 @@ app.get(["/api/auth/callback", "/api/auth/callback/"], async (req, res) => {
               }
 
               // Otherwise execute guest simulation fallback
-              try {
-                localStorage.setItem('oauth_user', JSON.stringify(${JSON.stringify(authedUser)}));
-                localStorage.setItem('oauth_session', JSON.stringify({ access_token: "mock-token", user: { id: "${mockId}", email: "${mockEmail}" } }));
-                localStorage.setItem('oauth_hasProfile', '${!!profile}');
-                localStorage.setItem('oauth_profile', JSON.stringify(${profile ? JSON.stringify(profile) : 'null'}));
-                localStorage.setItem('oauth_status', 'success');
-              } catch(e) {
-                console.warn("localStorage write error", e);
-              }
-
               if (window.opener) {
                 window.opener.postMessage({
                   type: 'OAUTH_AUTH_SUCCESS',

@@ -11,6 +11,7 @@ import {
 import { auth } from '../firebase/config';
 import firebaseConfig from '../../firebase-applet-config.json';
 import { signInWithGoogle } from '../supabaseClient';
+import { SafeStorage } from '../lib/storage';
 
 interface AuthScreenProps {
   onSuccess: (user: { id: string; name: string; email: string; role: 'customer' | 'admin'; studentProfile?: any }) => void;
@@ -88,7 +89,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
       
       // Fallback: Robust window-opener popup that bootstraps Supabase OAuth via server-side credentials
       try {
-        localStorage.setItem('google_auth_popup_active', 'true');
+        SafeStorage.setItem('google_auth_popup_active', 'true');
         const bootstrapUrl = `${window.location.origin}/?google_auth_init=true`;
 
         const width = 500;
@@ -138,58 +139,19 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
         }
 
         if (finalHasProfile) {
-          localStorage.setItem('canteen_user', JSON.stringify(authedUser));
-          if (finalProfile) {
-            localStorage.setItem(`student_profile_${authedUser.id}`, JSON.stringify(finalProfile));
-          }
           setSuccessMsg("Google Login successful! Accessing CampusBites...");
           setTimeout(() => {
-            onSuccess({
-              ...authedUser,
-              studentProfile: finalProfile
-            });
+            onSuccess({ ...authedUser, studentProfile: finalProfile });
           }, 1200);
         } else {
           setTempUserId(authedUser.id);
-          setTempUserEmail(authedUser.email);
-          if (authedUser.name) {
-            setFullName(authedUser.name);
-          }
-          setIsGoogleLogin(true);
-          setContactNo('');
-          setSuccessMsg("Google account authenticated! Please verify your name and contact...");
+          setTempUserEmail(authedUser.email || '');
+          setFullName(authedUser.name || '');
+          setSuccessMsg("Google Auth authenticated. Please configure student profile details.");
           setTimeout(() => {
             setMode('profile_setup');
-            setSuccessMsg(null);
-            setLoading(false);
           }, 1200);
         }
-      }
-    };
-
-    const checkLocalStorage = () => {
-      try {
-        const status = localStorage.getItem('oauth_status');
-        if (status === 'success') {
-          const userStr = localStorage.getItem('oauth_user');
-          const hasProfileStr = localStorage.getItem('oauth_hasProfile');
-          const profileStr = localStorage.getItem('oauth_profile');
-          
-          localStorage.removeItem('oauth_status');
-          localStorage.removeItem('oauth_user');
-          localStorage.removeItem('oauth_session');
-          localStorage.removeItem('oauth_hasProfile');
-          localStorage.removeItem('oauth_profile');
-
-          if (userStr) {
-            const authedUser = JSON.parse(userStr);
-            const hasProfile = hasProfileStr === 'true';
-            const profile = profileStr && profileStr !== 'null' ? JSON.parse(profileStr) : null;
-            handleLoginSuccess(authedUser, hasProfile, profile);
-          }
-        }
-      } catch (e) {
-        console.warn("Storage check exception", e);
       }
     };
 
@@ -205,15 +167,9 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
       }
     };
 
-    // Poll the localStorage every 500ms for fallback robustness
-    const poller = setInterval(checkLocalStorage, 500);
-
-    window.addEventListener('storage', checkLocalStorage);
     window.addEventListener('message', handleMessage);
     
     return () => {
-      clearInterval(poller);
-      window.removeEventListener('storage', checkLocalStorage);
       window.removeEventListener('message', handleMessage);
     };
   }, [onSuccess]);
@@ -255,8 +211,6 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
               email: firebaseEmail.trim(),
               role: 'customer' as const
             };
-            localStorage.setItem('canteen_user', JSON.stringify(u));
-            localStorage.setItem(`student_profile_${u.id}`, JSON.stringify(profile));
             setSuccessMsg("Firebase login accomplished! Loading CampusBites...");
             setTimeout(() => {
               onSuccess({ ...u, studentProfile: profile });
@@ -293,8 +247,6 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
           email: user.email || firebaseEmail.trim(),
           role: 'customer' as const
         };
-        localStorage.setItem('canteen_user', JSON.stringify(u));
-        localStorage.setItem(`student_profile_${u.id}`, JSON.stringify(profile));
         setSuccessMsg("Firebase login successful! Accessing CampusBites...");
         setTimeout(() => {
           onSuccess({ ...u, studentProfile: profile });
@@ -510,8 +462,6 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
 
         const u = data.user;
         const finalProfile = data.profile;
-        localStorage.setItem('canteen_user', JSON.stringify(u));
-        localStorage.setItem(`student_profile_${u.id}`, JSON.stringify(finalProfile));
 
         setSuccessMsg("Email OTP Verified! Registry saved & locked into CampusBites...");
         setTimeout(() => {
@@ -539,19 +489,9 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
         }
 
         const u = data.user;
-        const cachedProfileStr = localStorage.getItem(`student_profile_${u.id}`);
-        let cachedProfile = null;
-        if (cachedProfileStr) {
-          try {
-            cachedProfile = JSON.parse(cachedProfileStr);
-          } catch (_) {}
-        }
+        const finalProfile = data.profile;
 
-        if (data.hasProfile || (cachedProfile && cachedProfile.rollNo)) {
-          const finalProfile = data.profile || cachedProfile;
-          localStorage.setItem('canteen_user', JSON.stringify(u));
-          localStorage.setItem(`student_profile_${u.id}`, JSON.stringify(finalProfile));
-
+        if (data.hasProfile && finalProfile && finalProfile.rollNo) {
           // Background sync if profile didn't persist properly
           if (!data.hasProfile && finalProfile) {
             fetch('/api/student/profile/save', {
@@ -605,8 +545,6 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
 
       const u = data.user;
       const finalProfile = data.profile;
-      localStorage.setItem('canteen_user', JSON.stringify(u));
-      localStorage.setItem(`student_profile_${u.id}`, JSON.stringify(finalProfile));
 
       setSuccessMsg("Email Link verification succeeded! Registry saved & locked into CampusBites...");
       setTimeout(() => {
@@ -714,9 +652,6 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
             role: (payload.email && payload.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' as const : 'customer' as const
           };
 
-          localStorage.setItem('canteen_user', JSON.stringify(finalUser));
-          localStorage.setItem(`student_profile_${payload.userId}`, JSON.stringify(responseData.profile));
-          
           setSuccessMsg("Profile saved successfully! Loading CampusBites...");
           setTimeout(() => {
             onSuccess({

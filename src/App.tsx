@@ -19,6 +19,7 @@ import { TodaysSpecialsSlider } from './components/TodaysSpecialsSlider';
 import { ProfileTab } from './components/ProfileTab';
 import { BottomNavbar } from './components/BottomNavbar';
 import PrintHub from './components/PrintHub/PrintHub';
+import { SafeStorage } from './lib/storage';
 
 
 export default function App() {
@@ -34,12 +35,17 @@ export default function App() {
   } = useUser();
   const [isPopupBootstrapping, setIsPopupBootstrapping] = useState<boolean>(false);
 
+  // Clear legacy insecure localStorage keys on startup
+  useEffect(() => {
+    SafeStorage.clearInsecureKeys();
+  }, []);
+
   // Intercept popup bootstrap flow to prevent reverse proxy OAuth bridge failures
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('google_auth_init') === 'true' && window.opener) {
       setIsPopupBootstrapping(true);
-      localStorage.removeItem('google_auth_popup_active');
+      SafeStorage.removeItem('google_auth_popup_active');
       
       fetch('/api/auth/google-url')
         .then(res => {
@@ -95,6 +101,27 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [vegetarianOnly, setVegetarianOnly] = useState<boolean>(false);
+
+  // Rotating Placeholders for Swiggy-style Search Bar
+  const searchPlaceholders = [
+    "Search for 'Cake'",
+    "Search for 'Burger'",
+    "Search for 'Chai'",
+    "Search for 'Hot Coffee'",
+    "Search for 'Samosa'",
+    "Search for 'Notebook'",
+    "Search for 'Dosa'",
+    "Search for 'Cold Coffee'",
+    "Search for 'Biryani'"
+  ];
+  const [currentPlaceholderIdx, setCurrentPlaceholderIdx] = useState<number>(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentPlaceholderIdx(prev => (prev + 1) % searchPlaceholders.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
   const [selectedCampus, setSelectedCampus] = useState<string>('Sphoorthy Main Campus');
   const [selectedLocation, setSelectedLocation] = useState<string>('Block B Dining Hall');
   const [showLocationSelector, setShowLocationSelector] = useState<boolean>(false);
@@ -311,6 +338,24 @@ export default function App() {
     }
   }, [user]);
 
+  // Load cart from cache on user login/mount
+  useEffect(() => {
+    if (user?.id) {
+      const cached = SafeStorage.getItem(`cart_cache_${user.id}`);
+      if (cached) {
+        try {
+          setCart(JSON.parse(cached));
+        } catch (err) {
+          console.error(err);
+        }
+      } else {
+        setCart({});
+      }
+    } else {
+      setCart({});
+    }
+  }, [user?.id]);
+
   const handleUpdateCart = (item: FoodItem, qty: number) => {
     setCart(prev => {
       const next = { ...prev };
@@ -320,7 +365,7 @@ export default function App() {
         next[item.id] = qty;
       }
       if (user?.id) {
-        localStorage.setItem(`cart_cache_${user.id}`, JSON.stringify(next));
+        SafeStorage.setItem(`cart_cache_${user.id}`, JSON.stringify(next));
       }
       return next;
     });
@@ -329,7 +374,7 @@ export default function App() {
   const handleClearCart = () => {
     setCart({});
     if (user?.id) {
-      localStorage.removeItem(`cart_cache_${user.id}`);
+      SafeStorage.removeItem(`cart_cache_${user.id}`);
     }
   };
 
@@ -337,9 +382,6 @@ export default function App() {
     setUser(authUser);
     if (authUser?.studentProfile) {
       setStudentProfile(authUser.studentProfile);
-      if (authUser?.id) {
-        localStorage.setItem(`student_profile_${authUser.id}`, JSON.stringify(authUser.studentProfile));
-      }
     }
     addNotification(
       'Session Approved',
@@ -501,9 +543,6 @@ export default function App() {
       if (response.ok) {
         const data = await response.json();
         setStudentProfile(profilePayload);
-        if (user?.id) {
-          localStorage.setItem(`student_profile_${user.id}`, JSON.stringify(profilePayload));
-        }
         setShowProfileModal(false);
         if (data.savedToCloud) {
           addNotification(
@@ -849,42 +888,68 @@ export default function App() {
                 )}
 
                 {/* 2. Full-Width Sticky Search Bar */}
-                <div className="px-4 pb-3 bg-white sticky top-[70px] z-30">
-                  <div className="relative flex items-center bg-slate-100 rounded-2xl h-[46px] px-4 border border-slate-200">
-                    <Search className="w-4 h-4 text-slate-400 mr-2.5 shrink-0" />
-                    <input
-                      type="text"
-                      placeholder="Search food, snacks, stationery..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-transparent border-none outline-none text-xs font-semibold text-slate-800 placeholder-slate-400"
-                    />
-                    {searchQuery ? (
-                      <button onClick={() => setSearchQuery('')} className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-1.5 cursor-pointer">Clear</button>
-                    ) : (
-                      <Mic 
-                        className="w-4 h-4 text-slate-400 cursor-pointer hover:text-[#1B4D3E]" 
-                        onClick={() => {
-                          const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-                          if (SpeechRecognition) {
-                            const recognition = new SpeechRecognition();
-                            recognition.lang = 'en-US';
-                            recognition.interimResults = false;
-                            recognition.onstart = () => {
-                              addNotification('🎙️ Voice Search', 'Listening to order cue... speak now', 'info');
-                            };
-                            recognition.onresult = (event: any) => {
-                              const speakText = event.results[0][0].transcript;
-                              setSearchQuery(speakText);
-                              addNotification('🎙️ Voice Capture', `Searched: "${speakText}"`, 'success');
-                            };
-                            recognition.start();
-                          } else {
-                            addNotification('🎙️ Voice Search Info', 'Speak "Dosa" or "Coffee" directly. Custom voice engine init.', 'info');
-                          }
-                        }} 
+                <div className="px-4 py-3 bg-[#1B4D3E] sticky top-[70px] z-30 shadow-md">
+                  <div className="flex gap-2 items-center">
+                    {/* Search Input Container */}
+                    <div className="flex-1 relative flex items-center bg-white rounded-[20px] h-[50px] px-4 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-100 transition-all duration-300">
+                      <Search className="w-4.5 h-4.5 text-slate-400 mr-2 shrink-0" />
+                      <input
+                        type="text"
+                        placeholder={searchPlaceholders[currentPlaceholderIdx]}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-transparent border-none outline-none text-xs font-semibold text-slate-800 placeholder-slate-400/90"
                       />
-                    )}
+                      {searchQuery ? (
+                        <button 
+                          onClick={() => setSearchQuery('')} 
+                          className="text-[10px] font-black text-slate-400 hover:text-slate-650 uppercase tracking-widest mr-1 cursor-pointer shrink-0"
+                        >
+                          Clear
+                        </button>
+                      ) : (
+                        <div className="flex items-center shrink-0">
+                          <div className="w-[1px] h-5 bg-slate-200 mr-2.5" />
+                          <Mic 
+                            className="w-4.5 h-4.5 text-[#FF5722] cursor-pointer hover:scale-105 active:scale-95 transition-all" 
+                            onClick={() => {
+                              const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                              if (SpeechRecognition) {
+                                const recognition = new SpeechRecognition();
+                                recognition.lang = 'en-US';
+                                recognition.interimResults = false;
+                                recognition.onstart = () => {
+                                  addNotification('🎙️ Voice Search', 'Listening to order cue... speak now', 'info');
+                                };
+                                recognition.onresult = (event: any) => {
+                                  const speakText = event.results[0][0].transcript;
+                                  setSearchQuery(speakText);
+                                  addNotification('🎙️ Voice Capture', `Searched: "${speakText}"`, 'success');
+                                };
+                                recognition.start();
+                              } else {
+                                addNotification('🎙️ Voice Search Info', 'Speak "Dosa" or "Coffee" directly. Custom voice engine init.', 'info');
+                              }
+                            }} 
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Veg Filter Card */}
+                    <button
+                      onClick={() => setVegetarianOnly(!vegetarianOnly)}
+                      className="w-[72px] h-[50px] bg-white rounded-[20px] flex flex-col items-center justify-center border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-all active:scale-95 cursor-pointer shrink-0"
+                    >
+                      <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider mb-0.5 leading-none">VEG</span>
+                      
+                      {/* Custom Veg Toggle Switch */}
+                      <div className={`w-8.5 h-4.5 rounded-full p-[1.5px] relative flex items-center transition-colors duration-200 ${vegetarianOnly ? 'bg-[#0f8a65]' : 'bg-slate-200'}`}>
+                        <div className={`w-3.5 h-3.5 bg-white rounded-[4px] flex items-center justify-center transition-all duration-200 ${vegetarianOnly ? 'translate-x-[16px]' : 'translate-x-0'}`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${vegetarianOnly ? 'bg-[#0f8a65]' : 'bg-slate-350'}`} />
+                        </div>
+                      </div>
+                    </button>
                   </div>
                 </div>
 
