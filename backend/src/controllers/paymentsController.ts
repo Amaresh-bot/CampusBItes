@@ -35,7 +35,35 @@ export const createRazorpayOrder = async (req: Request, res: Response, next: Nex
     };
 
     const order = await razorpay.orders.create(options);
-    return res.status(200).json({ success: true, orderId: order.id, order });
+    return res.status(200).json({
+      success: true,
+      mock: false,
+      keyId: env.RAZORPAY_KEY_ID,
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      prefillMethod: "upi",
+      checkoutConfig: {
+        display: {
+          blocks: {
+            upi: {
+              name: "UPI / Google Pay / PhonePe",
+              instruments: [
+                {
+                  method: "upi",
+                  flows: ["intent", "qr", "collect"]
+                }
+              ]
+            }
+          },
+          sequence: ["block.upi"],
+          preferences: {
+            show_default_blocks: true
+          }
+        }
+      },
+      order
+    });
   } catch (err) {
     next(err);
   }
