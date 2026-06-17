@@ -23,6 +23,7 @@ import paymentRoutes from './routes/payments';
 import adminRoutes from './routes/admin';
 
 const app = express();
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 
 // Initialize Socket.IO
