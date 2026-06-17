@@ -64,10 +64,21 @@ app.use('/api/wallet', walletRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Server check endpoint
-app.get('/', (req, res) => {
-  res.send('🚀 CampusBites MERN API Server is active...');
-});
+import path from 'path';
+
+// Serve frontend static assets in production
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '../../dist');
+  app.use(express.static(distPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+} else {
+  // Server check endpoint
+  app.get('/', (req, res) => {
+    res.send('🚀 CampusBites MERN API Server is active...');
+  });
+}
 
 // Catch-all global error boundary
 app.use(errorHandler);
