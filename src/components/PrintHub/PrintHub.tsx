@@ -177,7 +177,8 @@ export default function App({ onBackToCanteen, onBackToHome, user, studentProfil
         fetch('/api/print-orders/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ order: createdSlip })
+          body: JSON.stringify({ order: createdSlip }),
+          credentials: 'include'
         }).then(res => {
           if (!res.ok) {
             addNotification('⚠️ Could not sync order to Supabase cloud, operating locally.', 'update');
@@ -367,7 +368,7 @@ export default function App({ onBackToCanteen, onBackToHome, user, studentProfil
   const fetchPrintOrders = async () => {
     if (!user?.id) return;
     try {
-      const response = await fetch(`/api/print-orders/user/${user.id}`);
+      const response = await fetch(`/api/print-orders/user/${user.id}`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         setOrders(data.filter((slip: any) => slip.status !== 'PICKED_UP'));
@@ -380,7 +381,7 @@ export default function App({ onBackToCanteen, onBackToHome, user, studentProfil
 
   const fetchAllPrintOrders = async () => {
     try {
-      const response = await fetch('/api/print-orders');
+      const response = await fetch('/api/print-orders', { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         setOrders(data);
@@ -433,7 +434,8 @@ export default function App({ onBackToCanteen, onBackToHome, user, studentProfil
     fetch(`/api/print-orders/${orderId}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: transitionStatus })
+      body: JSON.stringify({ status: transitionStatus }),
+      credentials: 'include'
     }).then(res => {
       if (res.ok) {
         if (isAdminOpen) fetchAllPrintOrders();
@@ -695,7 +697,8 @@ export default function App({ onBackToCanteen, onBackToHome, user, studentProfil
   const handleDeleteOrder = (orderId: string) => {
     promptConfirm(`Are you sure you want to permanently delete student pickup pass ${orderId}?`, () => {
       fetch(`/api/print-orders/${orderId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       }).then(res => {
         if (res.ok) {
           if (isAdminOpen) fetchAllPrintOrders();
@@ -721,7 +724,8 @@ export default function App({ onBackToCanteen, onBackToHome, user, studentProfil
       fetch(`/api/print-orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'PICKED_UP' })
+        body: JSON.stringify({ status: 'PICKED_UP' }),
+        credentials: 'include'
       }).then(res => {
         if (res.ok) {
           if (isAdminOpen) fetchAllPrintOrders();

@@ -62,7 +62,7 @@ export function UserProvider({ children }: UserProviderProps) {
 
       // 1. Try MERN JWT Cookie Session (via auth status)
       try {
-        const res = await fetch('/api/auth/status');
+        const res = await fetch('/api/auth/status', { credentials: 'include' });
         if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
           const data = await res.json();
           if (data && data.authenticated && data.user) {
@@ -120,7 +120,7 @@ export function UserProvider({ children }: UserProviderProps) {
       if (resolvedUserId) {
         // We have a logged-in user! Now fetch their student profile from the database
         try {
-          const res = await fetch(`/api/student/profile/${resolvedUserId}${resolvedEmail ? `?email=${encodeURIComponent(resolvedEmail)}` : ''}`);
+          const res = await fetch(`/api/student/profile/${resolvedUserId}${resolvedEmail ? `?email=${encodeURIComponent(resolvedEmail)}` : ''}`, { credentials: 'include' });
           if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
             const profileData = await res.json();
             if (profileData && Object.keys(profileData).length > 0) {
@@ -205,7 +205,7 @@ export function UserProvider({ children }: UserProviderProps) {
     setIsProfileLoading(true);
 
     try {
-      const res = await fetch(`/api/student/profile/${user.id}?email=${encodeURIComponent(user.email || '')}`);
+      const res = await fetch(`/api/student/profile/${user.id}?email=${encodeURIComponent(user.email || '')}`, { credentials: 'include' });
       if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
         const data = await res.json();
         if (data && Object.keys(data).length > 0) {
@@ -244,7 +244,7 @@ export function UserProvider({ children }: UserProviderProps) {
     if (lastFetchedUserId.current === user.id && studentProfile !== null) return;
     // Fire and forget — no loading state
     fetchInFlight.current = true;
-    fetch(`/api/student/profile/${user.id}?email=${encodeURIComponent(user.email || '')}`)
+    fetch(`/api/student/profile/${user.id}?email=${encodeURIComponent(user.email || '')}`, { credentials: 'include' })
       .then(async (res) => {
         if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
           const data = await res.json();
@@ -272,7 +272,7 @@ export function UserProvider({ children }: UserProviderProps) {
   const logout = useCallback(() => {
     SafeStorage.removeItem('canteen_user_id');
     // Call backend logout endpoint to clear HTTP-only cookies
-    fetch('/api/auth/logout', { method: 'POST' }).catch(err => console.error("Backend logout error:", err));
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(err => console.error("Backend logout error:", err));
 
     // Also sign out from Supabase Auth if logged in
     if (supabase) {

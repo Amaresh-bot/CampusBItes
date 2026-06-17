@@ -99,7 +99,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
 
         // Query the profile status from server to avoid client-side false negatives
         try {
-          const res = await fetch(`/api/student/profile/${authedUser.id}?email=${encodeURIComponent(authedUser.email || '')}`);
+          const res = await fetch(`/api/student/profile/${authedUser.id}?email=${encodeURIComponent(authedUser.email || '')}`, { credentials: 'include' });
           if (res.ok) {
             const serverProfile = await res.json();
             if (serverProfile && serverProfile.id) {
@@ -174,7 +174,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
         try {
           const mockUid = "fb-usr-" + Math.abs(firebaseEmail.split('@')[0].split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
           
-          const response = await fetch(`/api/student/profile/${mockUid}?email=${encodeURIComponent(firebaseEmail.trim())}`);
+          const response = await fetch(`/api/student/profile/${mockUid}?email=${encodeURIComponent(firebaseEmail.trim())}`, { credentials: 'include' });
           const profile = response.ok ? await response.json() : null;
           
           if (profile && profile.fullName) {
@@ -210,7 +210,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
       const userCredential = await signInWithEmailAndPassword(auth, firebaseEmail.trim(), firebasePassword);
       const user = userCredential.user;
       
-      const response = await fetch(`/api/student/profile/${user.uid}?email=${encodeURIComponent(user.email || firebaseEmail.trim())}`);
+      const response = await fetch(`/api/student/profile/${user.uid}?email=${encodeURIComponent(user.email || firebaseEmail.trim())}`, { credentials: 'include' });
       const profile = response.ok ? await response.json() : null;
 
       if (profile && profile.fullName) {
@@ -318,7 +318,8 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
       const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobileNumber: mobileNumber.trim() })
+        body: JSON.stringify({ mobileNumber: mobileNumber.trim() }),
+        credentials: 'include'
       });
       const data = await response.json();
       if (!response.ok) {
@@ -379,7 +380,8 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
           year: "1st Year",
           email: emailAddress.trim(),
           mobileNumber: mobileNumber.trim()
-        })
+        }),
+        credentials: 'include'
       });
       const data = await response.json();
       if (!response.ok) {
@@ -426,7 +428,8 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
         const response = await fetch('/api/auth/register-verify-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: emailAddress.trim(), otp: otp.trim() })
+          body: JSON.stringify({ email: emailAddress.trim(), otp: otp.trim() }),
+          credentials: 'include'
         });
         const data = await response.json();
         if (!response.ok) {
@@ -454,7 +457,8 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
         const response = await fetch('/api/auth/verify-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mobileNumber: mobileNumber.trim(), otp: otp.trim() })
+          body: JSON.stringify({ mobileNumber: mobileNumber.trim(), otp: otp.trim() }),
+          credentials: 'include'
         });
         const data = await response.json();
         if (!response.ok) {
@@ -470,7 +474,8 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
             fetch('/api/student/profile/save', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: u.id, profile: finalProfile })
+              body: JSON.stringify({ userId: u.id, profile: finalProfile }),
+              credentials: 'include'
             }).catch(syncErr => console.warn("Background sync failed:", syncErr));
           }
 
@@ -509,7 +514,8 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
       const response = await fetch('/api/auth/register-verify-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailAddress.trim() })
+        body: JSON.stringify({ email: emailAddress.trim() }),
+        credentials: 'include'
       });
       const data = await response.json();
       if (!response.ok) {
@@ -588,7 +594,8 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
         const response = await fetch('/api/student/profile/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          credentials: 'include'
         });
         responseData = await response.json();
 

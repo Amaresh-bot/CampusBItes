@@ -47,7 +47,7 @@ export default function App() {
       setIsPopupBootstrapping(true);
       SafeStorage.removeItem('google_auth_popup_active');
       
-      fetch('/api/auth/google-url')
+      fetch('/api/auth/google-url', { credentials: 'include' })
         .then(res => {
           if (!res.ok) throw new Error("Failed to load Google Auth URL");
           return res.json();
@@ -163,7 +163,7 @@ export default function App() {
   // 2. Fetch canteen menu catalog from backend
   const fetchMenu = async () => {
     try {
-      const response = await fetch('/api/menu');
+      const response = await fetch('/api/menu', { credentials: 'include' });
       if (response.ok && response.headers.get("content-type")?.includes("application/json")) {
         const data = await response.json();
         const normalizedData = (data || []).map((item: any) => ({
@@ -189,7 +189,7 @@ export default function App() {
     try {
       const isAdmin = user.role === 'admin';
       const endpoint = isAdmin ? '/api/admin/orders' : `/api/orders/user/${user.id}`;
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, { credentials: 'include' });
       if (response.ok && response.headers.get("content-type")?.includes("application/json")) {
         const data = await response.json();
         const normalizedData = (data || []).map((ord: any) => ({
@@ -228,7 +228,7 @@ export default function App() {
   // 4. Fetch dynamic payment merchant configs
   const fetchPaymentSettings = async () => {
     try {
-      const response = await fetch('/api/payment/settings');
+      const response = await fetch('/api/payment/settings', { credentials: 'include' });
       if (response.ok && response.headers.get("content-type")?.includes("application/json")) {
         const data = await response.json();
         setPaymentSettings(data);
@@ -243,7 +243,7 @@ export default function App() {
   // 6. Fetch Admin students summaries
   const fetchAllStudents = async () => {
     try {
-      const response = await fetch('/api/admin/students');
+      const response = await fetch('/api/admin/students', { credentials: 'include' });
       if (response.ok && response.headers.get("content-type")?.includes("application/json")) {
         const data = await response.json();
         setAllStudents(data);
@@ -258,7 +258,8 @@ export default function App() {
       const response = await fetch('/api/admin/verify-student', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: studentUserId, isVerified: newVerifyStatus })
+        body: JSON.stringify({ userId: studentUserId, isVerified: newVerifyStatus }),
+        credentials: 'include'
       });
       if (response.ok) {
         fetchAllStudents();
@@ -433,7 +434,8 @@ export default function App() {
       const response = await fetch(`/api/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: nextStatus })
+        body: JSON.stringify({ status: nextStatus }),
+        credentials: 'include'
       });
       if (response.ok) {
         const responseData = await response.json();
@@ -493,7 +495,8 @@ export default function App() {
       const response = await fetch('/api/menu/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(itemPayload)
+        body: JSON.stringify(itemPayload),
+        credentials: 'include'
       });
       if (response.ok) {
         fetchMenu();
@@ -509,7 +512,8 @@ export default function App() {
       const response = await fetch(`/api/menu/${itemId}/edit`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(itemPayload)
+        body: JSON.stringify(itemPayload),
+        credentials: 'include'
       });
       if (response.ok) {
         fetchMenu();
@@ -522,7 +526,8 @@ export default function App() {
   const handleDeleteMenuItem = async (itemId: string) => {
     try {
       const response = await fetch(`/api/menu/${itemId}/delete`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       });
       if (response.ok) {
         fetchMenu();
@@ -538,7 +543,8 @@ export default function App() {
       const response = await fetch('/api/payment/settings/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settingsPayload)
+        body: JSON.stringify(settingsPayload),
+        credentials: 'include'
       });
       if (response.ok) {
         const data = await response.json();
@@ -554,7 +560,8 @@ export default function App() {
       const response = await fetch('/api/student/profile/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id, profile: profilePayload })
+        body: JSON.stringify({ userId: user?.id, profile: profilePayload }),
+        credentials: 'include'
       });
       if (response.ok) {
         const data = await response.json();

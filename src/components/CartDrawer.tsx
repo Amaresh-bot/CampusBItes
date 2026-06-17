@@ -89,7 +89,8 @@ export function CartDrawer({
       const response = await fetch('/api/payment/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: totalAmount, userId: user.id, purpose: 'order_checkout' })
+        body: JSON.stringify({ amount: totalAmount, userId: user.id, purpose: 'order_checkout' }),
+        credentials: 'include'
       });
 
       let data: any = {};
@@ -229,7 +230,8 @@ export function CartDrawer({
         body: JSON.stringify({ 
           order: newOrder,
           ...rzpParams 
-        })
+        }),
+        credentials: 'include'
       });
 
       let data: any = {};

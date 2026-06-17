@@ -82,7 +82,7 @@ export function AdminPanel({
   const fetchPaymentLogs = async () => {
     setPaymentLogsLoading(true);
     try {
-      const response = await fetch('/api/admin/payment-logs');
+      const response = await fetch('/api/admin/payment-logs', { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         setPaymentLogs(data.logs || []);
