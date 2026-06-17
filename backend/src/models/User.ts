@@ -33,8 +33,5 @@ const userSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-// Indexes for unique searches
-userSchema.index({ email: 1 }, { unique: true });
-userSchema.index({ rollNumber: 1 }, { unique: true });
 
 export const User = model<IUser>('User', userSchema);

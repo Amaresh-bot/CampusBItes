@@ -40,6 +40,5 @@ walletSchema.methods.comparePIN = async function (pin: string): Promise<boolean>
   return bcrypt.compare(pin, this.pinHash);
 };
 
-walletSchema.index({ userId: 1 }, { unique: true });
 
 export const Wallet = model<IWallet>('Wallet', walletSchema);
