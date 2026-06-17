@@ -12,6 +12,7 @@ const setTokenCookies = (res: Response, user: { id: string; email: string; role:
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
+    path: '/',
     maxAge: 15 * 60 * 1000 // 15 minutes
   });
 
@@ -19,6 +20,7 @@ const setTokenCookies = (res: Response, user: { id: string; email: string; role:
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
+    path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 
@@ -99,12 +101,14 @@ export const logoutHandler = (req: Request, res: Response) => {
   res.clearCookie('access_token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax'
+    sameSite: 'lax',
+    path: '/'
   });
   res.clearCookie('refresh_token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax'
+    sameSite: 'lax',
+    path: '/'
   });
   return res.status(200).json({ success: true, message: 'Logged out successfully' });
 };
@@ -142,8 +146,8 @@ export const refreshTokenHandler = async (req: Request, res: Response, next: Nex
       }
     });
   } catch (err) {
-    res.clearCookie('access_token');
-    res.clearCookie('refresh_token');
+    res.clearCookie('access_token', { path: '/' });
+    res.clearCookie('refresh_token', { path: '/' });
     return res.status(401).json({ success: false, message: 'Session expired. Please log in again.' });
   }
 };
