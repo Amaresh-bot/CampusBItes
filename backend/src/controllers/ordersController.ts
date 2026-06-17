@@ -33,9 +33,17 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
     
     const token = tokenNumber || Math.floor(100 + Math.random() * 900).toString();
     
+    const normalizedItems = (items || []).map((item: any) => ({
+      itemId: item.itemId || item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      customInstructions: item.customInstructions
+    }));
+    
     const order = new Order({
       userId,
-      items,
+      items: normalizedItems,
       totalAmount,
       paymentMethod,
       paymentStatus: paymentMethod === 'wallet' || paymentId || (orderData.paymentStatus === 'Paid') ? 'Paid' : 'Pending',
