@@ -29,6 +29,8 @@ export const configurePassport = () => {
           }
 
           let user = await User.findOne({ email });
+          const isAdminEmail = email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || email.toLowerCase() === 'amareshkaturi@gmail.com';
+
           if (!user) {
             // Generate temporary unique roll number so model validations pass during OAuth creation
             const tempRoll = `TEMP_${profile.id.substring(0, 10).toUpperCase()}`;
@@ -37,13 +39,23 @@ export const configurePassport = () => {
               fullName: profile.displayName || "Google User",
               rollNumber: tempRoll,
               googleId: profile.id,
-              role: 'customer',
+              role: isAdminEmail ? 'admin' : 'customer',
               profileLocked: false
             });
             await user.save();
-          } else if (!user.googleId) {
-            user.googleId = profile.id;
-            await user.save();
+          } else {
+            let needsSave = false;
+            if (!user.googleId) {
+              user.googleId = profile.id;
+              needsSave = true;
+            }
+            if (isAdminEmail && user.role !== 'admin') {
+              user.role = 'admin';
+              needsSave = true;
+            }
+            if (needsSave) {
+              await user.save();
+            }
           }
 
           return done(null, user as any);
