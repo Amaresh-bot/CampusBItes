@@ -78,9 +78,12 @@ export function UserProvider({ children }: UserProviderProps) {
               email: data.user.email,
               fullName: data.user.fullName,
               rollNumber: data.user.rollNumber,
+              rollNo: data.user.rollNumber, // Frontend compatibility
               branch: data.user.branch,
               academicYear: data.user.academicYear,
+              year: data.user.academicYear as any, // Frontend compatibility
               phoneNumber: data.user.phoneNumber,
+              contactNo: data.user.phoneNumber, // Frontend compatibility
               profileLocked: data.user.profileLocked,
               isVerified: data.user.isVerified
             });
@@ -121,7 +124,18 @@ export function UserProvider({ children }: UserProviderProps) {
           if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
             const profileData = await res.json();
             if (profileData && Object.keys(profileData).length > 0) {
-              setStudentProfile(profileData);
+              const rawProfile = profileData.profile || profileData;
+              const mappedProfile = {
+                ...rawProfile,
+                id: rawProfile.id || rawProfile._id?.toString(),
+                rollNo: rawProfile.rollNo || rawProfile.rollNumber,
+                rollNumber: rawProfile.rollNumber || rawProfile.rollNo,
+                year: rawProfile.year || rawProfile.academicYear,
+                academicYear: rawProfile.academicYear || rawProfile.year,
+                contactNo: rawProfile.contactNo || rawProfile.phoneNumber,
+                phoneNumber: rawProfile.phoneNumber || rawProfile.contactNo
+              };
+              setStudentProfile(mappedProfile);
               // Construct UserState in memory
               const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com') || (profileData.email && profileData.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' : 'customer';
               setUserState({
@@ -195,7 +209,18 @@ export function UserProvider({ children }: UserProviderProps) {
       if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
         const data = await res.json();
         if (data && Object.keys(data).length > 0) {
-          setStudentProfile(data);
+          const rawProfile = data.profile || data;
+          const mappedProfile = {
+            ...rawProfile,
+            id: rawProfile.id || rawProfile._id?.toString(),
+            rollNo: rawProfile.rollNo || rawProfile.rollNumber,
+            rollNumber: rawProfile.rollNumber || rawProfile.rollNo,
+            year: rawProfile.year || rawProfile.academicYear,
+            academicYear: rawProfile.academicYear || rawProfile.year,
+            contactNo: rawProfile.contactNo || rawProfile.phoneNumber,
+            phoneNumber: rawProfile.phoneNumber || rawProfile.contactNo
+          };
+          setStudentProfile(mappedProfile);
         } else {
           setStudentProfile(null);
         }
@@ -224,7 +249,18 @@ export function UserProvider({ children }: UserProviderProps) {
         if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
           const data = await res.json();
           if (data && Object.keys(data).length > 0) {
-            setStudentProfile(data);
+            const rawProfile = data.profile || data;
+            const mappedProfile = {
+              ...rawProfile,
+              id: rawProfile.id || rawProfile._id?.toString(),
+              rollNo: rawProfile.rollNo || rawProfile.rollNumber,
+              rollNumber: rawProfile.rollNumber || rawProfile.rollNo,
+              year: rawProfile.year || rawProfile.academicYear,
+              academicYear: rawProfile.academicYear || rawProfile.year,
+              contactNo: rawProfile.contactNo || rawProfile.phoneNumber,
+              phoneNumber: rawProfile.phoneNumber || rawProfile.contactNo
+            };
+            setStudentProfile(mappedProfile);
           }
         }
         lastFetchedUserId.current = user.id;
