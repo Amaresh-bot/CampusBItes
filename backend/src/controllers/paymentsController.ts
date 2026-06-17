@@ -73,7 +73,11 @@ export const verifyRazorpayPayment = async (req: Request, res: Response, next: N
   try {
     const { razorpayOrderId, razorpayPaymentId, razorpaySignature, userId, topupAmount } = req.body;
 
+    console.log("Payment verification started for Razorpay Order ID:", razorpayOrderId);
+    console.log("Details:", { razorpayPaymentId, userId, topupAmount });
+
     if (!razorpayOrderId || !razorpayPaymentId) {
+      console.warn("Validation failed: razorpayOrderId and razorpayPaymentId are required");
       return res.status(400).json({ success: false, message: 'razorpayOrderId and razorpayPaymentId are required' });
     }
 
@@ -86,11 +90,14 @@ export const verifyRazorpayPayment = async (req: Request, res: Response, next: N
         .digest('hex');
 
       isVerified = generatedSignature === razorpaySignature;
+      console.log("Razorpay signature match verified:", isVerified);
     } else {
       isVerified = true;
+      console.log("Verification bypassed (no signature/razorpay instance): verified = true");
     }
 
     if (!isVerified) {
+      console.warn("Payment verification failed: signature mismatch");
       return res.status(400).json({ success: false, message: 'Payment verification failed. Signature mismatch.' });
     }
 

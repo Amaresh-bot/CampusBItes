@@ -192,7 +192,11 @@ export default function App() {
       const response = await fetch(endpoint);
       if (response.ok && response.headers.get("content-type")?.includes("application/json")) {
         const data = await response.json();
-        setOrders(data);
+        const normalizedData = (data || []).map((ord: any) => ({
+          ...ord,
+          id: ord.id || ord._id
+        }));
+        setOrders(normalizedData);
 
         // Simple low stock notification dispatcher
         if (menuItems.length > 0) {
@@ -464,7 +468,11 @@ export default function App() {
 
   // Complete orders callback
   const handleOrderCreated = (order: Order) => {
-    setOrders(prev => [order, ...prev]);
+    const normalizedOrder = {
+      ...order,
+      id: order.id || (order as any)._id
+    };
+    setOrders(prev => [normalizedOrder, ...prev]);
     setActiveTab('orders'); // Go track order progress
 
     addNotification(

@@ -712,12 +712,12 @@ export function AdminPanel({
             </div>
           ) : (
             <div className="space-y-4 divide-y divide-slate-100">
-              {orders.map(order => {
+              {orders.map((order, index) => {
                 const actionLabel = getActionLabel(order.status);
                 const nextStatus = getNextStatus(order.status);
 
                 return (
-                  <div key={order.id} className="pt-4 first:pt-0 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
+                  <div key={order.id || order._id} className="pt-4 first:pt-0 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="inline-block bg-slate-950 text-blue-400 font-mono text-xs font-bold px-2 py-0.5 rounded">
@@ -728,8 +728,8 @@ export function AdminPanel({
                       </div>
 
                       <div className="flex flex-wrap gap-1">
-                        {order.items.map(it => (
-                          <span key={it.id} className="bg-slate-100 border border-slate-200 text-slate-700 px-2 py-0.5 rounded-lg font-bold text-[11px]">
+                        {order.items.map((it, itIdx) => (
+                          <span key={it.itemId || it.id || itIdx} className="bg-slate-100 border border-slate-200 text-slate-700 px-2 py-0.5 rounded-lg font-bold text-[11px]">
                             {it.name} <strong>x{it.quantity}</strong>
                           </span>
                         ))}
@@ -752,7 +752,7 @@ export function AdminPanel({
                         )}
                         {actionLabel && nextStatus ? (
                           <button
-                            onClick={() => onUpdateOrderStatus(order.id, nextStatus)}
+                            onClick={() => onUpdateOrderStatus(order.id || order._id, nextStatus)}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-all"
                           >
                             {actionLabel}

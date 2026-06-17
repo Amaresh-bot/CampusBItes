@@ -9,7 +9,11 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
     const orderData = req.body.order || req.body;
     const { userId, items, totalAmount, paymentMethod, paymentId, tokenNumber } = orderData;
     
+    console.log("Creating order: starting order compilation in backend MERN");
+    console.log("Payload values:", { userId, paymentMethod, paymentId, totalAmount, itemsCount: items?.length });
+    
     if (!userId || !items || !totalAmount || !paymentMethod) {
+      console.warn("Validation failed: missing required fields");
       return res.status(400).json({ success: false, message: 'userId, items, totalAmount, and paymentMethod are required' });
     }
     
@@ -53,13 +57,19 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
     });
     
     await order.save();
+    console.log("Order created successfully in MongoDB Atlas. ID:", order._id);
+
+    const mappedOrder = {
+      ...order.toObject(),
+      id: order._id.toString()
+    };
 
     const io = req.app.get('io');
     if (io) {
-      io.emit('new_order', order);
+      io.emit('new_order', mappedOrder);
     }
     
-    return res.status(201).json({ success: true, order });
+    return res.status(201).json({ success: true, order: mappedOrder });
   } catch (err) {
     next(err);
   }
@@ -70,7 +80,11 @@ export const getUserOrders = async (req: Request, res: Response, next: NextFunct
     const { userId } = req.params;
     const filter = userId ? { userId } : {};
     const orders = await Order.find(filter).sort({ createdAt: -1 });
-    return res.status(200).json(orders);
+    const mappedOrders = orders.map(order => ({
+      ...order.toObject(),
+      id: order._id.toString()
+    }));
+    return res.status(200).json(mappedOrders);
   } catch (err) {
     next(err);
   }
@@ -79,7 +93,11 @@ export const getUserOrders = async (req: Request, res: Response, next: NextFunct
 export const getAdminOrders = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const orders = await Order.find({}).populate('userId').sort({ createdAt: -1 });
-    return res.status(200).json(orders);
+    const mappedOrders = orders.map(order => ({
+      ...order.toObject(),
+      id: order._id.toString()
+    }));
+    return res.status(200).json(mappedOrders);
   } catch (err) {
     next(err);
   }
@@ -102,6 +120,11 @@ export const updateOrderStatus = async (req: Request, res: Response, next: NextF
     order.status = status;
     await order.save(); // pre-save trigger adds to statusHistory!
     
+    const mappedOrder = {
+      ...order.toObject(),
+      id: order._id.toString()
+    };
+    
     const io = req.app.get('io');
     if (io) {
       io.to(order.userId.toString()).emit('order_status_updated', {
@@ -111,7 +134,7 @@ export const updateOrderStatus = async (req: Request, res: Response, next: NextF
       });
     }
     
-    return res.status(200).json({ success: true, order });
+    return res.status(200).json({ success: true, order: mappedOrder });
   } catch (err) {
     next(err);
   }
@@ -144,12 +167,17 @@ export const createPrintOrder = async (req: Request, res: Response, next: NextFu
     
     await printOrder.save();
     
+    const mappedPrintOrder = {
+      ...printOrder.toObject(),
+      orderId: printOrder._id.toString()
+    };
+    
     const io = req.app.get('io');
     if (io) {
-      io.emit('new_print_order', printOrder);
+      io.emit('new_print_order', mappedPrintOrder);
     }
     
-    return res.status(201).json({ success: true, printOrder });
+    return res.status(201).json({ success: true, printOrder: mappedPrintOrder });
   } catch (err) {
     next(err);
   }
@@ -160,7 +188,11 @@ export const getPrintOrders = async (req: Request, res: Response, next: NextFunc
     const { userId } = req.params;
     const filter = userId ? { userId } : {};
     const printOrders = await PrintOrder.find(filter).populate('userId').sort({ createdAt: -1 });
-    return res.status(200).json(printOrders);
+    const mappedPrintOrders = printOrders.map(slip => ({
+      ...slip.toObject(),
+      orderId: slip._id.toString()
+    }));
+    return res.status(200).json(mappedPrintOrders);
   } catch (err) {
     next(err);
   }
@@ -176,6 +208,11 @@ export const updatePrintOrderStatus = async (req: Request, res: Response, next: 
       return res.status(404).json({ success: false, message: 'Print order not found' });
     }
     
+    const mappedPrintOrder = {
+      ...order.toObject(),
+      orderId: order._id.toString()
+    };
+    
     const io = req.app.get('io');
     if (io) {
       io.to(order.userId.toString()).emit('print_order_status_updated', {
@@ -184,7 +221,7 @@ export const updatePrintOrderStatus = async (req: Request, res: Response, next: 
       });
     }
     
-    return res.status(200).json({ success: true, printOrder: order });
+    return res.status(200).json({ success: true, printOrder: mappedPrintOrder });
   } catch (err) {
     next(err);
   }

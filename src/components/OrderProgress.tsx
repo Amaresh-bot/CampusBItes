@@ -116,7 +116,7 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5">
                   <div className="space-y-1 text-left">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs text-slate-400 font-mono font-bold tracking-wider">ORDER CODE #{order.id.slice(-8).toUpperCase()}</span>
+                      <span className="text-xs text-slate-400 font-mono font-bold tracking-wider">ORDER CODE #{(order.id || order._id || '').slice(-8).toUpperCase()}</span>
                       <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase border ${getStatusColor(order.status)}`}>
                         {getStatusLabelText(order.status)}
                       </span>
