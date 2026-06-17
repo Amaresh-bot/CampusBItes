@@ -20,6 +20,7 @@ import { ProfileTab } from './components/ProfileTab';
 import { BottomNavbar } from './components/BottomNavbar';
 import PrintHub from './components/PrintHub/PrintHub';
 import { SafeStorage } from './lib/storage';
+import { ProfileDropdown } from '@/components/ui/profile-dropdown';
 
 
 export default function App() {
@@ -73,6 +74,7 @@ export default function App() {
   const [pendingFilter, setPendingFilter] = useState<{ query: string; category: string } | null>(null);
   const [isOrdersLoading, setIsOrdersLoading] = useState<boolean>(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
   // Mobile Redesign states
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -294,11 +296,27 @@ export default function App() {
     o.status === 'Ready for Pickup'
   );
 
+  const fetchWalletBalance = async () => {
+    if (!user || !user.id) return;
+    try {
+      const response = await fetch(`/api/wallet/${user.id}`, { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.wallet) {
+          setWalletBalance(data.wallet.balance);
+        }
+      }
+    } catch (err) {
+      console.warn("Could not fetch wallet balance:", err);
+    }
+  };
+
   // Fetch user profile and orders once on user or tab transitions
   useEffect(() => {
     if (user) {
       fetchUserOrders();
       fetchStudentProfile(); // via UserContext — deduped
+      fetchWalletBalance();
       if (user.role === 'admin') {
         fetchAllStudents();
       }
@@ -1304,30 +1322,33 @@ export default function App() {
                 onClearAll={() => setNotifications([])}
               />
 
-              {/* Profile card details */}
-              <button
-                onClick={() => setShowProfileModal(true)}
-                title="Edit Academic Profile"
-                className="flex items-center gap-2 text-right hover:opacity-90 cursor-pointer bg-slate-50 border border-slate-150 p-1 rounded-xl hover:bg-slate-100 transition-all pr-2 sm:pr-3.5"
-              >
-                <div className="w-7 h-7 rounded-lg bg-[#1B4D3E] flex items-center justify-center text-white shrink-0 text-xs font-black font-mono">
-                  {user.name.slice(0,2).toUpperCase()}
-                </div>
-                <div className="text-left hidden md:block">
-                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest block font-mono">
-                    {isProfileLoading ? 'LOADING...' : 'MY PROFILE'}
-                  </span>
-                  <span className="text-[11px] font-black block leading-none text-slate-800">{user.name.split(' ')[0]}</span>
-                </div>
-              </button>
-
-              <button 
-                onClick={handleLogout}
-                className="p-1.5 sm:p-2 border border-slate-200 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer text-slate-400"
-                title="Log Out Session"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+              {/* Profile Dropdown Component */}
+              <ProfileDropdown
+                data={{
+                  name: user.name,
+                  email: user.email,
+                  avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`,
+                  subscription: user.role === 'admin' ? 'ADMIN' : 'STUDENT',
+                  model: walletBalance !== null ? `₹${walletBalance.toFixed(2)}` : 'Loading...'
+                }}
+                onProfileClick={() => setShowProfileModal(true)}
+                onSettingsClick={() => setShowProfileModal(true)}
+                onWalletClick={() => {
+                  if (isMobile) {
+                    setMobileTab('profile');
+                  } else {
+                    setShowProfileModal(true);
+                  }
+                }}
+                onOrdersClick={() => {
+                  if (isMobile) {
+                    setMobileTab('orders');
+                  } else {
+                    setActiveTab('orders');
+                  }
+                }}
+                onSignOutClick={handleLogout}
+              />
 
               {/* Hamburger Button for mobile devices (Requirement 11) */}
               <button

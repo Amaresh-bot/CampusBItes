@@ -45,6 +45,7 @@ export type PaymentStatus = 'Unpaid' | 'Paid' | 'Failed';
 
 export interface OrderCartItem {
   id: string;
+  itemId?: string;
   name: string;
   price: number;
   quantity: number;
@@ -54,6 +55,7 @@ export interface OrderCartItem {
 
 export interface Order {
   id: string;
+  _id?: string;
   userId: string;
   userEmail: string;
   userName: string;
