@@ -60,35 +60,50 @@ export function UserProvider({ children }: UserProviderProps) {
       let resolvedEmail: string | null = null;
       let resolvedName: string | null = null;
 
-      // 1. Try Supabase Auth Session
-      if (supabase) {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user) {
-            resolvedUserId = session.user.id;
-            resolvedEmail = session.user.email || null;
-            resolvedName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || null;
-            console.log("[UserContext] Restored session from Supabase Auth:", resolvedUserId);
+      // 1. Try MERN JWT Cookie Session (via auth status)
+      try {
+        const res = await fetch('/api/auth/status');
+        if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+          const data = await res.json();
+          if (data && data.authenticated && data.user) {
+            const resolvedRole = (data.user.email && data.user.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com') || (data.user.role === 'admin') ? 'admin' : 'customer';
+            setUserState({
+              id: data.user.id,
+              name: data.user.fullName || 'Student',
+              email: data.user.email || '',
+              role: resolvedRole
+            });
+            setStudentProfile({
+              id: data.user.id,
+              email: data.user.email,
+              fullName: data.user.fullName,
+              rollNumber: data.user.rollNumber,
+              branch: data.user.branch,
+              academicYear: data.user.academicYear,
+              phoneNumber: data.user.phoneNumber,
+              profileLocked: data.user.profileLocked,
+              isVerified: data.user.isVerified
+            });
+            setIsProfileLoading(false);
+            return;
           }
-        } catch (err) {
-          console.error("[UserContext] Supabase session restore failed:", err);
         }
+      } catch (err) {
+        console.error("[UserContext] status session restore failed:", err);
       }
 
       // 2. Fallback to Firebase Auth (if initialized and active)
-      if (!resolvedUserId) {
-        try {
-          const { auth: firebaseAuth } = await import('../firebase/config');
-          if (firebaseAuth && firebaseAuth.currentUser) {
-            const fUser = firebaseAuth.currentUser;
-            resolvedUserId = fUser.uid;
-            resolvedEmail = fUser.email;
-            resolvedName = fUser.displayName;
-            console.log("[UserContext] Restored session from Firebase Auth:", resolvedUserId);
-          }
-        } catch (err) {
-          // Firebase might not be initialized or configured yet
+      try {
+        const { auth: firebaseAuth } = await import('../firebase/config');
+        if (firebaseAuth && firebaseAuth.currentUser) {
+          const fUser = firebaseAuth.currentUser;
+          resolvedUserId = fUser.uid;
+          resolvedEmail = fUser.email;
+          resolvedName = fUser.displayName;
+          console.log("[UserContext] Restored session from Firebase Auth:", resolvedUserId);
         }
+      } catch (err) {
+        // Firebase might not be initialized or configured yet
       }
 
       // 3. Fallback to safe whitelisted user ID string
@@ -220,6 +235,9 @@ export function UserProvider({ children }: UserProviderProps) {
 
   const logout = useCallback(() => {
     SafeStorage.removeItem('canteen_user_id');
+    // Call backend logout endpoint to clear HTTP-only cookies
+    fetch('/api/auth/logout', { method: 'POST' }).catch(err => console.error("Backend logout error:", err));
+
     // Also sign out from Supabase Auth if logged in
     if (supabase) {
       supabase.auth.signOut().catch(err => console.error("Supabase signOut error:", err));

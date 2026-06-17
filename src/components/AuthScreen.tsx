@@ -57,59 +57,32 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
   const [isGoogleLogin, setIsGoogleLogin] = useState(false);
 
   // Handle Google OAuth Pop-up launch utilizing Supabase Client & Backend Fallbacks
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     setError(null);
     setSuccessMsg(null);
     setLoading(true);
 
     try {
-      console.log("[Google Auth] Attempting Supabase Client Google Login...");
-      const data = await signInWithGoogle();
-      
-      if (data && data.url) {
-        const width = 500;
-        const height = 600;
-        const left = window.screenX + (window.innerWidth - width) / 2;
-        const top = window.screenY + (window.innerHeight - height) / 2;
+      SafeStorage.setItem('google_auth_popup_active', 'true');
+      const bootstrapUrl = `${window.location.origin}/?google_auth_init=true`;
 
-        const authWindow = window.open(
-          data.url,
-          'google_oauth_popup',
-          `width=${width},height=${height},left=${left},top=${top},status=no,resizable=yes`
-        );
+      const width = 500;
+      const height = 600;
+      const left = window.screenX + (window.innerWidth - width) / 2;
+      const top = window.screenY + (window.innerHeight - height) / 2;
 
-        if (!authWindow) {
-          throw new Error("Popup blocked! Please allow popups for this site to log in with Google.");
-        }
-        return;
+      const authWindow = window.open(
+        bootstrapUrl,
+        'google_oauth_popup',
+        `width=${width},height=${height},left=${left},top=${top},status=no,resizable=yes`
+      );
+
+      if (!authWindow) {
+        throw new Error("Popup blocked! Please allow popups for this site to log in with Google.");
       }
-      throw new Error("Could not obtain sign-in URL from client-side SDK.");
     } catch (err: any) {
-      console.warn("[Google Auth] Client-side Supabase failed or unconfigured, falling back to secure wrapper:", err.message);
-      
-      // Fallback: Robust window-opener popup that bootstraps Supabase OAuth via server-side credentials
-      try {
-        SafeStorage.setItem('google_auth_popup_active', 'true');
-        const bootstrapUrl = `${window.location.origin}/?google_auth_init=true`;
-
-        const width = 500;
-        const height = 600;
-        const left = window.screenX + (window.innerWidth - width) / 2;
-        const top = window.screenY + (window.innerHeight - height) / 2;
-
-        const authWindow = window.open(
-          bootstrapUrl,
-          'google_oauth_popup',
-          `width=${width},height=${height},left=${left},top=${top},status=no,resizable=yes`
-        );
-
-        if (!authWindow) {
-          throw new Error("Popup blocked! Please allow popups for this site to log in with Google.");
-        }
-      } catch (innerErr: any) {
-        setError(innerErr.message || "An exception occurred launching Google Authentication.");
-        setLoading(false);
-      }
+      setError(err.message || "An exception occurred launching Google Authentication.");
+      setLoading(false);
     }
   };
 
