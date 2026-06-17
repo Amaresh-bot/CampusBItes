@@ -9,6 +9,10 @@ export const configurePassport = () => {
     return;
   }
 
+  console.log(`🔑 Passport Google Strategy initialized:`);
+  console.log(`   - Client ID: ${env.GOOGLE_CLIENT_ID.substring(0, 15)}...`);
+  console.log(`   - Callback URL: ${env.GOOGLE_CALLBACK_URL}`);
+
   passport.use(
     new GoogleStrategy(
       {
