@@ -166,7 +166,11 @@ export default function App() {
       const response = await fetch('/api/menu');
       if (response.ok && response.headers.get("content-type")?.includes("application/json")) {
         const data = await response.json();
-        setMenuItems(data);
+        const normalizedData = (data || []).map((item: any) => ({
+          ...item,
+          id: item.id || item._id
+        }));
+        setMenuItems(normalizedData);
       } else {
         console.warn("Canteen menu endpoint is temporarily unavailable or returned non-JSON.");
       }

@@ -105,7 +105,7 @@ export function CanteenMenu({
 
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
                           
-    const isVeg = item.tags?.includes('Vegetarian') || item.category === 'Desserts' || item.category === 'Beverages' || item.id.includes('bev') || item.id.includes('veg');
+    const isVeg = item.tags?.includes('Vegetarian') || item.category === 'Desserts' || item.category === 'Beverages' || (item.id && item.id.includes('bev')) || (item.id && item.id.includes('veg'));
     const isVegMatches = !vegetarianOnly || isVeg;
     
     return matchesCategory && matchesStore && matchesSearch && isVegMatches;
@@ -245,7 +245,7 @@ export function CanteenMenu({
           <div className="divide-y divide-slate-100 bg-white rounded-3xl border border-slate-100 shadow-xs p-3.5 sm:p-6 md:p-8 space-y-6">
             {filteredItems.map((item, index) => {
               const quantityInCart = cart[item.id] || 0;
-              const isVeg = item.tags?.includes('Vegetarian') || item.category === 'Desserts' || item.category === 'Beverages' || item.id.includes('bev') || item.id.includes('veg');
+              const isVeg = item.tags?.includes('Vegetarian') || item.category === 'Desserts' || item.category === 'Beverages' || (item.id && item.id.includes('bev')) || (item.id && item.id.includes('veg'));
               const isBestseller = item.rating >= 4.4 || item.isTodaySpecial;
 
               return (

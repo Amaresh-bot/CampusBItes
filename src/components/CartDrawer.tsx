@@ -327,10 +327,10 @@ export function CartDrawer({
                   <div className="flex items-center gap-1.5">
                     {/* Tiny veg/nonweg symbol */}
                     <span className={`w-2.5 h-2.5 border rounded-sm flex items-center justify-center p-[1px] ${
-                      item.foodItem.tags?.includes('Vegetarian') || item.foodItem.category === 'Desserts' || item.foodItem.category === 'Beverages' || item.foodItem.id.includes('bev') ? 'border-emerald-500 bg-emerald-50/10' : 'border-rose-500 bg-rose-50/10'
+                      item.foodItem.tags?.includes('Vegetarian') || item.foodItem.category === 'Desserts' || item.foodItem.category === 'Beverages' || (item.foodItem.id && item.foodItem.id.includes('bev')) ? 'border-emerald-500 bg-emerald-50/10' : 'border-rose-500 bg-rose-50/10'
                     }`}>
                       <span className={`w-1 h-1 rounded-full ${
-                        item.foodItem.tags?.includes('Vegetarian') || item.foodItem.category === 'Desserts' || item.foodItem.category === 'Beverages' || item.foodItem.id.includes('bev') ? 'bg-emerald-500' : 'bg-rose-500'
+                        item.foodItem.tags?.includes('Vegetarian') || item.foodItem.category === 'Desserts' || item.foodItem.category === 'Beverages' || (item.foodItem.id && item.foodItem.id.includes('bev')) ? 'bg-emerald-500' : 'bg-rose-500'
                       }`} />
                     </span>
                     <h5 className="font-sans font-black text-slate-800 leading-tight text-xs">

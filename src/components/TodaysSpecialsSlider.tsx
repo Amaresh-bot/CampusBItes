@@ -70,8 +70,8 @@ export function TodaysSpecialsSlider({
     activeItem.tags?.includes('Vegetarian') ||
     activeItem.category === 'Desserts' ||
     activeItem.category === 'Beverages' ||
-    activeItem.id.includes('bev') ||
-    activeItem.id.includes('veg');
+    (activeItem.id && activeItem.id.includes('bev')) ||
+    (activeItem.id && activeItem.id.includes('veg'));
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
