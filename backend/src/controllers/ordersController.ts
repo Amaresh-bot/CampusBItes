@@ -6,7 +6,8 @@ import { Transaction } from '../models/Transaction';
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId, items, totalAmount, paymentMethod, paymentId, tokenNumber } = req.body;
+    const orderData = req.body.order || req.body;
+    const { userId, items, totalAmount, paymentMethod, paymentId, tokenNumber } = orderData;
     
     if (!userId || !items || !totalAmount || !paymentMethod) {
       return res.status(400).json({ success: false, message: 'userId, items, totalAmount, and paymentMethod are required' });
@@ -30,14 +31,16 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       await tx.save();
     }
     
+    const token = tokenNumber || Math.floor(100 + Math.random() * 900).toString();
+    
     const order = new Order({
       userId,
       items,
       totalAmount,
       paymentMethod,
-      paymentStatus: paymentMethod === 'wallet' || paymentId ? 'Paid' : 'Pending',
+      paymentStatus: paymentMethod === 'wallet' || paymentId || (orderData.paymentStatus === 'Paid') ? 'Paid' : 'Pending',
       paymentId,
-      tokenNumber,
+      tokenNumber: token,
       status: 'Pending'
     });
     
