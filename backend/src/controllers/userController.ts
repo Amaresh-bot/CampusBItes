@@ -9,7 +9,20 @@ export const getStudentProfile = async (req: Request, res: Response, next: NextF
     if (!user) {
       return res.status(404).json({ success: false, message: 'User profile not found' });
     }
-    return res.status(200).json({ success: true, profile: user });
+
+    const profileResponse = {
+      ...user.toObject(),
+      id: user._id.toString(),
+      rollNo: user.rollNumber,
+      year: user.academicYear,
+      contactNo: user.phoneNumber
+    };
+
+    return res.status(200).json({
+      ...profileResponse,
+      success: true,
+      profile: profileResponse
+    });
   } catch (err) {
     next(err);
   }
@@ -17,14 +30,29 @@ export const getStudentProfile = async (req: Request, res: Response, next: NextF
 
 export const saveStudentProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId, fullName, rollNumber, branch, academicYear, phoneNumber, collegeId } = req.body;
+    const { 
+      userId, 
+      fullName, 
+      rollNumber, 
+      rollNo, // Frontend name compatibility
+      branch, 
+      academicYear, 
+      year, // Frontend name compatibility
+      phoneNumber, 
+      contactNo, // Frontend name compatibility
+      collegeId 
+    } = req.body;
     
-    if (!userId || !fullName || !rollNumber) {
+    const finalRollNumber = rollNumber || rollNo;
+    const finalAcademicYear = academicYear || year;
+    const finalPhoneNumber = phoneNumber || contactNo;
+
+    if (!userId || !fullName || !finalRollNumber) {
       return res.status(400).json({ success: false, message: 'userId, fullName, and rollNumber are required' });
     }
     
     // Check unique rollNumber except current user
-    const existing = await User.findOne({ rollNumber: rollNumber.toUpperCase(), _id: { $ne: userId } });
+    const existing = await User.findOne({ rollNumber: finalRollNumber.toUpperCase(), _id: { $ne: userId } });
     if (existing) {
       return res.status(400).json({ success: false, message: 'Roll number is already registered by another student' });
     }
@@ -35,10 +63,10 @@ export const saveStudentProfile = async (req: Request, res: Response, next: Next
     }
 
     user.fullName = fullName;
-    user.rollNumber = rollNumber.toUpperCase();
+    user.rollNumber = finalRollNumber.toUpperCase();
     user.branch = branch;
-    user.academicYear = academicYear;
-    user.phoneNumber = phoneNumber;
+    user.academicYear = finalAcademicYear;
+    user.phoneNumber = finalPhoneNumber;
     if (collegeId) user.collegeId = collegeId;
     user.profileLocked = true; // Lock profile details on save
     
@@ -51,7 +79,19 @@ export const saveStudentProfile = async (req: Request, res: Response, next: Next
       await wallet.save();
     }
     
-    return res.status(200).json({ success: true, profile: user });
+    const profileResponse = {
+      ...user.toObject(),
+      id: user._id.toString(),
+      rollNo: user.rollNumber,
+      year: user.academicYear,
+      contactNo: user.phoneNumber
+    };
+
+    return res.status(200).json({
+      ...profileResponse,
+      success: true,
+      profile: profileResponse
+    });
   } catch (err) {
     next(err);
   }
@@ -60,7 +100,14 @@ export const saveStudentProfile = async (req: Request, res: Response, next: Next
 export const getStudentsAdmin = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const users = await User.find({ role: 'customer' }).populate('collegeId');
-    return res.status(200).json({ success: true, students: users });
+    const mappedUsers = users.map(user => ({
+      ...user.toObject(),
+      id: user._id.toString(),
+      rollNo: user.rollNumber,
+      year: user.academicYear,
+      contactNo: user.phoneNumber
+    }));
+    return res.status(200).json({ success: true, students: mappedUsers });
   } catch (err) {
     next(err);
   }
@@ -81,7 +128,19 @@ export const verifyStudent = async (req: Request, res: Response, next: NextFunct
     user.isVerified = isVerified === true;
     await user.save();
 
-    return res.status(200).json({ success: true, profile: user });
+    const profileResponse = {
+      ...user.toObject(),
+      id: user._id.toString(),
+      rollNo: user.rollNumber,
+      year: user.academicYear,
+      contactNo: user.phoneNumber
+    };
+
+    return res.status(200).json({
+      ...profileResponse,
+      success: true,
+      profile: profileResponse
+    });
   } catch (err) {
     next(err);
   }
