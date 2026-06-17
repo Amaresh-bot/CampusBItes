@@ -10,7 +10,11 @@ export const getMenuItems = async (req: Request, res: Response, next: NextFuncti
     if (category && category !== 'All') filter.category = category;
     
     const items = await MenuItem.find(filter).populate('canteenId');
-    return res.status(200).json(items);
+    const mappedItems = items.map(item => ({
+      ...item.toObject(),
+      id: item._id.toString()
+    }));
+    return res.status(200).json(mappedItems);
   } catch (err) {
     next(err);
   }
@@ -38,7 +42,11 @@ export const addMenuItem = async (req: Request, res: Response, next: NextFunctio
     });
     
     await item.save();
-    return res.status(201).json({ success: true, item });
+    const mappedItem = {
+      ...item.toObject(),
+      id: item._id.toString()
+    };
+    return res.status(201).json({ success: true, item: mappedItem });
   } catch (err) {
     next(err);
   }
@@ -54,7 +62,11 @@ export const editMenuItem = async (req: Request, res: Response, next: NextFuncti
       return res.status(404).json({ success: false, message: 'Item not found' });
     }
     
-    return res.status(200).json({ success: true, item });
+    const mappedItem = {
+      ...item.toObject(),
+      id: item._id.toString()
+    };
+    return res.status(200).json({ success: true, item: mappedItem });
   } catch (err) {
     next(err);
   }
