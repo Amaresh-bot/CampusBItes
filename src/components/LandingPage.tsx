@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FallbackImage } from './FallbackImage';
+import { AppFooter } from './AppFooter';
 
 interface LandingPageProps {
   onSignIn: (searchQuery?: string, categoryFilter?: string) => void;
@@ -382,30 +383,12 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
         </div>
       </section>
 
-      {/* 9. Premium Minimalist Dark Green SaaS-Style Footer */}
-      <footer className="py-12 border-t border-[#143B2F]/10 bg-[#1B4D3E] text-slate-300 text-center text-xs w-full shrink-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="font-display font-black text-lg tracking-tight text-white">
-                Campus<span className="text-[#4CAF50]">Bites</span>
-              </span>
-              <span className="text-[8px] font-mono font-bold bg-[#E8F5E9]/15 text-[#E8F5E9] px-1.5 py-0.5 rounded uppercase">
-                Sphoorthy Hub
-              </span>
-            </div>
-            <p className="text-[11px] text-[#A2C2B9] font-medium max-w-sm sm:max-w-md sm:text-right">
-              Serving premium food token management, bookstore processing, and safe OTP authorized billing inside Sphoorthy Engineering College.
-            </p>
-          </div>
-
-          <div className="h-px bg-white/10 w-full" />
-
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-[11px]">
-            <p className="text-[#A2C2B9] font-medium">© 2026 CampusBites Consortium • Sphoorthy Engineering College. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      {/* Shared App Footer */}
+      <AppFooter
+        onPolicyClick={(key) => {
+          if (key === 'contact') onContactUs();
+        }}
+      />
 
     </div>
   );

@@ -20,6 +20,7 @@ import { TodaysSpecialsSlider } from './components/TodaysSpecialsSlider';
 import { ProfileTab } from './components/ProfileTab';
 import { BottomNavbar } from './components/BottomNavbar';
 import PrintHub from './components/PrintHub/PrintHub';
+import { AppFooter } from './components/AppFooter';
 import { SafeStorage } from './lib/storage';
 import { ProfileDropdown } from '@/components/ui/profile-dropdown';
 import explodedBurger from './assets/images/exploded_burger.png';
@@ -1376,6 +1377,9 @@ export default function App() {
             onClose={() => setShowProfileModal(false)}
           />
         )}
+
+        {/* Shared App Footer */}
+        <AppFooter onPolicyClick={(key) => setComplianceModal(key)} className="mt-8" />
       </div>
     );
   }
@@ -1931,54 +1935,9 @@ export default function App() {
       </main>
 
       {/* ═══════════════════════════════════════
-           MINIMAL CENTERED FOOTER
+           SHARED APP FOOTER
       ═══════════════════════════════════════ */}
-      <footer className="mt-16 w-full shrink-0 bg-[#1B4D3E]">
-        {/* Main footer body – brand green background, centered */}
-        <div className="py-8 px-4">
-          <div className="max-w-[1400px] mx-auto flex flex-col items-center text-center gap-4">
-
-            {/* Brand wordmark */}
-            <div className="flex flex-col items-center gap-1">
-              <div className="w-11 h-11 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shadow-md mb-1.5">
-                <ChefHat className="w-5 h-5 text-white" />
-              </div>
-              <h2 className="text-2xl font-black tracking-tight text-white uppercase">CampusBites</h2>
-              <p className="text-[10px] font-bold text-white/60 tracking-[0.25em] uppercase">Sphoorthy Engineering College</p>
-            </div>
-
-            {/* Divider */}
-            <div className="w-14 h-px rounded-full bg-white/20" />
-
-            {/* Policy links – horizontal inline row */}
-            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Policies</span>
-              {([
-                ['Terms & Conditions', 'terms'],
-                ['Privacy Policy', 'privacy'],
-                ['Refund Policy', 'refund'],
-                ['Contact Us', 'contact'],
-              ] as [string, string][]).map(([label, key]) => (
-                <button
-                  key={key}
-                  onClick={() => setComplianceModal(key as any)}
-                  className="text-xs font-medium text-white/75 hover:text-white transition-colors cursor-pointer underline-offset-2 hover:underline"
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom copyright strip */}
-        <div className="border-t border-white/10 py-2.5 px-4">
-          <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-center">
-            <p className="text-[10px] text-white/50 font-medium">© 2025 CampusBites Hub · Sphoorthy Engineering College</p>
-            <p className="text-[10px] text-white/35">Powered by Razorpay · Secure PCI-DSS Checkout</p>
-          </div>
-        </div>
-      </footer>
+      <AppFooter onPolicyClick={(key) => setComplianceModal(key)} className="mt-16" />
 
       {/* Compliance / Policy Modal */}
       <AnimatePresence>
