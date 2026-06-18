@@ -159,21 +159,6 @@ export function CanteenMenu({
                   </div>
                 )}
               </div>
-
-              {/* Veg Filter Card */}
-              <button
-                onClick={() => setVegetarianOnly(!vegetarianOnly)}
-                className="w-[72px] h-[54px] bg-white rounded-[20px] flex flex-col items-center justify-center border border-slate-100 shadow-md transition-all active:scale-95 cursor-pointer shrink-0"
-              >
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-0.5 leading-none">VEG</span>
-                
-                {/* Custom Veg Toggle Switch */}
-                <div className={`w-8.5 h-4.5 rounded-full p-[1.5px] relative flex items-center transition-colors duration-200 ${vegetarianOnly ? 'bg-[#0f8a65]' : 'bg-slate-200'}`}>
-                  <div className={`w-3.5 h-3.5 bg-white rounded-[4px] flex items-center justify-center transition-all duration-200 ${vegetarianOnly ? 'translate-x-[16px]' : 'translate-x-0'}`}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${vegetarianOnly ? 'bg-[#0f8a65]' : 'bg-slate-350'}`} />
-                  </div>
-                </div>
-              </button>
             </div>
 
             {/* Connected Store Filtering Indicator */}

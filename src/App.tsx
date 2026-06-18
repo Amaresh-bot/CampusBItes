@@ -1739,99 +1739,42 @@ export default function App() {
               transition={{ duration: 0.18 }}
               className="space-y-6"
             >
-              {/* ═══════════════════════════
-                   SWIGGY-STYLE HERO BANNER
-              ═══════════════════════════ */}
+              {/* ═══════════════════════════════════════════════════
+                   MOBILE-STYLE HERO BANNER FOR DESKTOP
+              ═══════════════════════════════════════════════════ */}
               <div
                 className="relative rounded-2xl text-white overflow-hidden shadow-xl select-none"
-                style={{ background: 'linear-gradient(135deg, #1B4D3E 0%, #225C47 45%, #2E7D5A 100%)' }}
+                style={{ background: 'linear-gradient(135deg, #FF7043 0%, #FF5722 50%, #E64A19 100%)' }}
               >
                 {/* Glowing orbs */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                  <div className="absolute -top-12 -left-12 w-64 h-64 bg-[#4CAF50]/20 rounded-full blur-3xl" />
-                  <div className="absolute -bottom-8 -right-8 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-32 bg-[#4CAF50]/10 rounded-full blur-2xl" />
+                  <div className="absolute -top-12 -left-12 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+                  <div className="absolute -bottom-8 -right-8 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
                 </div>
 
                 <div className="relative z-10 p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-                  {/* Left text */}
+                  {/* Left contents */}
                   <div className="lg:col-span-7 space-y-4">
-                    <div className="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                      <Sparkles className="w-3 h-3 text-[#A5D6A7]" />
-                      <span className="text-[10px] font-black tracking-widest text-[#C8E6C9] uppercase">SPHN Campus Exclusive</span>
+                    <div className="inline-flex items-center gap-1.5 bg-white/20 border border-white/30 backdrop-blur-sm px-3 py-1 rounded-full">
+                      <span className="text-[10px] font-black tracking-widest text-white uppercase">Digital Token Queues</span>
                     </div>
                     <div>
                       <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.1]">
-                        Order Food &<br className="hidden sm:block" /> College Essentials
+                        Order from college canteens &<br />skip the lines!
                       </h1>
-                      <p className="mt-3 text-sm text-[#C8E6C9] font-medium max-w-lg leading-relaxed">
-                        Fresh canteen meals • Snacks • Stationery • Printouts — ready for pickup in minutes. Welcome back, <strong className="text-white">{user?.name}</strong>!
+                      <p className="mt-3 text-sm text-orange-50 font-medium max-w-lg leading-relaxed">
+                        Get instant digital token pickup numbers (B-001, L-012) directly on your device when payment completes.
                       </p>
-                    </div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <button
-                        onClick={() => setSelectedCategory('Meals')}
-                        className="inline-flex items-center gap-2 bg-white text-[#1B4D3E] font-black text-xs px-5 py-2.5 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                      >
-                        <ChefHat className="w-4 h-4" /> Order Now
-                      </button>
-                    </div>
-                    {/* Trust badges */}
-                    <div className="flex items-center gap-4 pt-1">
-                      {[['⚡','Quick Pickup'],['🔒','Secure Pay'],['⭐','Top Rated']].map(([icon, label]) => (
-                        <div key={label} className="flex items-center gap-1.5 text-[10px] text-[#A5D6A7] font-bold">
-                          <span>{icon}</span><span>{label}</span>
-                        </div>
-                      ))}
                     </div>
                   </div>
 
-                  {/* Right floating food cards */}
-                  <div className="hidden lg:block lg:col-span-5 relative h-[220px] pointer-events-none">
-                    <motion.div
-                      animate={{ y: [0, -8, 0] }}
-                      transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut' }}
-                      className="absolute top-0 left-4 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-lg flex items-center gap-2.5 min-w-[140px]"
-                    >
-                      <span className="text-2xl">🍔</span>
-                      <div>
-                        <p className="text-[10px] font-black text-slate-900">Cheesy Burger</p>
-                        <p className="text-[9px] text-[#1B4D3E] font-bold">₹120 • ⭐ 4.6</p>
-                      </div>
-                    </motion.div>
-                    <motion.div
-                      animate={{ y: [0, 8, 0] }}
-                      transition={{ repeat: Infinity, duration: 4.2, ease: 'easeInOut' }}
-                      className="absolute top-4 right-0 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-lg flex items-center gap-2.5 min-w-[140px]"
-                    >
-                      <span className="text-2xl">☕</span>
-                      <div>
-                        <p className="text-[10px] font-black text-slate-900">Filter Coffee</p>
-                        <p className="text-[9px] text-[#1B4D3E] font-bold">₹40 • ⭐ 4.8</p>
-                      </div>
-                    </motion.div>
-                    <motion.div
-                      animate={{ y: [0, -6, 0] }}
-                      transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }}
-                      className="absolute bottom-2 left-8 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-lg flex items-center gap-2.5 min-w-[140px]"
-                    >
-                      <span className="text-2xl">🍟</span>
-                      <div>
-                        <p className="text-[10px] font-black text-slate-900">Samosa Plate</p>
-                        <p className="text-[9px] text-[#1B4D3E] font-bold">₹30 • ⭐ 4.5</p>
-                      </div>
-                    </motion.div>
-                    <motion.div
-                      animate={{ y: [0, 6, 0] }}
-                      transition={{ repeat: Infinity, duration: 3.8, ease: 'easeInOut' }}
-                      className="absolute bottom-0 right-4 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-lg flex items-center gap-2.5 min-w-[120px]"
-                    >
-                      <span className="text-2xl">📓</span>
-                      <div>
-                        <p className="text-[10px] font-black text-slate-900">Record Book</p>
-                        <p className="text-[9px] text-[#1B4D3E] font-bold">₹40 • 📚</p>
-                      </div>
-                    </motion.div>
+                  {/* Right illustration / overlapping stacked burger image */}
+                  <div className="hidden lg:flex lg:col-span-5 justify-end relative h-[220px] pointer-events-none">
+                    <img 
+                      src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400" 
+                      alt="Canteen Special" 
+                      className="w-[240px] h-[240px] object-contain transform rotate-[-8deg] scale-110 drop-shadow-2xl absolute -bottom-10 right-4"
+                    />
                   </div>
                 </div>
               </div>
@@ -1849,27 +1792,26 @@ export default function App() {
 
               {/* ═══════════════════════════════════════════════════
                    3-COLUMN SWIGGY-STYLE LAYOUT
-                   Left: Filters  |  Center: Menu  |  Right: Cart
+                   Left: Filters  |  Center: Menu
               ═══════════════════════════════════════════════════ */}
               <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 items-start">
 
-                {/* ── LEFT SIDEBAR: Filters ── */}
-                <aside className="hidden lg:block space-y-4">
+                {/* ═══ LEFT SIDEBAR: Filters ═══ */}
+                <aside className="hidden lg:block space-y-4 sticky top-[90px] self-start max-h-[calc(100vh-110px)] overflow-y-auto pr-1">
                   {/* Filter Panel */}
                   <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
                     <div className="flex items-center gap-2 mb-4">
-                      <SlidersHorizontal className="w-4 h-4 text-[#1B4D3E]" />
-                      <span className="text-xs font-black text-slate-800 uppercase tracking-wider">Filters</span>
+                      <Filter className="w-4 h-4 text-[#1B4D3E]" />
+                      <span className="text-xs font-black text-slate-800 uppercase tracking-wider">Filters & Sort</span>
                     </div>
 
-                    {/* Veg / Non-Veg */}
-                    <div className="space-y-2 mb-4">
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Dietary</p>
+                    {/* Veg/Non-Veg Toggle */}
+                    <div className="pb-4 border-b border-slate-100 mb-4">
                       <button
                         onClick={() => setVegetarianOnly(!vegetarianOnly)}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                           vegetarianOnly
-                            ? 'bg-green-50 border-green-400 text-green-700'
+                            ? 'bg-[#E8F5E9] border-[#1B4D3E] text-[#1B4D3E]'
                             : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                         }`}
                       >
@@ -1900,26 +1842,6 @@ export default function App() {
                           {cat}
                         </button>
                       ))}
-                    </div>
-                  </div>
-
-                  {/* Canteen Info Card */}
-                  <div className="bg-[#1B4D3E] rounded-2xl p-5 text-white">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-                        <ChefHat className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-black leading-none">Sphoorthy Canteen</p>
-                        <p className="text-[9px] text-[#A5D6A7] font-medium mt-0.5">SPHN Campus</p>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5 text-[10px] text-[#C8E6C9]">
-                      <div className="flex items-center gap-1.5"><Star className="w-3 h-3 fill-amber-400 stroke-none" /><span className="font-bold text-white">4.6</span> Rated</div>
-                      <div className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> 10–15 min pickup</div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> Open Now
-                      </div>
                     </div>
                   </div>
                 </aside>
@@ -2029,7 +1951,7 @@ export default function App() {
       ═══════════════════════════════════════ */}
       <footer className="mt-16 bg-[#1B4D3E] text-white w-full shrink-0">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-8 border-b border-white/10">
             {/* Brand */}
             <div className="space-y-3">
               <div className="flex items-center gap-2.5">
@@ -2042,15 +1964,6 @@ export default function App() {
                 </div>
               </div>
               <p className="text-xs text-[#A5D6A7] leading-relaxed max-w-[220px]">Your go-to canteen ordering platform at Sphoorthy Engineering College.</p>
-            </div>
-            {/* Quick Links */}
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#A5D6A7] mb-3">Quick Links</p>
-              <div className="space-y-2">
-                {[['Menu', () => setActiveTab('menu')], ['My Orders', () => setActiveTab('orders')], ['Profile', () => setShowProfileModal(true)]].map(([label, fn]) => (
-                  <button key={label as string} onClick={fn as () => void} className="block text-xs text-white/70 hover:text-white font-medium cursor-pointer transition-colors">{label as string}</button>
-                ))}
-              </div>
             </div>
             {/* Policies */}
             <div>
