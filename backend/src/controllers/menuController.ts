@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { MenuItem } from '../models/MenuItem';
+import { Canteen } from '../models/Canteen';
 
 export const getMenuItems = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -21,11 +22,33 @@ export const getMenuItems = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const addMenuItem = async (req: Request, res: Response, next: NextFunction) => {
+  console.log("[addMenuItem] Controller initiated with req.body:", req.body);
   try {
-    const { canteenId, name, description, price, category, imageUrl, isAvailable, estimatedPrepTime, tags, isTodaySpecial } = req.body;
+    let { canteenId, name, description, price, category, imageUrl, isAvailable, estimatedPrepTime, tags, isTodaySpecial } = req.body;
     
-    if (!canteenId || !name || price === undefined || !category) {
-      return res.status(400).json({ success: false, message: 'canteenId, name, price, and category are required' });
+    // Auto-resolve canteenId for single-canteen setups if frontend doesn't provide it
+    if (!canteenId) {
+      console.log("[addMenuItem] No canteenId provided in payload. Looking up default Canteen...");
+      const defaultCanteen = await Canteen.findOne({});
+      if (defaultCanteen) {
+        canteenId = defaultCanteen._id.toString();
+        console.log(`[addMenuItem] Resolved default canteen: "${defaultCanteen.name}" (ID: ${canteenId})`);
+      } else {
+        console.error("[addMenuItem] No canteens exist in the database.");
+        return res.status(400).json({ 
+          success: false, 
+          message: 'canteenId is missing and no default canteen was found in the database. Please initialize the database.' 
+        });
+      }
+    }
+    
+    if (!name || price === undefined || !category) {
+      console.warn("[addMenuItem] Validation failed: missing name, price, or category. Required fields status:", {
+        hasName: !!name,
+        hasPrice: price !== undefined,
+        hasCategory: !!category
+      });
+      return res.status(400).json({ success: false, message: 'name, price, and category are required' });
     }
     
     const item = new MenuItem({
@@ -41,13 +64,17 @@ export const addMenuItem = async (req: Request, res: Response, next: NextFunctio
       isTodaySpecial
     });
     
+    console.log("[addMenuItem] Saving new MenuItem to MongoDB...");
     await item.save();
+    
     const mappedItem = {
       ...item.toObject(),
       id: item._id.toString()
     };
+    console.log("[addMenuItem] MenuItem saved successfully. Generated ID:", mappedItem.id);
     return res.status(201).json({ success: true, item: mappedItem });
-  } catch (err) {
+  } catch (err: any) {
+    console.error("[addMenuItem] Error saving menu item to MongoDB:", err);
     next(err);
   }
 };

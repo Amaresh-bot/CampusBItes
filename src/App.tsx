@@ -511,6 +511,7 @@ export default function App() {
 
   // Admin dynamic menu actions
   const handleAddMenuItem = async (itemPayload: any) => {
+    console.log("[handleAddMenuItem] Dispatching POST request to /api/menu/add with payload:", itemPayload);
     try {
       const response = await fetch('/api/menu/add', {
         method: 'POST',
@@ -518,16 +519,24 @@ export default function App() {
         body: JSON.stringify(itemPayload),
         credentials: 'include'
       });
+      console.log(`[handleAddMenuItem] Response received. Status: ${response.status} (${response.statusText})`);
+      
+      const data = await response.json();
       if (response.ok) {
+        console.log("[handleAddMenuItem] Menu item added successfully. Response data:", data);
         fetchMenu();
         addNotification('Canteen Catalogue Updated', `Delicacy "${itemPayload.name}" was appended to the chef schedule.`, 'success');
+      } else {
+        console.error("[handleAddMenuItem] Server rejected request. Error details:", data);
+        addNotification('Menu Creation Failed', data.message || 'Error occurred while saving menu item.', 'alert');
       }
     } catch (err) {
-      console.error(err);
+      console.error("[handleAddMenuItem] Network error or JSON parsing failed:", err);
     }
   };
 
   const handleEditMenuItem = async (itemId: string, itemPayload: any) => {
+    console.log(`[handleEditMenuItem] Dispatching PUT request to /api/menu/${itemId}/edit with payload:`, itemPayload);
     try {
       const response = await fetch(`/api/menu/${itemId}/edit`, {
         method: 'PUT',
@@ -535,11 +544,18 @@ export default function App() {
         body: JSON.stringify(itemPayload),
         credentials: 'include'
       });
+      console.log(`[handleEditMenuItem] Response received. Status: ${response.status} (${response.statusText})`);
+      
+      const data = await response.json();
       if (response.ok) {
+        console.log("[handleEditMenuItem] Menu item updated successfully. Response data:", data);
         fetchMenu();
+      } else {
+        console.error("[handleEditMenuItem] Server rejected edit request. Error details:", data);
+        addNotification('Menu Update Failed', data.message || 'Error occurred while updating menu item.', 'alert');
       }
     } catch (err) {
-      console.error(err);
+      console.error("[handleEditMenuItem] Network error or JSON parsing failed:", err);
     }
   };
 
