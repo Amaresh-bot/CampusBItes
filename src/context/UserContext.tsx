@@ -84,7 +84,6 @@ export function UserProvider({ children }: UserProviderProps) {
               year: data.user.academicYear as any, // Frontend compatibility
               phoneNumber: data.user.phoneNumber,
               contactNo: data.user.phoneNumber, // Frontend compatibility
-              profileLocked: data.user.profileLocked,
               isVerified: data.user.isVerified
             });
             setIsProfileLoading(false);

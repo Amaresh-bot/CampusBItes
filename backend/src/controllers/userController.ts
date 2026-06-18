@@ -30,31 +30,32 @@ export const getStudentProfile = async (req: Request, res: Response, next: NextF
 
 export const saveStudentProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { 
-      userId, 
-      fullName, 
-      rollNumber, 
-      rollNo, // Frontend name compatibility
-      branch, 
-      academicYear, 
-      year, // Frontend name compatibility
-      phoneNumber, 
-      contactNo, // Frontend name compatibility
-      collegeId 
-    } = req.body;
-    
+    const source = req.body.profile || req.body;
+    const userId = req.body.userId || source.userId;
+    const fullName = source.fullName;
+    const rollNumber = source.rollNumber;
+    const rollNo = source.rollNo;
+    const branch = source.branch;
+    const academicYear = source.academicYear;
+    const year = source.year;
+    const phoneNumber = source.phoneNumber;
+    const contactNo = source.contactNo;
+    const collegeId = source.collegeId;
+
     const finalRollNumber = rollNumber || rollNo;
     const finalAcademicYear = academicYear || year;
     const finalPhoneNumber = phoneNumber || contactNo;
 
-    if (!userId || !fullName || !finalRollNumber) {
-      return res.status(400).json({ success: false, message: 'userId, fullName, and rollNumber are required' });
+    if (!userId || !fullName) {
+      return res.status(400).json({ success: false, message: 'userId and fullName are required' });
     }
     
-    // Check unique rollNumber except current user
-    const existing = await User.findOne({ rollNumber: finalRollNumber.toUpperCase(), _id: { $ne: userId } });
-    if (existing) {
-      return res.status(400).json({ success: false, message: 'Roll number is already registered by another student' });
+    // Check unique rollNumber except current user if provided
+    if (finalRollNumber && finalRollNumber.trim() !== "") {
+      const existing = await User.findOne({ rollNumber: finalRollNumber.trim().toUpperCase(), _id: { $ne: userId } });
+      if (existing) {
+        return res.status(400).json({ success: false, message: 'Roll number is already registered by another student' });
+      }
     }
 
     const user = await User.findById(userId);
@@ -63,12 +64,16 @@ export const saveStudentProfile = async (req: Request, res: Response, next: Next
     }
 
     user.fullName = fullName;
-    user.rollNumber = finalRollNumber.toUpperCase();
-    user.branch = branch;
-    user.academicYear = finalAcademicYear;
-    user.phoneNumber = finalPhoneNumber;
-    if (collegeId) user.collegeId = collegeId;
-    user.profileLocked = true; // Lock profile details on save
+    user.rollNumber = finalRollNumber && finalRollNumber.trim() !== "" ? finalRollNumber.trim().toUpperCase() : undefined;
+    user.branch = branch && branch.trim() !== "" ? branch.trim() : undefined;
+    user.academicYear = finalAcademicYear && finalAcademicYear.trim() !== "" ? finalAcademicYear.trim() : undefined;
+    user.phoneNumber = finalPhoneNumber && finalPhoneNumber.trim() !== "" ? finalPhoneNumber.trim() : undefined;
+    
+    if (collegeId) {
+      user.collegeId = collegeId;
+    } else {
+      user.collegeId = undefined;
+    }
     
     await user.save();
 

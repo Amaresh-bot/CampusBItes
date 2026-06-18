@@ -94,17 +94,20 @@ const migrate = async () => {
       for (const p of profiles) {
         let u = await User.findOne({ email: p.email });
         if (!u) {
+          const rawRoll = p.roll_number || p.rollNumber;
+          const isTemp = rawRoll && rawRoll.toUpperCase().startsWith('TEMP_');
+          const finalRoll = rawRoll && !isTemp ? rawRoll.toUpperCase().trim() : undefined;
+
           u = new User({
             _id: new mongoose.Types.ObjectId(),
             email: p.email,
             fullName: p.full_name || p.fullName || "User",
-            rollNumber: (p.roll_number || p.rollNumber || `TEMP_${p.id.substring(0, 8)}`).toUpperCase(),
-            branch: p.branch || "",
-            academicYear: p.academic_year || "",
-            phoneNumber: p.phone_number || "",
+            rollNumber: finalRoll && finalRoll !== "" ? finalRoll : undefined,
+            branch: p.branch && p.branch.trim() !== "" ? p.branch.trim() : undefined,
+            academicYear: p.academic_year && p.academic_year.trim() !== "" ? p.academic_year.trim() : undefined,
+            phoneNumber: p.phone_number && p.phone_number.trim() !== "" ? p.phone_number.trim() : undefined,
             collegeId: college._id,
-            role: 'customer',
-            profileLocked: p.profile_locked ?? p.profileLocked ?? false
+            role: 'customer'
           });
           await u.save();
         }

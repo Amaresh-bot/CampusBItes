@@ -46,13 +46,12 @@ export function ProfileModal({
     setError(null);
     onSave({
       fullName: fullName.trim(),
-      rollNo: initialProfile?.rollNo || `24N81A${Math.floor(1000 + Math.random() * 9000)}`,
-      branch: initialProfile?.branch || 'Computer Science (CSE)',
-      year: initialProfile?.year || '1st Year',
+      rollNo: initialProfile?.rollNo,
+      branch: initialProfile?.branch,
+      year: initialProfile?.year,
       contactNo: contactNo.trim(),
       email: userEmail || initialProfile?.email || '',
-      collegeName: "Spoorthy Engineering College",
-      profileLocked: false // Keep editable
+      collegeName: "Spoorthy Engineering College"
     });
   };
 

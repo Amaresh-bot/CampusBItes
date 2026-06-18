@@ -10,14 +10,13 @@ export interface User {
 export interface StudentProfile {
   userId?: string;
   fullName: string;
-  rollNo: string;
-  branch: string;
-  year: '1st Year' | '2nd Year' | '3rd Year' | '4th Year';
+  rollNo?: string;
+  branch?: string;
+  year?: '1st Year' | '2nd Year' | '3rd Year' | '4th Year';
   contactNo: string;
   email: string;
   isVerified?: boolean;
   collegeName?: string;
-  profileLocked?: boolean;
 }
 
 export interface FoodItem {

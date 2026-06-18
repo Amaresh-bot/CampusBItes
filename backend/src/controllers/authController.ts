@@ -51,9 +51,9 @@ export const googleCallbackHandler = async (req: Request, res: Response, next: N
       role: user.role
     });
 
-    const isTempRoll = user.rollNumber.startsWith('TEMP_');
-    const hasProfile = !isTempRoll;
-    const profile = isTempRoll ? null : {
+    const isTempRoll = user.rollNumber && user.rollNumber.startsWith('TEMP_');
+    const hasProfile = !!user.rollNumber && !isTempRoll;
+    const profile = hasProfile ? {
       id: user._id.toString(),
       email: user.email,
       fullName: user.fullName,
@@ -61,9 +61,8 @@ export const googleCallbackHandler = async (req: Request, res: Response, next: N
       branch: user.branch,
       academicYear: user.academicYear,
       phoneNumber: user.phoneNumber,
-      profileLocked: user.profileLocked,
       isVerified: user.isVerified
-    };
+    } : null;
 
     const authedUser = {
       id: user._id.toString(),
@@ -141,8 +140,7 @@ export const refreshTokenHandler = async (req: Request, res: Response, next: Nex
         email: user.email,
         fullName: user.fullName,
         role: user.role,
-        rollNumber: user.rollNumber,
-        profileLocked: user.profileLocked
+        rollNumber: user.rollNumber
       }
     });
   } catch (err) {
@@ -177,8 +175,7 @@ export const authStatusHandler = async (req: Request, res: Response, next: NextF
         branch: user.branch,
         academicYear: user.academicYear,
         phoneNumber: user.phoneNumber,
-        college: user.collegeId,
-        profileLocked: user.profileLocked
+        college: user.collegeId
       }
     });
   } catch (err) {
