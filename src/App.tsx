@@ -23,6 +23,7 @@ import PrintHub from './components/PrintHub/PrintHub';
 import { SafeStorage } from './lib/storage';
 import { ProfileDropdown } from '@/components/ui/profile-dropdown';
 import explodedBurger from './assets/images/exploded_burger.png';
+import explodedBurgerClean from './assets/images/exploded_burger_clean.png';
 
 
 export default function App() {
@@ -1763,7 +1764,7 @@ export default function App() {
                   {/* Right illustration / overlapping stacked burger image */}
                   <div className="hidden lg:flex lg:col-span-5 justify-end relative h-[220px] pointer-events-none">
                     <img 
-                      src={explodedBurger} 
+                      src={explodedBurgerClean} 
                       alt="Canteen Special" 
                       className="w-[260px] h-[260px] object-contain drop-shadow-2xl absolute -bottom-12 right-4"
                     />
