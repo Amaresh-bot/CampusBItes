@@ -2136,7 +2136,7 @@ export default function App({ onBackToCanteen, onBackToHome, user, studentProfil
                         { name: 'Google Pay', iconBg: 'bg-blue-600', color: 'text-white', brand: 'GPay' },
                         { name: 'PhonePe', iconBg: 'bg-purple-600', color: 'text-white', brand: 'PhonePe' },
                         { name: 'Paytm', iconBg: 'bg-sky-500', color: 'text-white', brand: 'Paytm' },
-                        { name: 'BHIM UPI', iconBg: 'bg-orange-500', color: 'text-white', brand: 'BHIM' }
+                        { name: 'BHIM UPI', iconBg: 'bg-[#E8F5E9]0', color: 'text-white', brand: 'BHIM' }
                       ].map(app => (
                         <button
                           key={app.name}

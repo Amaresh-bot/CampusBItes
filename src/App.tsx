@@ -876,12 +876,12 @@ export default function App() {
               onClick={() => { setHasEnteredApp(false); setActiveTab('menu'); setFilteredStoreId(null); }}
               className="flex items-center gap-2 text-left bg-transparent border-none outline-none cursor-pointer hover:opacity-90 transition-all"
             >
-              <div className="w-8 h-8 rounded-lg bg-[#FA4A0C] flex items-center justify-center text-white font-black text-sm">
+              <div className="w-8 h-8 rounded-lg bg-[#1B4D3E] flex items-center justify-center text-white font-black text-sm">
                 <ChefHat className="w-4.5 h-4.5 text-white" />
               </div>
               <div>
                 <span className="text-slate-900 text-xs font-black tracking-tight leading-none uppercase block">CampusBites</span>
-                <span className="text-[#FA4A0C] text-[8px] uppercase font-extrabold block tracking-normal leading-none mt-0.5">SPHOORTHY HUB</span>
+                <span className="text-[#1B4D3E] text-[8px] uppercase font-extrabold block tracking-normal leading-none mt-0.5">SPHOORTHY HUB</span>
               </div>
             </button>
 
@@ -896,7 +896,7 @@ export default function App() {
               {/* Profile Avatar trigger */}
               <button
                 onClick={() => setMobileTab('profile')}
-                className="w-8 h-8 rounded-xl bg-[#FA4A0C]/10 flex items-center justify-center text-[#FA4A0C] font-black text-xs font-mono border border-[#FA4A0C]/5"
+                className="w-8 h-8 rounded-xl bg-[#1B4D3E]/10 flex items-center justify-center text-[#1B4D3E] font-black text-xs font-mono border border-[#1B4D3E]/5"
               >
                 {user.name.slice(0, 2).toUpperCase()}
               </button>
@@ -926,14 +926,12 @@ export default function App() {
                     <div
                       className="flex items-center gap-1.5 text-left bg-transparent border-none outline-none"
                     >
-                      <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-[#FA4A0C]">
+                      <div className="w-8 h-8 rounded-full bg-[#E8F5E9] flex items-center justify-center text-[#1B4D3E]">
                         <MapPin className="w-4 h-4 stroke-[2.5]" />
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sphoorthy Canteen</span>
-                        <div className="flex items-center gap-0.5">
-                          <span className="text-xs font-extrabold text-slate-900 truncate max-w-[150px]">Block B Dining Hall</span>
-                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Location</span>
+                        <span className="text-xs font-extrabold text-slate-900">Sphoorthy Canteen</span>
                       </div>
                     </div>
 
@@ -947,7 +945,7 @@ export default function App() {
                       
                       <button
                         onClick={() => setMobileTab('profile')}
-                        className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-[#FA4A0C] font-black text-xs border border-orange-200/50"
+                        className="w-8 h-8 rounded-full bg-[#C8E6C9] flex items-center justify-center text-[#1B4D3E] font-black text-xs border border-[#A5D6A7]/50"
                       >
                         {user.name.slice(0, 2).toUpperCase()}
                       </button>
@@ -988,7 +986,7 @@ export default function App() {
                 {/* Hero Banner promoting canteens & digital tokens */}
                 {!searchQuery && (
                   <div className="px-4">
-                    <div className="bg-gradient-to-br from-orange-500 to-[#FA4A0C] rounded-3xl p-5 text-white shadow-lg relative overflow-hidden flex items-center justify-between min-h-[140px]">
+                    <div className="bg-gradient-to-br from-[#2E7D5A] to-[#1B4D3E] rounded-3xl p-5 text-white shadow-lg relative overflow-hidden flex items-center justify-between min-h-[140px]">
                       {/* Left contents */}
                       <div className="space-y-2 max-w-[65%] z-10">
                         <span className="px-2 py-0.5 bg-white/20 text-white font-mono text-[9px] font-black rounded-md uppercase tracking-wider">
@@ -1039,7 +1037,7 @@ export default function App() {
                           }}
                           className={`w-full text-center py-2 px-1 text-xs font-bold transition-all border rounded-full cursor-pointer ${
                             isSelected
-                              ? 'bg-[#FA4A0C] border-[#FA4A0C] text-white shadow-sm'
+                              ? 'bg-[#1B4D3E] border-[#1B4D3E] text-white shadow-sm'
                               : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                           }`}
                         >
@@ -1091,7 +1089,7 @@ export default function App() {
                   </div>
 
                   {filteredStoreId && (
-                    <div className="flex items-center justify-between bg-orange-50 border border-orange-100 px-3 py-2 rounded-xl text-[10px] uppercase font-bold text-[#FA4A0C]">
+                    <div className="flex items-center justify-between bg-[#E8F5E9] border border-[#C8E6C9] px-3 py-2 rounded-xl text-[10px] uppercase font-bold text-[#1B4D3E]">
                       <span>Filtering outlet: {filteredStoreId === 'canteen_cafe' ? 'Campus Cafe' : filteredStoreId === 'books_depot' ? 'Stationery Depot' : 'Coffee Lounge'}</span>
                       <button onClick={() => { setFilteredStoreId(null); setSelectedCategory('All'); }} className="underline font-black cursor-pointer">Reset</button>
                     </div>
@@ -1162,23 +1160,23 @@ export default function App() {
                                 </div>
 
                                 <div className="pt-3 w-full flex flex-col items-center gap-2 mt-auto">
-                                  <span className="text-sm font-black text-[#FA4A0C] font-mono">
+                                  <span className="text-sm font-black text-[#1B4D3E] font-mono">
                                     ₹{item.price}
                                   </span>
 
                                   {/* Add to Tray action button */}
                                   {quantity > 0 ? (
-                                    <div className="flex items-center bg-orange-50 text-[#FA4A0C] rounded-full border border-orange-200 overflow-hidden h-7 w-20 justify-between p-0.5">
+                                    <div className="flex items-center bg-[#E8F5E9] text-[#1B4D3E] rounded-full border border-[#A5D6A7] overflow-hidden h-7 w-20 justify-between p-0.5">
                                       <button
                                         onClick={() => handleUpdateCart(item, quantity - 1)}
-                                        className="w-6 h-full font-black text-xs hover:bg-orange-100 flex items-center justify-center cursor-pointer select-none"
+                                        className="w-6 h-full font-black text-xs hover:bg-[#C8E6C9] flex items-center justify-center cursor-pointer select-none"
                                       >
                                         -
                                       </button>
                                       <span className="font-bold font-mono text-xs">{quantity}</span>
                                       <button
                                         onClick={() => handleUpdateCart(item, quantity + 1)}
-                                        className="w-6 h-full font-black text-xs hover:bg-orange-100 flex items-center justify-center cursor-pointer select-none"
+                                        className="w-6 h-full font-black text-xs hover:bg-[#C8E6C9] flex items-center justify-center cursor-pointer select-none"
                                       >
                                         +
                                       </button>
@@ -1186,7 +1184,7 @@ export default function App() {
                                   ) : (
                                     <button
                                       onClick={() => handleUpdateCart(item, 1)}
-                                      className="px-4 py-1 bg-[#FA4A0C] hover:bg-orange-600 text-white font-black text-[10px] uppercase tracking-wider rounded-full shadow-xs active:scale-95 transition-all cursor-pointer"
+                                      className="px-4 py-1 bg-[#1B4D3E] hover:bg-[#143B2F] text-white font-black text-[10px] uppercase tracking-wider rounded-full shadow-xs active:scale-95 transition-all cursor-pointer"
                                     >
                                       Order
                                     </button>

@@ -93,7 +93,7 @@ export function TodaysSpecialsSlider({
       {/* Top Slider Header Badge / Controls Bar */}
       <div className="bg-gradient-to-r from-[#1B4D3E]/5 via-[#4CAF50]/5 to-transparent px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-slate-100 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-orange-500 text-white flex items-center justify-center shadow-xs animate-bounce">
+          <div className="h-7 w-7 rounded-lg bg-[#E8F5E9]0 text-white flex items-center justify-center shadow-xs animate-bounce">
             <Flame className="w-4 h-4 fill-current" />
           </div>
           <div className="flex items-center gap-1.5 py-1">

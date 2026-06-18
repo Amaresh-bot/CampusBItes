@@ -73,7 +73,7 @@ export function ProfileModal({
         )}
 
         <div className="flex flex-col mb-6">
-          <div className="w-12 h-12 bg-orange-50 text-swiggy-orange rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-orange-100">
+          <div className="w-12 h-12 bg-[#E8F5E9] text-swiggy-orange rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-[#C8E6C9]">
             <User className="w-6 h-6" />
           </div>
           <h3 className="font-sans font-black text-slate-950 text-xl tracking-tight">

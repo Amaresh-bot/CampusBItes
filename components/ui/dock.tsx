@@ -72,7 +72,7 @@ export default function Dock({ items, className, activeLabel }: DockProps) {
                 <item.icon
                   className={cn(
                     "w-5 h-5 transition-colors duration-150",
-                    isActive ? "text-[#FA4A0C] stroke-[2.4]" : "text-slate-400 stroke-[1.9]"
+                    isActive ? "text-[#1B4D3E] stroke-[2.4]" : "text-slate-400 stroke-[1.9]"
                   )}
                 />
 
@@ -80,7 +80,7 @@ export default function Dock({ items, className, activeLabel }: DockProps) {
                 <span
                   className={cn(
                     "text-[9px] font-bold leading-none tracking-wide transition-colors duration-150",
-                    isActive ? "text-[#FA4A0C]" : "text-slate-400"
+                    isActive ? "text-[#1B4D3E]" : "text-slate-400"
                   )}
                 >
                   {item.label}
@@ -96,7 +96,7 @@ export default function Dock({ items, className, activeLabel }: DockProps) {
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0, opacity: 0 }}
                       transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                      className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-[#FA4A0C]"
+                      className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-[#1B4D3E]"
                     />
                   )}
                 </AnimatePresence>
@@ -110,7 +110,7 @@ export default function Dock({ items, className, activeLabel }: DockProps) {
                       animate={{ scale: 1.8, opacity: 0 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.32, ease: "easeOut" }}
-                      className="absolute inset-0 rounded-2xl bg-[#FA4A0C]/15 pointer-events-none"
+                      className="absolute inset-0 rounded-2xl bg-[#1B4D3E]/15 pointer-events-none"
                     />
                   )}
                 </AnimatePresence>

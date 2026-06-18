@@ -38,7 +38,7 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
       case 'Approved':
         return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'Preparing':
-        return 'bg-orange-50 text-[#FA4A0C] border-orange-200/20 animate-pulse';
+        return 'bg-[#E8F5E9] text-[#1B4D3E] border-[#A5D6A7]/20 animate-pulse';
       case 'Ready for Pickup':
         return 'bg-emerald-500 text-white border-emerald-500 font-extrabold shadow-sm';
       case 'Completed':
@@ -70,7 +70,7 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
         <button
           onClick={handleManualSync}
           disabled={isSyncing}
-          className="flex items-center gap-2 bg-[#FA4A0C] hover:bg-orange-600 active:scale-95 text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm shrink-0"
+          className="flex items-center gap-2 bg-[#1B4D3E] hover:bg-[#143B2F] active:scale-95 text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm shrink-0"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
           Track Status
@@ -89,7 +89,7 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
           </div>
           <button
             onClick={onGoToMenu}
-            className="px-5 py-2.5 bg-[#FA4A0C] text-white font-black text-xs rounded-xl hover:bg-orange-600 transition-all cursor-pointer"
+            className="px-5 py-2.5 bg-[#1B4D3E] text-white font-black text-xs rounded-xl hover:bg-[#143B2F] transition-all cursor-pointer"
           >
             Explore Interactive Menu
           </button>
@@ -129,8 +129,8 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
 
                   {/* Token ticket layout exactly like Swiggy */}
                   <div className="flex items-center gap-3">
-                    <div className="bg-[#FA4A0C] text-white rounded-xl px-4 py-2 text-center border border-orange-600 shrink-0">
-                      <span className="block text-[8px] uppercase tracking-widest text-orange-100 font-black leading-none">Token Ticket</span>
+                    <div className="bg-[#1B4D3E] text-white rounded-xl px-4 py-2 text-center border border-orange-600 shrink-0">
+                      <span className="block text-[8px] uppercase tracking-widest text-[#C8E6C9] font-black leading-none">Token Ticket</span>
                       <span className="text-lg font-mono font-black mt-1 block tracking-tight leading-none text-white">
                         {tokenFormatted}
                       </span>
@@ -153,7 +153,7 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
                       <div className="absolute h-1 bg-slate-100 inset-x-8 top-3.5 -z-10 rounded-full" />
                       {/* Active green tracking line */}
                       <div 
-                        className="absolute h-1 bg-[#FA4A0C] inset-y-0 left-8 -z-10 transition-all duration-1000 rounded-full"
+                        className="absolute h-1 bg-[#1B4D3E] inset-y-0 left-8 -z-10 transition-all duration-1000 rounded-full"
                         style={{ width: `${Math.min(100, ((stepperIndex - 1) / 3) * 85)}%` }}
                       />
 
@@ -169,18 +169,18 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
                           return (
                             <div key={step} className="flex flex-col items-center">
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all border ${
-                                isActive ? 'bg-[#FA4A0C] border-[#FA4A0C] text-white scale-115 shadow-md font-bold' :
-                                isDone ? 'bg-orange-50 border-orange-200 text-[#FA4A0C] font-bold' :
+                                isActive ? 'bg-[#1B4D3E] border-[#1B4D3E] text-white scale-115 shadow-md font-bold' :
+                                isDone ? 'bg-[#E8F5E9] border-[#A5D6A7] text-[#1B4D3E] font-bold' :
                                 'bg-white border-slate-200 text-slate-400'
                               }`}>
                                 {isDone ? (
-                                  <Check className="w-4 h-4 text-[#FA4A0C] stroke-[3]" />
+                                  <Check className="w-4 h-4 text-[#1B4D3E] stroke-[3]" />
                                 ) : (
                                   <span className="text-xs font-black">{stepNumber}</span>
                                 )}
                               </div>
                               <span className={`text-[11px] mt-2.5 font-bold tracking-tight ${
-                                isActive ? 'text-[#FA4A0C] font-black' : isDone ? 'text-slate-700' : 'text-slate-400'
+                                isActive ? 'text-[#1B4D3E] font-black' : isDone ? 'text-slate-700' : 'text-slate-400'
                               }`}>
                                 {step}
                               </span>
@@ -194,8 +194,8 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
 
                 {/* Swiggy Estimated Waiting details */}
                 {!isCancelled && stepperIndex < 3 && (
-                  <div className="flex items-center gap-3 bg-orange-50 p-3.5 rounded-2xl border border-orange-200/15 text-xs text-[#FA4A0C] font-medium font-sans">
-                    <Clock className="w-4 h-4 text-[#FA4A0C] animate-spin" style={{ animationDuration: '4s' }} />
+                  <div className="flex items-center gap-3 bg-[#E8F5E9] p-3.5 rounded-2xl border border-[#A5D6A7]/15 text-xs text-[#1B4D3E] font-medium font-sans">
+                    <Clock className="w-4 h-4 text-[#1B4D3E] animate-spin" style={{ animationDuration: '4s' }} />
                     <span>
                       Preparation estimated wait time: <strong>{approxWait}</strong>. Don't worry, your food is freshly prepped.
                     </span>
@@ -221,9 +221,9 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
                     {order.items.map(item => (
                       <div key={item.id} className="py-2.5 flex justify-between items-center gap-4">
                         <div className="flex-1 space-y-0.5">
-                          <span className="font-extrabold text-slate-800 text-xs block">{item.name} <span className="text-[#FA4A0C] font-black ml-1">x{item.quantity}</span></span>
+                          <span className="font-extrabold text-slate-800 text-xs block">{item.name} <span className="text-[#1B4D3E] font-black ml-1">x{item.quantity}</span></span>
                           {item.customInstructions && (
-                            <span className="inline-block text-[10px] bg-orange-50 text-[#FA4A0C] font-bold px-2 py-0.5 rounded border border-orange-200/10 mt-1">
+                            <span className="inline-block text-[10px] bg-[#E8F5E9] text-[#1B4D3E] font-bold px-2 py-0.5 rounded border border-[#A5D6A7]/10 mt-1">
                               Note: {item.customInstructions}
                             </span>
                           )}
@@ -233,7 +233,7 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
                     ))}
                     <div className="pt-3.5 mt-2 flex justify-between items-center font-bold text-slate-900 border-t border-dashed border-slate-200">
                       <span className="uppercase text-[9px] text-slate-400 tracking-wider font-mono">Invoice Amount</span>
-                      <span className="text-[#FA4A0C] font-mono font-black text-base">₹{order.totalAmount}</span>
+                      <span className="text-[#1B4D3E] font-mono font-black text-base">₹{order.totalAmount}</span>
                     </div>
                   </div>
                 </div>

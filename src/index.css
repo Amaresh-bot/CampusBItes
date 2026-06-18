@@ -8,51 +8,51 @@
   --font-glitch: "Rubik Glitch", "Rubik Glitch Pop", system-ui, sans-serif;
   --font-biscuit: "Rubik Glitch", "Rubik Glitch Pop", system-ui, sans-serif;
   
-  --color-swiggy-orange: #FA4A0C;
-  --color-swiggy-orange-hover: #D83A00;
-  --color-swiggy-orange-light: #FFF5F2;
+  --color-swiggy-orange: #1B4D3E;
+  --color-swiggy-orange-hover: #143B2F;
+  --color-swiggy-orange-light: #E8F5E9;
   --color-swiggy-dark: #1E2022;
   --color-swiggy-gray: #676E75;
 
-  --color-orange-50: #FFF5F2;
-  --color-orange-100: #FFE6DF;
-  --color-orange-200: #FFC5B5;
-  --color-orange-550: #FA4A0C;
+  --color-orange-50: #E8F5E9;
+  --color-orange-100: #C8E6C9;
+  --color-orange-200: #A5D6A7;
+  --color-orange-550: #1B4D3E;
 
-  --color-college-blue-50: #FFF5F2;
-  --color-college-blue-100: #FFE6DF;
-  --color-college-blue-200: #FFC5B5;
-  --color-college-blue-300: #FFA288;
-  --color-college-blue-400: #FF7B56;
-  --color-college-blue-500: #FA4A0C;
-  --color-college-blue-600: #D83A00;
-  --color-college-blue-700: #B22D00;
-  --color-college-blue-800: #8C2200;
-  --color-college-blue-900: #661700;
+  --color-college-blue-50: #E8F5E9;
+  --color-college-blue-100: #C8E6C9;
+  --color-college-blue-200: #A5D6A7;
+  --color-college-blue-300: #81C784;
+  --color-college-blue-400: #4CAF50;
+  --color-college-blue-500: #1B4D3E;
+  --color-college-blue-600: #143B2F;
+  --color-college-blue-700: #0D2720;
+  --color-college-blue-800: #091B16;
+  --color-college-blue-900: #050F0D;
   
   --color-college-gold-50: #FFFFFF;
   --color-college-gold-100: #FFFFFF;
-  --color-college-gold-200: #FFF5F2;
-  --color-college-gold-300: #FFE6DF;
-  --color-college-gold-400: #FFC5B5;
-  --color-college-gold-500: #FA4A0C;
-  --color-college-gold-650: #D83A00;
-  --color-college-gold-700: #B22D00;
+  --color-college-gold-200: #E8F5E9;
+  --color-college-gold-300: #C8E6C9;
+  --color-college-gold-400: #A5D6A7;
+  --color-college-gold-500: #1B4D3E;
+  --color-college-gold-650: #143B2F;
+  --color-college-gold-700: #0D2720;
 
   /* shadcn-compatible semantic tokens for Dock component */
   --color-background: #ffffff;
   --color-foreground: #0f172a;
-  --color-primary: #FA4A0C;
+  --color-primary: #1B4D3E;
   --color-primary-foreground: #ffffff;
   --color-muted: #f8fafc;
   --color-muted-foreground: #64748b;
   --color-accent: #f8fafc;
-  --color-accent-foreground: #FA4A0C;
+  --color-accent-foreground: #1B4D3E;
   --color-popover: #ffffff;
   --color-popover-foreground: #0f172a;
   --color-border: #f1f5f9;
   --color-input: #f1f5f9;
-  --color-ring: #FA4A0C;
+  --color-ring: #1B4D3E;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
   --color-secondary: #f1f5f9;
