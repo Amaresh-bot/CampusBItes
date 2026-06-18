@@ -985,24 +985,21 @@ export default function App() {
 
                 {/* Hero Banner promoting canteens & digital tokens */}
                 {!searchQuery && (
-                  <div className="px-4">
-                    <div className="bg-gradient-to-br from-[#2E7D5A] to-[#1B4D3E] rounded-3xl p-5 text-white shadow-lg relative overflow-hidden flex items-center justify-between min-h-[140px]">
+                  <div className="px-4 pt-2">
+                    <div className="bg-gradient-to-br from-[#FFB300] to-[#FF6F00] rounded-3xl p-5 text-white shadow-lg relative flex items-center justify-between min-h-[140px]">
                       {/* Left contents */}
-                      <div className="space-y-2 max-w-[65%] z-10">
-                        <span className="px-2 py-0.5 bg-white/20 text-white font-mono text-[9px] font-black rounded-md uppercase tracking-wider">
-                          Digital Token Queues
-                        </span>
-                        <h3 className="text-base font-black leading-tight tracking-tight">
-                          Order from college canteens & skip the lines!
+                      <div className="space-y-2 max-w-[55%] z-10">
+                        <h3 className="text-xl font-black leading-[1.15] text-white">
+                          Order Food<br />&<br />Essentials.
                         </h3>
                       </div>
 
-                      {/* Right illustration / overlapping stacked burger image */}
-                      <div className="absolute right-0 bottom-[-15px] w-[140px] h-[140px] z-0 opacity-90">
+                      {/* Right illustration / overlapping exploded burger image */}
+                      <div className="absolute right-[-10px] top-[-15px] bottom-[-15px] w-[160px] h-[170px] z-20 pointer-events-none">
                         <img 
-                          src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400" 
+                          src="/src/assets/images/exploded_burger.png" 
                           alt="Canteen Special" 
-                          className="w-full h-full object-contain transform rotate-[-8deg] scale-110"
+                          className="w-full h-full object-contain"
                         />
                       </div>
                     </div>
@@ -1744,7 +1741,7 @@ export default function App() {
               ═══════════════════════════════════════════════════ */}
               <div
                 className="relative rounded-2xl text-white overflow-hidden shadow-xl select-none"
-                style={{ background: 'linear-gradient(135deg, #FF7043 0%, #FF5722 50%, #E64A19 100%)' }}
+                style={{ background: 'linear-gradient(135deg, #FFB300 0%, #FF8F00 50%, #FF6F00 100%)' }}
               >
                 {/* Glowing orbs */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -1755,25 +1752,19 @@ export default function App() {
                 <div className="relative z-10 p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
                   {/* Left contents */}
                   <div className="lg:col-span-7 space-y-4">
-                    <div className="inline-flex items-center gap-1.5 bg-white/20 border border-white/30 backdrop-blur-sm px-3 py-1 rounded-full">
-                      <span className="text-[10px] font-black tracking-widest text-white uppercase">Digital Token Queues</span>
-                    </div>
                     <div>
-                      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.1]">
-                        Order from college canteens &<br />skip the lines!
+                      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.1]">
+                        Order Food<br />& Essentials.
                       </h1>
-                      <p className="mt-3 text-sm text-orange-50 font-medium max-w-lg leading-relaxed">
-                        Get instant digital token pickup numbers (B-001, L-012) directly on your device when payment completes.
-                      </p>
                     </div>
                   </div>
 
                   {/* Right illustration / overlapping stacked burger image */}
                   <div className="hidden lg:flex lg:col-span-5 justify-end relative h-[220px] pointer-events-none">
                     <img 
-                      src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400" 
+                      src="/src/assets/images/exploded_burger.png" 
                       alt="Canteen Special" 
-                      className="w-[240px] h-[240px] object-contain transform rotate-[-8deg] scale-110 drop-shadow-2xl absolute -bottom-10 right-4"
+                      className="w-[260px] h-[260px] object-contain drop-shadow-2xl absolute -bottom-12 right-4"
                     />
                   </div>
                 </div>
