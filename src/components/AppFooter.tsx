@@ -49,8 +49,10 @@ export function AppFooter({ onPolicyClick, className = '' }: AppFooterProps) {
         </div>
       </div>
 
-      {/* Copyright strip */}
-      <div className="border-t border-white/10 py-2.5 px-4">
+      {/* Copyright strip
+          pb-28 on mobile  → clears the ~72px fixed bottom navbar with comfortable breathing room
+          pb-4  on md+     → normal desktop/tablet spacing                                     */}
+      <div className="border-t border-white/10 pt-2.5 pb-28 md:pb-4 px-4">
         <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-center">
           <p className="text-[10px] text-white/50 font-medium">
             © 2025 CampusBites Hub · Sphoorthy Engineering College

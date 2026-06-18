@@ -1379,7 +1379,7 @@ export default function App() {
         )}
 
         {/* Shared App Footer */}
-        <AppFooter onPolicyClick={(key) => setComplianceModal(key)} className="pb-20" />
+        <AppFooter onPolicyClick={(key) => setComplianceModal(key)} />
       </div>
     );
   }
