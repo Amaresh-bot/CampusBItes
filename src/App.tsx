@@ -1933,53 +1933,49 @@ export default function App() {
       {/* ═══════════════════════════════════════
            MINIMAL CENTERED FOOTER
       ═══════════════════════════════════════ */}
-      <footer className="mt-16 w-full shrink-0">
-        {/* Main footer body – white/light background with centered brand */}
-        <div className="bg-white border-t border-slate-100 py-12 px-4">
-          <div className="max-w-[1400px] mx-auto flex flex-col items-center text-center gap-5">
+      <footer className="mt-16 w-full shrink-0 bg-[#1B4D3E]">
+        {/* Main footer body – brand green background, centered */}
+        <div className="py-8 px-4">
+          <div className="max-w-[1400px] mx-auto flex flex-col items-center text-center gap-4">
 
             {/* Brand wordmark */}
             <div className="flex flex-col items-center gap-1">
-              <div className="w-12 h-12 rounded-2xl bg-[#1B4D3E] flex items-center justify-center shadow-lg mb-2">
-                <ChefHat className="w-6 h-6 text-white" />
+              <div className="w-11 h-11 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shadow-md mb-1.5">
+                <ChefHat className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-3xl font-black tracking-tight text-slate-900 uppercase">CampusBites</h2>
-              <p className="text-[10px] font-bold text-[#1B4D3E] tracking-[0.25em] uppercase">Sphoorthy Engineering College</p>
+              <h2 className="text-2xl font-black tracking-tight text-white uppercase">CampusBites</h2>
+              <p className="text-[10px] font-bold text-white/60 tracking-[0.25em] uppercase">Sphoorthy Engineering College</p>
             </div>
 
             {/* Divider */}
-            <div className="w-16 h-0.5 rounded-full bg-[#1B4D3E]/20" />
+            <div className="w-14 h-px rounded-full bg-white/20" />
 
             {/* Policy links – horizontal inline row */}
-            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Policies</span>
               {([
-                ['Policies', null],
                 ['Terms & Conditions', 'terms'],
                 ['Privacy Policy', 'privacy'],
                 ['Refund Policy', 'refund'],
                 ['Contact Us', 'contact'],
-              ] as [string, string | null][]).map(([label, key], i) =>
-                key === null ? (
-                  <span key={i} className="text-xs font-black text-slate-400 uppercase tracking-widest">{label}</span>
-                ) : (
-                  <button
-                    key={key}
-                    onClick={() => setComplianceModal(key as any)}
-                    className="text-xs font-semibold text-slate-500 hover:text-[#1B4D3E] transition-colors cursor-pointer underline-offset-2 hover:underline"
-                  >
-                    {label}
-                  </button>
-                )
-              )}
+              ] as [string, string][]).map(([label, key]) => (
+                <button
+                  key={key}
+                  onClick={() => setComplianceModal(key as any)}
+                  className="text-xs font-medium text-white/75 hover:text-white transition-colors cursor-pointer underline-offset-2 hover:underline"
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Bottom bar – brand green */}
-        <div className="bg-[#1B4D3E] py-3 px-4">
-          <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5 text-center">
-            <p className="text-[11px] text-white/60 font-medium">© 2025 CampusBites Hub · Sphoorthy Engineering College</p>
-            <p className="text-[10px] text-white/40">Powered by Razorpay · Secure PCI-DSS Checkout</p>
+        {/* Bottom copyright strip */}
+        <div className="border-t border-white/10 py-2.5 px-4">
+          <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-center">
+            <p className="text-[10px] text-white/50 font-medium">© 2025 CampusBites Hub · Sphoorthy Engineering College</p>
+            <p className="text-[10px] text-white/35">Powered by Razorpay · Secure PCI-DSS Checkout</p>
           </div>
         </div>
       </footer>
