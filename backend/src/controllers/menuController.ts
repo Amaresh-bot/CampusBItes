@@ -24,7 +24,7 @@ export const getMenuItems = async (req: Request, res: Response, next: NextFuncti
 export const addMenuItem = async (req: Request, res: Response, next: NextFunction) => {
   console.log("[addMenuItem] Controller initiated with req.body:", req.body);
   try {
-    let { canteenId, name, description, price, category, imageUrl, isAvailable, estimatedPrepTime, tags, isTodaySpecial } = req.body;
+    let { canteenId, name, description, price, category, imageUrl, isAvailable, estimatedPrepTime, prepTime, tags, isTodaySpecial } = req.body;
     
     // Auto-resolve canteenId for single-canteen setups if frontend doesn't provide it
     if (!canteenId) {
@@ -51,6 +51,8 @@ export const addMenuItem = async (req: Request, res: Response, next: NextFunctio
       return res.status(400).json({ success: false, message: 'name, price, and category are required' });
     }
     
+    const resolvedPrepTime = estimatedPrepTime !== undefined ? Number(estimatedPrepTime) : (prepTime !== undefined ? Number(prepTime) : 10);
+    
     const item = new MenuItem({
       canteenId,
       name,
@@ -59,7 +61,7 @@ export const addMenuItem = async (req: Request, res: Response, next: NextFunctio
       category,
       imageUrl,
       isAvailable,
-      estimatedPrepTime,
+      estimatedPrepTime: resolvedPrepTime,
       tags,
       isTodaySpecial
     });
@@ -83,6 +85,11 @@ export const editMenuItem = async (req: Request, res: Response, next: NextFuncti
   try {
     const { itemId } = req.params;
     const updates = req.body;
+    
+    // Support prepTime mapping to estimatedPrepTime
+    if (updates.prepTime !== undefined && updates.estimatedPrepTime === undefined) {
+      updates.estimatedPrepTime = Number(updates.prepTime);
+    }
     
     const item = await MenuItem.findByIdAndUpdate(itemId, updates, { new: true });
     if (!item) {

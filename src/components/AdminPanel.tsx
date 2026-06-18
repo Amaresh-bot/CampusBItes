@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ChefHat, TrendingUp, ShoppingBag, CheckSquare, ChevronRight, XCircle, ArrowLeft, QrCode, PlusCircle, Trash2, Edit2, Settings, Users, Percent, Sparkles, Smartphone, Check, Database, RefreshCw, AlertTriangle, ShieldCheck, Lock, AlertCircle, BarChart2, DollarSign, Activity } from 'lucide-react';
+import { ChefHat, TrendingUp, ShoppingBag, CheckSquare, ChevronRight, XCircle, ArrowLeft, QrCode, PlusCircle, Trash2, Edit2, Settings, Users, Percent, Sparkles, Smartphone, Check, Database, RefreshCw, AlertTriangle, ShieldCheck, Lock, AlertCircle, BarChart2, DollarSign, Activity, UploadCloud } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie, Legend } from 'recharts';
 import { Order, OrderStatus, FoodItem, StudentProfile, PaymentSettings } from '../types';
 import { SafeStorage } from '../lib/storage';
@@ -144,6 +144,12 @@ export function AdminPanel({
   const [newItemPrep, setNewItemPrep] = useState('8');
   const [newItemImg, setNewItemImg] = useState('');
 
+  // Drag and drop image upload states
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   // Edit item form states
   const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
 
@@ -168,9 +174,97 @@ export function AdminPanel({
     setTimeout(() => setSettingsSuccess(false), 2500);
   };
 
+  const handleFileUpload = (file: File) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError('Unsupported file format. Please upload JPG, JPEG, PNG, or WEBP.');
+      return;
+    }
+    
+    const maxBytes = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxBytes) {
+      setUploadError('File is too large. Maximum size allowed is 5MB.');
+      return;
+    }
+    
+    setUploadError(null);
+    setUploading(true);
+    setUploadProgress(0);
+    
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        setUploadProgress(percent);
+      }
+    });
+    
+    xhr.onload = () => {
+      setUploading(false);
+      try {
+        const resData = JSON.parse(xhr.responseText);
+        if (xhr.status === 200 && resData.success) {
+          setNewItemImg(resData.secure_url);
+          console.log("[Upload Component] Upload success. secure_url:", resData.secure_url);
+        } else {
+          setUploadError(resData.message || 'Image upload failed. Server rejected.');
+        }
+      } catch (e) {
+        setUploadError('Invalid response from server.');
+      }
+    };
+    
+    xhr.onerror = () => {
+      setUploading(false);
+      setUploadError('Network error occurred during image upload.');
+    };
+    
+    xhr.open('POST', '/api/upload');
+    xhr.send(formData);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const handleCancelAdd = () => {
+    setNewItemName('');
+    setNewItemDesc('');
+    setNewItemImg('');
+    setUploadProgress(0);
+    setUploadError(null);
+    setUploading(false);
+    setShowAddModal(false);
+  };
+
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newItemName || !newItemPrice) return;
+    if (!newItemName || !newItemPrice || uploading || !newItemImg) return;
     onAddMenuItem({
       name: newItemName,
       description: newItemDesc,
@@ -182,6 +276,9 @@ export function AdminPanel({
     setNewItemName('');
     setNewItemDesc('');
     setNewItemImg('');
+    setUploadProgress(0);
+    setUploadError(null);
+    setUploading(false);
     setShowAddModal(false);
   };
 
@@ -1881,14 +1978,85 @@ WITH CHECK (
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Image URL</label>
-                <input
-                  type="text"
-                  placeholder="Paste Unsplash address address"
-                  value={newItemImg}
-                  onChange={(e) => setNewItemImg(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none"
-                />
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Food Item Image</label>
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${
+                    isDragging
+                      ? 'border-[#1B4D3E] bg-[#E8F5E9]/30'
+                      : newItemImg
+                      ? 'border-emerald-500 bg-emerald-50/10'
+                      : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50'
+                  }`}
+                  onClick={() => document.getElementById('file-upload-input')?.click()}
+                >
+                  <input
+                    type="file"
+                    id="file-upload-input"
+                    className="hidden"
+                    accept=".jpg,.jpeg,.png,.webp"
+                    onChange={handleFileChange}
+                  />
+                  
+                  {newItemImg ? (
+                    <div className="space-y-2 relative" onClick={(e) => e.stopPropagation()}>
+                      <img
+                        src={newItemImg}
+                        alt="Preview"
+                        className="w-full h-32 object-cover rounded-lg shadow-xs"
+                      />
+                      <div className="flex justify-between items-center text-[10px] text-emerald-700 font-bold px-1">
+                        <span>✓ Upload Successful</span>
+                        <button
+                          type="button"
+                          onClick={() => setNewItemImg('')}
+                          className="text-red-500 hover:text-red-700 underline font-semibold transition-all cursor-pointer"
+                        >
+                          Change Image
+                        </button>
+                      </div>
+                    </div>
+                  ) : uploading ? (
+                    <div className="py-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+                      <div className="w-10 h-10 bg-[#E8F5E9] text-[#1B4D3E] rounded-full flex items-center justify-center mx-auto">
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-bold text-slate-700">Uploading Image...</p>
+                        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden max-w-xs mx-auto">
+                          <div 
+                            className="bg-[#1B4D3E] h-1.5 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          />
+                        </div>
+                        <p className="text-[9px] font-mono text-slate-400">{uploadProgress}%</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-4 space-y-2 pointer-events-none">
+                      <div className="w-10 h-10 bg-slate-200/50 rounded-full flex items-center justify-center mx-auto text-slate-400">
+                        <UploadCloud className="w-5 h-5" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-[11px] font-bold text-slate-700">
+                          Drag & drop image, or <span className="text-[#1B4D3E] underline">browse</span>
+                        </p>
+                        <p className="text-[9px] text-slate-400 font-medium">
+                          Supports JPG, JPEG, PNG, WEBP (Max 5MB)
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {uploadError && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
+                    {uploadError}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1905,16 +2073,17 @@ WITH CHECK (
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="flex-1 py-2 rounded-xl border font-bold text-slate-550 border-slate-200 text-slate-500 hover:bg-slate-50 text-[11px]"
+                  onClick={handleCancelAdd}
+                  className="flex-1 py-2 rounded-xl border font-bold text-slate-550 border-slate-200 text-slate-500 hover:bg-slate-50 text-[11px] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-black hover:bg-slate-900 text-white font-bold rounded-xl text-[11px]"
+                  disabled={uploading || !newItemImg}
+                  className="flex-1 bg-black hover:bg-slate-900 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold rounded-xl text-[11px] py-2 transition-all cursor-pointer"
                 >
-                  Add Treat Item
+                  {uploading ? 'Uploading...' : 'Add Treat Item'}
                 </button>
               </div>
 

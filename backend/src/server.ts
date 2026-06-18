@@ -21,6 +21,7 @@ import printOrderRoutes from './routes/printOrders';
 import walletRoutes from './routes/wallet';
 import paymentRoutes from './routes/payments';
 import adminRoutes from './routes/admin';
+import uploadRoutes from './routes/upload';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -66,6 +67,7 @@ app.use('/api/print-orders', printOrderRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/upload', uploadRoutes);
 
 import path from 'path';
 
