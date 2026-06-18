@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ShoppingBag, ChefHat, Sparkles, LogOut, BookOpen, User, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Search, Home, Mic, ShoppingCart, AlertCircle, CheckCircle2, ChevronDown, MapPin, Ticket, Star, Clock, Check } from 'lucide-react';
+import { ShoppingBag, ChefHat, Sparkles, LogOut, BookOpen, User, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Search, Home, Mic, ShoppingCart, AlertCircle, CheckCircle2, MapPin, Star, Clock, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FoodItem, Order, StudentProfile, PaymentSettings, SystemNotification } from './types';
 import { useUser } from './context/UserContext';

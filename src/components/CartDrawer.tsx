@@ -481,7 +481,7 @@ export function CartDrawer({
                 >
                   Authorize
                 </button>
-              </div>       </div>
+              </div>
 
               <div className="flex items-center justify-center gap-1.5 text-[9px] text-slate-500 pt-2.5 border-t border-slate-850">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />

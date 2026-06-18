@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from 'react';
-import { Home, ShoppingBag, ShoppingCart, User, Ticket } from 'lucide-react';
+import { Home, ShoppingBag, ShoppingCart, User } from 'lucide-react';
 import Dock from '@/components/ui/dock';
 
 type MobileTab = 'home' | 'orders' | 'stores' | 'cart' | 'profile' | 'admin' | 'printhub';
