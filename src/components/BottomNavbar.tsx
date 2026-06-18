@@ -1,8 +1,8 @@
 import React, { memo, useCallback } from 'react';
-import { Home, ShoppingBag, ShoppingCart, User } from 'lucide-react';
+import { Home, ShoppingBag, ShoppingCart, User, Ticket } from 'lucide-react';
 import Dock from '@/components/ui/dock';
 
-type MobileTab = 'home' | 'orders' | 'stores' | 'cart' | 'profile' | 'admin' | 'printhub';
+type MobileTab = 'home' | 'orders' | 'stores' | 'cart' | 'profile' | 'admin' | 'printhub' | 'tokens';
 
 interface BottomNavbarProps {
   mobileTab: MobileTab;
@@ -44,6 +44,8 @@ export const BottomNavbar = memo(function BottomNavbar({
       ? 'Orders'
       : mobileTab === 'cart'
       ? 'Cart'
+      : mobileTab === 'tokens'
+      ? 'Tokens'
       : mobileTab === 'printhub'
       ? 'PrintHub'
       : mobileTab === 'profile' || mobileTab === 'admin'
@@ -68,6 +70,11 @@ export const BottomNavbar = memo(function BottomNavbar({
       icon: CartIconComponent,
       label: 'Cart',
       onClick: () => onTabChange('cart'),
+    },
+    {
+      icon: Ticket,
+      label: 'Tokens',
+      onClick: () => onTabChange('tokens'),
     },
     {
       icon: User,

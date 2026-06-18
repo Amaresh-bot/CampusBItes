@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ShoppingBag, ChefHat, Sparkles, LogOut, BookOpen, User, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Search, Home, Mic, ShoppingCart, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, ChefHat, Sparkles, LogOut, BookOpen, User, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Search, Home, Mic, ShoppingCart, AlertCircle, CheckCircle2, ChevronDown, MapPin, Ticket, Star, Clock, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FoodItem, Order, StudentProfile, PaymentSettings, SystemNotification } from './types';
 import { useUser } from './context/UserContext';
@@ -79,7 +79,7 @@ export default function App() {
 
   // Mobile Redesign states
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [mobileTab, setMobileTab] = useState<'home' | 'orders' | 'stores' | 'cart' | 'profile' | 'admin' | 'printhub'>('home');
+  const [mobileTab, setMobileTab] = useState<'home' | 'orders' | 'stores' | 'cart' | 'profile' | 'admin' | 'printhub' | 'tokens'>('home');
   const [promoIndex, setPromoIndex] = useState<number>(0);
 
   // Clean event listener to identify handheld devices dynamically
@@ -870,37 +870,39 @@ export default function App() {
       <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex flex-col justify-between pb-24 select-none relative overflow-x-hidden">
         
         {/* Compact Swiggy-style Sticky Mobile Header (Height: 70px) */}
-        <header className="sticky top-0 z-45 h-[70px] bg-white border-none flex items-center justify-between px-4 shadow-[0_2px_12px_rgba(0,0,0,0.02)] shrink-0">
-          <button
-            onClick={() => { setHasEnteredApp(false); setActiveTab('menu'); setFilteredStoreId(null); }}
-            className="flex items-center gap-2 text-left bg-transparent border-none outline-none cursor-pointer hover:opacity-90 transition-all"
-          >
-            <div className="w-8 h-8 rounded-lg bg-[#1B4D3E] flex items-center justify-center text-white font-black text-sm">
-              <ChefHat className="w-4.5 h-4.5 text-white" />
-            </div>
-            <div>
-              <span className="text-slate-900 text-xs font-black tracking-tight leading-none uppercase block">CampusBites</span>
-              <span className="text-[#4CAF50] text-[8px] uppercase font-extrabold block tracking-normal leading-none mt-0.5">SPHOORTHY HUB</span>
-            </div>
-          </button>
-
-          <div className="flex items-center gap-3">
-            {/* Direct self-contained Notifications Bell Component */}
-            <NotificationsDrawer
-              notifications={notifications}
-              onMarkRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
-              onClearAll={() => setNotifications([])}
-            />
-
-            {/* Profile Avatar trigger */}
+        {mobileTab !== 'home' && (
+          <header className="sticky top-0 z-45 h-[70px] bg-white border-none flex items-center justify-between px-4 shadow-[0_2px_12px_rgba(0,0,0,0.02)] shrink-0">
             <button
-              onClick={() => setMobileTab('profile')}
-              className="w-8 h-8 rounded-xl bg-[#1B4D3E]/10 flex items-center justify-center text-[#1B4D3E] font-black text-xs font-mono border border-[#1B4D3E]/5"
+              onClick={() => { setHasEnteredApp(false); setActiveTab('menu'); setFilteredStoreId(null); }}
+              className="flex items-center gap-2 text-left bg-transparent border-none outline-none cursor-pointer hover:opacity-90 transition-all"
             >
-              {user.name.slice(0, 2).toUpperCase()}
+              <div className="w-8 h-8 rounded-lg bg-[#FA4A0C] flex items-center justify-center text-white font-black text-sm">
+                <ChefHat className="w-4.5 h-4.5 text-white" />
+              </div>
+              <div>
+                <span className="text-slate-900 text-xs font-black tracking-tight leading-none uppercase block">CampusBites</span>
+                <span className="text-[#FA4A0C] text-[8px] uppercase font-extrabold block tracking-normal leading-none mt-0.5">SPHOORTHY HUB</span>
+              </div>
             </button>
-          </div>
-        </header>
+
+            <div className="flex items-center gap-3">
+              {/* Direct self-contained Notifications Bell Component */}
+              <NotificationsDrawer
+                notifications={notifications}
+                onMarkRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
+                onClearAll={() => setNotifications([])}
+              />
+
+              {/* Profile Avatar trigger */}
+              <button
+                onClick={() => setMobileTab('profile')}
+                className="w-8 h-8 rounded-xl bg-[#FA4A0C]/10 flex items-center justify-center text-[#FA4A0C] font-black text-xs font-mono border border-[#FA4A0C]/5"
+              >
+                {user.name.slice(0, 2).toUpperCase()}
+              </button>
+            </div>
+          </header>
+        )}
 
         {/* Slider Choice Modal for SPHN Campus Locations */}
         {showLocationSelector && (
@@ -948,20 +950,213 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.10, ease: 'easeOut' }}
-                className="space-y-0"
+                className="space-y-6 pb-20 bg-slate-50 min-h-screen text-left"
               >
-                {/* 1. Greeting Section */}
-                {!searchQuery && (
-                  <div className="px-4 py-3 bg-white text-left">
-                    <h2 className="text-xl font-black text-slate-900 tracking-tight leading-tight pt-1">
-                      {studentProfile?.fullName || user.name || 'Mummadi Shiva Ganesh'}
+                {/* Redesigned Home Header inline with page */}
+                <div className="bg-white px-4 pt-4 pb-3 flex flex-col space-y-3 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                  {/* Top Header Row */}
+                  <div className="flex justify-between items-center">
+                    {/* College Location Selector */}
+                    <button
+                      onClick={() => setShowLocationSelector(true)}
+                      className="flex items-center gap-1.5 text-left bg-transparent border-none outline-none cursor-pointer"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-[#FA4A0C]">
+                        <MapPin className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sphoorthy Canteen</span>
+                        <div className="flex items-center gap-0.5">
+                          <span className="text-xs font-extrabold text-slate-900 truncate max-w-[150px]">{selectedLocation}</span>
+                          <ChevronDown className="w-3.5 h-3.5 text-[#FA4A0C] stroke-[2.5]" />
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Right utilities: Notification and User Greeting */}
+                    <div className="flex items-center gap-2">
+                      <NotificationsDrawer
+                        notifications={notifications}
+                        onMarkRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
+                        onClearAll={() => setNotifications([])}
+                      />
+                      
+                      <button
+                        onClick={() => setMobileTab('profile')}
+                        className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-[#FA4A0C] font-black text-xs border border-orange-200/50"
+                      >
+                        {user.name.slice(0, 2).toUpperCase()}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Greeting Block */}
+                  <div className="pt-2">
+                    <span className="text-xs font-bold text-slate-400 font-mono">Welcome back, {studentProfile?.fullName?.split(' ')[0] || user.name.split(' ')[0]}!</span>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-tight mt-0.5">
+                      Delicious food for you
                     </h2>
+                  </div>
+                </div>
+
+                {/* Search Bar pill */}
+                <div className="px-4">
+                  <div className="relative shadow-sm rounded-full bg-white border border-slate-200 flex items-center h-12 focus-within:ring-2 focus-within:ring-orange-500/20 focus-within:border-orange-500 transition-all px-4">
+                    <Search className="w-4.5 h-4.5 text-slate-400 stroke-[2.5] mr-2" />
+                    <input
+                      type="text"
+                      placeholder="Search food, canteens..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full text-xs font-semibold bg-transparent border-none outline-none text-slate-700 placeholder-slate-400"
+                    />
+                    {searchQuery && (
+                      <button 
+                        onClick={() => setSearchQuery('')}
+                        className="text-xs font-bold text-slate-450 hover:text-slate-700"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Hero Banner promoting canteens & digital tokens */}
+                {!searchQuery && (
+                  <div className="px-4">
+                    <div className="bg-gradient-to-br from-orange-500 to-[#FA4A0C] rounded-3xl p-5 text-white shadow-lg relative overflow-hidden flex items-center justify-between min-h-[140px]">
+                      {/* Left contents */}
+                      <div className="space-y-2 max-w-[65%] z-10">
+                        <span className="px-2 py-0.5 bg-white/20 text-white font-mono text-[9px] font-black rounded-md uppercase tracking-wider">
+                          Digital Token Queues
+                        </span>
+                        <h3 className="text-base font-black leading-tight tracking-tight">
+                          Order from college canteens & skip the lines!
+                        </h3>
+                        <p className="text-[10px] text-orange-100 font-medium leading-normal">
+                          Get instant digital token pickup numbers (B-001, L-012) directly on your device when payment completes.
+                        </p>
+                      </div>
+
+                      {/* Right illustration / overlapping stacked burger image */}
+                      <div className="absolute right-0 bottom-[-15px] w-[140px] h-[140px] z-0 opacity-90">
+                        <img 
+                          src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400" 
+                          alt="Canteen Special" 
+                          className="w-full h-full object-contain transform rotate-[-8deg] scale-110"
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
 
-                {/* 3. Today's Specials Dynamic Slider */}
-                {!searchQuery && (
-                  <div className="px-4 py-1 bg-white">
+                {/* Categories Horizontal Scroll */}
+                <div className="space-y-3">
+                  <div className="px-4 flex justify-between items-center">
+                    <h4 className="font-display font-black text-slate-800 text-sm tracking-tight">Explore Categories</h4>
+                    {vegetarianOnly && (
+                      <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 uppercase">Veg Only</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex gap-2 overflow-x-auto pb-1 px-4 scrollbar-none">
+                    {[
+                      { id: 'All', label: 'All' },
+                      { id: 'Breakfast', label: 'Breakfast' },
+                      { id: 'Meals', label: 'Lunch' },
+                      { id: 'Snacks', label: 'Snacks' },
+                      { id: 'Beverages', label: 'Beverages' },
+                      { id: 'Chinese', label: 'Dinner' },
+                      { id: 'Specials', label: 'Specials' }
+                    ].map(cat => {
+                      const isSelected = selectedCategory === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => {
+                            setSelectedCategory(cat.id);
+                          }}
+                          className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all border cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#FA4A0C] border-[#FA4A0C] text-white shadow-sm'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          {cat.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Popular Canteens Section */}
+                {!searchQuery && selectedCategory === 'All' && (
+                  <div className="space-y-3 px-4">
+                    <h4 className="font-display font-black text-slate-800 text-sm tracking-tight">Popular Campus Stalls</h4>
+                    
+                    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
+                      {[
+                        {
+                          id: 'canteen_cafe',
+                          name: 'Campus Central Cafe',
+                          imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=300',
+                          rating: 4.8,
+                          prepTime: '10 mins',
+                          desc: 'Block B Dining Hall'
+                        },
+                        {
+                          id: 'block_b_lounge',
+                          name: 'Juice & Coffee Lounge',
+                          imageUrl: 'https://images.unsplash.com/photo-1541167750496-1628856ab772?w=300',
+                          rating: 4.6,
+                          prepTime: '5 mins',
+                          desc: 'Block B Ground Floor'
+                        },
+                        {
+                          id: 'books_depot',
+                          name: 'Sphoorthy Book Depot',
+                          imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=300',
+                          rating: 4.7,
+                          prepTime: '8 mins',
+                          desc: 'Academic Block A'
+                        }
+                      ].map(store => (
+                        <button
+                          key={store.id}
+                          onClick={() => {
+                            setFilteredStoreId(store.id);
+                            if (store.id === 'canteen_cafe') setSelectedCategory('Breakfast');
+                            else if (store.id === 'block_b_lounge') setSelectedCategory('Beverages');
+                            else if (store.id === 'books_depot') setSelectedCategory('Stationery');
+                          }}
+                          className="bg-white rounded-2xl border border-slate-100 p-3 flex flex-col space-y-2 text-left min-w-[200px] max-w-[200px] shadow-sm hover:shadow-md transition-all shrink-0 cursor-pointer"
+                        >
+                          <div className="h-24 w-full rounded-xl overflow-hidden bg-slate-100">
+                            <img src={store.imageUrl} alt={store.name} className="w-full h-full object-cover" />
+                          </div>
+                          <div>
+                            <h5 className="font-extrabold text-slate-800 text-xs truncate">{store.name}</h5>
+                            <span className="text-[10px] text-slate-450 truncate block mt-0.5">{store.desc}</span>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span className="flex items-center gap-0.5 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded">
+                                <Star className="w-2.5 h-2.5 fill-amber-500 stroke-none" />
+                                {store.rating}
+                              </span>
+                              <span className="flex items-center gap-0.5 text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded font-mono">
+                                <Clock className="w-2.5 h-2.5" />
+                                {store.prepTime}
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Today's Specials Section */}
+                {!searchQuery && selectedCategory === 'All' && (
+                  <div className="px-4">
                     <TodaysSpecialsSlider
                       items={menuItems}
                       cart={cart}
@@ -974,54 +1169,140 @@ export default function App() {
                   </div>
                 )}
 
-
-
-                {/* 5. Recommended list using CanteenMenu with hideSearchHeader prop */}
-                <div className="bg-white py-4 px-4 text-left border-b border-slate-100">
-                  {isMenuLoading ? (
-                    <MenuSkeleton count={3} hidePills={true} hidePromo={true} />
-                  ) : (
-                    <>
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="font-display font-black text-slate-800 text-[11px] uppercase tracking-wider">
-                          {searchQuery ? `Search Results for "${searchQuery}"` : "Recommended Items list"}
-                        </h3>
-                        <button
-                          onClick={() => setVegetarianOnly(!vegetarianOnly)}
-                          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold border transition-all ${
-                            vegetarianOnly ? 'bg-[#E8F5E9] border-[#4CAF50] text-[#1B4D3E]' : 'border-slate-200 text-slate-500'
-                          }`}
-                        >
-                          <div className={`w-2.5 h-2.5 border rounded flex items-center justify-center p-[1px] ${vegetarianOnly ? 'border-[#4CAF50]' : 'border-slate-400'}`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${vegetarianOnly ? 'bg-[#4CAF50]' : 'bg-transparent'}`} />
-                          </div>
-                          <span>Veg Only</span>
-                        </button>
+                {/* Popular Food Items Section (Category Catalog) */}
+                <div className="space-y-4 px-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-display font-black text-slate-800 text-sm tracking-tight">
+                      {searchQuery 
+                        ? `Search Results for "${searchQuery}"` 
+                        : selectedCategory === 'All' 
+                        ? 'Popular Canteen Treats' 
+                        : `${selectedCategory} Catalogue`}
+                    </h4>
+                    
+                    {/* Veg toggle */}
+                    <button
+                      onClick={() => setVegetarianOnly(!vegetarianOnly)}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold border transition-all ${
+                        vegetarianOnly ? 'bg-emerald-50 border-emerald-400 text-emerald-700' : 'bg-white border-slate-200 text-slate-500'
+                      }`}
+                    >
+                      <div className={`w-2.5 h-2.5 border rounded flex items-center justify-center p-[1px] ${vegetarianOnly ? 'border-emerald-500 bg-emerald-500' : 'border-slate-400'}`}>
+                        {vegetarianOnly && <Check className="w-2 h-2 text-white stroke-[3.5]" />}
                       </div>
+                      <span>Veg Only</span>
+                    </button>
+                  </div>
 
-                      {filteredStoreId && (
-                        <div className="flex items-center justify-between bg-emerald-50/50 border border-emerald-100 px-3 py-2 rounded-xl mb-3.5 text-[10px] uppercase font-bold text-[#1B4D3E]">
-                          <span>Filtering outlet: {filteredStoreId === 'canteen_cafe' ? 'Campus Cafe' : filteredStoreId === 'books_depot' ? 'Stationery Depot' : 'Coffee Lounge'}</span>
-                          <button onClick={() => { setFilteredStoreId(null); setSelectedCategory('All'); }} className="underline font-black">Reset</button>
-                        </div>
-                      )}
-
-                      <CanteenMenu 
-                        items={menuItems} 
-                        cart={cart} 
-                        onUpdateCart={handleUpdateCart} 
-                        filteredStoreId={filteredStoreId}
-                        onClearStoreFilter={() => setFilteredStoreId(null)}
-                        selectedCategory={selectedCategory}
-                        setSelectedCategory={setSelectedCategory}
-                        searchQuery={searchQuery}
-                        setSearchQuery={setSearchQuery}
-                        vegetarianOnly={vegetarianOnly}
-                        setVegetarianOnly={setVegetarianOnly}
-                        hideSearchHeader={true}
-                      />
-                    </>
+                  {filteredStoreId && (
+                    <div className="flex items-center justify-between bg-orange-50 border border-orange-100 px-3 py-2 rounded-xl text-[10px] uppercase font-bold text-[#FA4A0C]">
+                      <span>Filtering outlet: {filteredStoreId === 'canteen_cafe' ? 'Campus Cafe' : filteredStoreId === 'books_depot' ? 'Stationery Depot' : 'Coffee Lounge'}</span>
+                      <button onClick={() => { setFilteredStoreId(null); setSelectedCategory('All'); }} className="underline font-black cursor-pointer">Reset</button>
+                    </div>
                   )}
+
+                  {/* Redesigned Cards Grid mapping the design reference */}
+                  {(() => {
+                    // filter logic
+                    const list = menuItems.filter(item => {
+                      let matchesCategory = true;
+                      if (selectedCategory !== 'All' && selectedCategory !== 'Specials') {
+                        // Map "Meals" category from backend to "Lunch" visually
+                        matchesCategory = item.category.toLowerCase() === selectedCategory.toLowerCase();
+                      } else if (selectedCategory === 'Specials') {
+                        matchesCategory = !!item.isTodaySpecial;
+                      }
+
+                      let matchesStore = true;
+                      if (filteredStoreId) {
+                        if (filteredStoreId === 'canteen_cafe') {
+                          matchesStore = ['Breakfast', 'Meals', 'Snacks', 'Desserts'].includes(item.category);
+                        } else if (filteredStoreId === 'books_depot') {
+                          matchesStore = ['Stationery', 'Books', 'Lab Materials'].includes(item.category) || item.name.toLowerCase().includes('notebook') || item.name.toLowerCase().includes('pen');
+                        } else if (filteredStoreId === 'block_b_lounge') {
+                          matchesStore = ['Beverages', 'Desserts'].includes(item.category);
+                        }
+                      }
+
+                      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                            item.category.toLowerCase().includes(searchQuery.toLowerCase());
+                      
+                      const isVeg = item.tags?.includes('Vegetarian') || item.category === 'Desserts' || item.category === 'Beverages' || item.id?.includes('bev') || item.id?.includes('veg');
+                      const matchesVeg = !vegetarianOnly || isVeg;
+
+                      return matchesCategory && matchesStore && matchesSearch && matchesVeg;
+                    });
+
+                    if (list.length === 0) {
+                      return (
+                        <div className="bg-white rounded-3xl border border-slate-100 p-8 text-center space-y-2 shadow-xs">
+                          <h5 className="font-bold text-slate-800 text-xs">No food items found</h5>
+                          <p className="text-[10px] text-slate-450">Try adjusting your filters or search terms.</p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-16 pt-12">
+                        {list.map(item => {
+                          const quantity = cart[item.id] || 0;
+                          return (
+                            <div
+                              key={item.id}
+                              className="bg-white rounded-[30px] shadow-sm hover:shadow-md border border-slate-100/60 p-4 flex flex-col items-center justify-between text-center relative mt-4 min-h-[190px]"
+                            >
+                              {/* Overlapping circular food image sticking out at the top */}
+                              <div className="absolute -top-12 w-24 h-24 rounded-full overflow-hidden shadow-md border-4 border-white bg-slate-100">
+                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                              </div>
+                              
+                              {/* Content padding to avoid image overlap */}
+                              <div className="pt-12 flex-1 flex flex-col justify-between w-full">
+                                <div className="space-y-1">
+                                  <h5 className="font-extrabold text-slate-900 text-[13px] leading-tight line-clamp-2 px-1">
+                                    {item.name}
+                                  </h5>
+                                  <span className="text-[10px] text-slate-400 capitalize block">{item.category}</span>
+                                </div>
+
+                                <div className="pt-3 w-full flex flex-col items-center gap-2 mt-auto">
+                                  <span className="text-sm font-black text-[#FA4A0C] font-mono">
+                                    ₹{item.price}
+                                  </span>
+
+                                  {/* Add to Tray action button */}
+                                  {quantity > 0 ? (
+                                    <div className="flex items-center bg-orange-50 text-[#FA4A0C] rounded-full border border-orange-200 overflow-hidden h-7 w-20 justify-between p-0.5">
+                                      <button
+                                        onClick={() => handleUpdateCart(item, quantity - 1)}
+                                        className="w-6 h-full font-black text-xs hover:bg-orange-100 flex items-center justify-center cursor-pointer select-none"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="font-bold font-mono text-xs">{quantity}</span>
+                                      <button
+                                        onClick={() => handleUpdateCart(item, quantity + 1)}
+                                        className="w-6 h-full font-black text-xs hover:bg-orange-100 flex items-center justify-center cursor-pointer select-none"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleUpdateCart(item, 1)}
+                                      className="px-4 py-1 bg-[#FA4A0C] hover:bg-orange-600 text-white font-black text-[10px] uppercase tracking-wider rounded-full shadow-xs active:scale-95 transition-all cursor-pointer"
+                                    >
+                                      Order
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
               </motion.div>
             )}
@@ -1126,6 +1407,68 @@ export default function App() {
                 onOpenAdmin={() => { setMobileTab('admin'); }}
                 onLogout={handleLogout}
               />
+            )}
+
+            {mobileTab === 'tokens' && (
+              <motion.div
+                key="tokens"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="p-4 bg-slate-50 min-h-[75vh]"
+                transition={{ duration: 0.10, ease: 'easeOut' }}
+              >
+                <div className="space-y-4 text-left">
+                  <h3 className="font-display font-black text-slate-800 text-lg">My Active Pickup Tokens</h3>
+                  <p className="text-xs text-slate-500">Show these digital token tickets at the canteen counter to pick up your food.</p>
+                  
+                  {orders.filter(o => ['Pending', 'Approved', 'Preparing', 'Ready for Pickup'].includes(o.status)).length === 0 ? (
+                    <div className="bg-white rounded-3xl border border-slate-100 p-8 text-center space-y-3 shadow-xs">
+                      <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto">
+                        <Ticket className="w-6 h-6 animate-pulse" />
+                      </div>
+                      <h4 className="font-bold text-slate-900 text-xs">No Active Tokens</h4>
+                      <p className="text-[11px] text-slate-450 max-w-xs mx-auto">Place a new canteen order to generate a category-based token ticket.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {orders.filter(o => ['Pending', 'Approved', 'Preparing', 'Ready for Pickup'].includes(o.status)).map(o => (
+                        <div key={o.id} className="bg-white rounded-2xl border-2 border-dashed border-orange-200 overflow-hidden shadow-sm relative">
+                          {/* Ticket Header */}
+                          <div className="bg-[#FA4A0C] text-white px-4 py-3 flex justify-between items-center">
+                            <div>
+                              <span className="text-[9px] font-black uppercase tracking-wider block opacity-75">Canteen Order Token</span>
+                              <span className="text-xs font-bold font-mono">ID: {o.id.slice(-8).toUpperCase()}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-[10px] font-black uppercase bg-white/20 px-2 py-0.5 rounded-md">
+                                {o.status}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Ticket Body */}
+                          <div className="p-4 flex justify-between items-center bg-white">
+                            <div className="space-y-1">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Token Number</span>
+                              <span className="text-2xl font-black text-[#FA4A0C] font-mono tracking-wide">{o.tokenNumber || 'T-000'}</span>
+                            </div>
+                            <div className="text-right space-y-1">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Total Amount</span>
+                              <span className="text-sm font-extrabold text-slate-900">₹{o.totalAmount}</span>
+                            </div>
+                          </div>
+
+                          <div className="bg-slate-50 px-4 py-2 text-[10px] text-slate-500 flex justify-between items-center border-t border-slate-100">
+                            <span>{o.items?.length || 1} Item(s) &bull; {o.paymentMethod}</span>
+                            <span className="font-semibold text-[#FA4A0C]">Ready in ~10m</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             )}
 
             {mobileTab === 'admin' && (
