@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ShoppingBag, ChefHat, Sparkles, LogOut, BookOpen, User, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Search, Home, Mic, ShoppingCart, AlertCircle } from 'lucide-react';
+import { ShoppingBag, ChefHat, Sparkles, LogOut, BookOpen, User, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Search, Home, Mic, ShoppingCart, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FoodItem, Order, StudentProfile, PaymentSettings, SystemNotification } from './types';
 import { useUser } from './context/UserContext';
@@ -145,6 +145,7 @@ export default function App() {
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [complianceModal, setComplianceModal] = useState<'terms' | 'privacy' | 'refund' | 'contact' | null>(null);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState<boolean>(false);
+  const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
 
   // 1. Session restore — handled by UserContext (SWR pattern with localStorage)
 
@@ -493,6 +494,7 @@ export default function App() {
       id: order.id || (order as any)._id
     };
     setOrders(prev => [normalizedOrder, ...prev]);
+    setPlacedOrder(normalizedOrder);
     setActiveTab('orders'); // Go track order progress
 
     addNotification(
@@ -1954,6 +1956,49 @@ export default function App() {
           onSave={handleProfileSaved}
           onClose={() => setShowProfileModal(false)}
         />
+      )}
+
+      {placedOrder && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white w-full max-w-sm p-6 rounded-3xl border border-slate-200 shadow-xl text-center space-y-6">
+            <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-sm border border-emerald-100">
+              <CheckCircle2 className="w-10 h-10" />
+            </div>
+            
+            <div className="space-y-1">
+              <h3 className="font-display font-black text-slate-950 text-xl tracking-tight">
+                Order Placed Successfully
+              </h3>
+              <p className="text-xs text-slate-500">
+                Your order ticket has been dispatched to the kitchen.
+              </p>
+            </div>
+            
+            <div className="bg-slate-50 border border-slate-200/60 p-5 rounded-2xl relative overflow-hidden">
+              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Token Number</span>
+              <span className="text-3xl font-mono font-black text-slate-950 mt-1 block tracking-tight">
+                {placedOrder.tokenNumber}
+              </span>
+              <span className="text-[10px] text-slate-500 mt-2 block font-medium">
+                Meal Category: <strong className="text-slate-800">{placedOrder.mealCategory || 'Snacks'}</strong>
+              </span>
+              
+              {/* Ticket Dotted Separator decoration */}
+              <div className="absolute left-0 right-0 top-0 h-1 flex justify-between px-2">
+                {Array.from({ length: 15 }).map((_, i) => (
+                  <div key={i} className="w-1.5 h-1.5 bg-white rounded-full -mt-0.75 border border-slate-200" />
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setPlacedOrder(null)}
+              className="w-full bg-[#1B4D3E] hover:bg-[#2E7D5A] text-white text-xs font-black uppercase tracking-wider py-3.5 px-4 rounded-xl transition-all cursor-pointer shadow-md active:scale-95"
+            >
+              Track Order Progress
+            </button>
+          </div>
+        </div>
       )}
 
     </div>

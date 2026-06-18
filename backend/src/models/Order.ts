@@ -23,6 +23,8 @@ export interface IOrder extends Document {
   paymentStatus: string;
   paymentId?: string;
   tokenNumber?: string;
+  mealCategory?: string;
+  tokenSequence?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,7 +56,9 @@ const orderSchema = new Schema<IOrder>(
     paymentMethod: { type: String, required: true },
     paymentStatus: { type: String, default: 'Pending' },
     paymentId: { type: String },
-    tokenNumber: { type: String }
+    tokenNumber: { type: String },
+    mealCategory: { type: String },
+    tokenSequence: { type: Number }
   },
   { timestamps: true }
 );

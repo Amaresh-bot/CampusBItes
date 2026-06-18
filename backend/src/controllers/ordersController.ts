@@ -3,6 +3,8 @@ import { Order } from '../models/Order';
 import { PrintOrder } from '../models/PrintOrder';
 import { Wallet } from '../models/Wallet';
 import { Transaction } from '../models/Transaction';
+import { Counter } from '../models/Counter';
+import mongoose from 'mongoose';
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -35,7 +37,92 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       await tx.save();
     }
     
-    const token = tokenNumber || Math.floor(100 + Math.random() * 900).toString();
+    // Determine mealCategory
+    let resolvedCategory: 'Breakfast' | 'Lunch' | 'Snacks' | 'Dinner' = 'Snacks';
+    try {
+      const firstItem = items?.[0];
+      let itemCategory = firstItem?.category;
+
+      if (!itemCategory && firstItem?.itemId) {
+        const MenuItemModel = mongoose.model('MenuItem');
+        const menuItem = await MenuItemModel.findById(firstItem.itemId);
+        if (menuItem) {
+          itemCategory = menuItem.category;
+        }
+      }
+
+      if (itemCategory) {
+        const cat = itemCategory.trim().toLowerCase();
+        if (cat.includes('breakfast')) {
+          resolvedCategory = 'Breakfast';
+        } else if (cat.includes('lunch')) {
+          resolvedCategory = 'Lunch';
+        } else if (cat.includes('dinner')) {
+          resolvedCategory = 'Dinner';
+        } else if (
+          cat.includes('snack') || 
+          cat.includes('beverage') || 
+          cat.includes('dessert') || 
+          cat.includes('drink') || 
+          cat.includes('tea') || 
+          cat.includes('coffee') || 
+          cat.includes('bev')
+        ) {
+          resolvedCategory = 'Snacks';
+        } else {
+          // Fallback to time of day for "Meals", etc.
+          const hour = new Date().getHours();
+          if (hour < 11) {
+            resolvedCategory = 'Breakfast';
+          } else if (hour < 16) {
+            resolvedCategory = 'Lunch';
+          } else if (hour < 18) {
+            resolvedCategory = 'Snacks';
+          } else {
+            resolvedCategory = 'Dinner';
+          }
+        }
+      } else {
+        // Fallback to time of day
+        const hour = new Date().getHours();
+        if (hour < 11) {
+          resolvedCategory = 'Breakfast';
+        } else if (hour < 16) {
+          resolvedCategory = 'Lunch';
+        } else if (hour < 18) {
+          resolvedCategory = 'Snacks';
+        } else {
+          resolvedCategory = 'Dinner';
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to determine meal category, defaulting to Snacks:", err);
+    }
+
+    // Generate token atomically using Counter
+    let token = tokenNumber;
+    let tokenSeq: number | undefined = undefined;
+    
+    if (!token) {
+      const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const counterKey = `token_${resolvedCategory}_${dateStr}`;
+      
+      const counter = await Counter.findOneAndUpdate(
+        { key: counterKey },
+        { $inc: { sequence: 1 } },
+        { new: true, upsert: true }
+      );
+      
+      tokenSeq = counter.sequence;
+      const prefixMap: Record<string, string> = {
+        'Breakfast': 'B',
+        'Lunch': 'L',
+        'Snacks': 'S',
+        'Dinner': 'D'
+      };
+      const formattedSeq = String(tokenSeq).padStart(3, '0');
+      token = `${prefixMap[resolvedCategory]}-${formattedSeq}`;
+    }
     
     const normalizedItems = (items || []).map((item: any) => ({
       itemId: item.itemId || item.id,
@@ -53,6 +140,8 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       paymentStatus: paymentMethod === 'wallet' || paymentId || (orderData.paymentStatus === 'Paid') ? 'Paid' : 'Pending',
       paymentId,
       tokenNumber: token,
+      mealCategory: resolvedCategory,
+      tokenSequence: tokenSeq,
       status: 'Pending'
     });
     

@@ -67,6 +67,8 @@ export interface Order {
   createdAt: string;
   estimatedReadyAt?: string;
   tokenNumber: string; // Dynamic small order number for canteen desk pick-up, e.g. "C-14"
+  mealCategory?: string;
+  tokenSequence?: number;
   rollNo?: string;
   branch?: string;
   year?: string;

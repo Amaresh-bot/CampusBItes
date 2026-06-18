@@ -240,6 +240,24 @@ export function AdminPanel({
     }
   };
 
+  // Helper to map item category to meal category on-the-fly for old orders (backward compatibility)
+  const mapCategoryToMeal = (itemCategory?: string): 'Breakfast' | 'Lunch' | 'Snacks' | 'Dinner' => {
+    if (!itemCategory) return 'Snacks';
+    const cat = itemCategory.trim().toLowerCase();
+    if (cat.includes('breakfast')) return 'Breakfast';
+    if (cat.includes('lunch')) return 'Lunch';
+    if (cat.includes('dinner')) return 'Dinner';
+    if (cat.includes('snack') || cat.includes('beverage') || cat.includes('dessert') || cat.includes('drink') || cat.includes('tea') || cat.includes('coffee') || cat.includes('bev')) {
+      return 'Snacks';
+    }
+    return 'Lunch'; // fallback
+  };
+
+  const getMealCategory = (order: Order): 'Breakfast' | 'Lunch' | 'Snacks' | 'Dinner' => {
+    if (order.mealCategory) return order.mealCategory as any;
+    return mapCategoryToMeal(order.items?.[0]?.category);
+  };
+
   const [adminPasscode, setAdminPasscode] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
     return SafeStorage.getSessionItem('canteen_admin_unlocked') === 'true';
@@ -703,75 +721,115 @@ export function AdminPanel({
       )}
 
       {/* Active Panel Views */}
-      {activeAdminSubTab === 'kitchen' && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-          <h4 className="font-sans font-bold text-slate-900 text-sm uppercase tracking-wider">Live Active Kitchen Queues</h4>
-          {orders.length === 0 ? (
-            <div className="text-center py-10 text-slate-450 italic text-xs">
-              💤 Low traffic! No orders submitted to the kitchen.
-            </div>
-          ) : (
-            <div className="space-y-4 divide-y divide-slate-100">
-              {orders.map((order, index) => {
-                const actionLabel = getActionLabel(order.status);
-                const nextStatus = getNextStatus(order.status);
+      {activeAdminSubTab === 'kitchen' && (() => {
+        const activeOrders = orders.filter(o => ['Pending', 'Approved', 'Preparing', 'Ready for Pickup'].includes(o.status));
+        const breakfastQueue = activeOrders.filter(o => getMealCategory(o) === 'Breakfast');
+        const lunchQueue = activeOrders.filter(o => getMealCategory(o) === 'Lunch');
+        const snacksQueue = activeOrders.filter(o => getMealCategory(o) === 'Snacks');
+        const dinnerQueue = activeOrders.filter(o => getMealCategory(o) === 'Dinner');
 
-                return (
-                  <div key={order.id || order._id} className="pt-4 first:pt-0 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="inline-block bg-slate-950 text-blue-400 font-mono text-xs font-bold px-2 py-0.5 rounded">
-                          Token #{order.tokenNumber}
-                        </span>
-                        <strong className="text-slate-900">{order.userName}</strong>
-                        <span className="text-slate-400 font-mono">({order.userEmail})</span>
-                      </div>
+        const renderQueueSection = (title: string, queueOrders: Order[], headerStyles: string) => {
+          return (
+            <div className="border border-slate-200 rounded-2xl p-4 bg-white shadow-xs space-y-3 flex flex-col min-h-[160px]">
+              <div className={`px-3 py-1.5 rounded-xl border font-bold text-xs uppercase tracking-wider ${headerStyles} flex justify-between items-center`}>
+                <span>{title}</span>
+                <span className="bg-white px-2 py-0.5 rounded-full text-[10px] font-black shadow-xs">
+                  {queueOrders.length}
+                </span>
+              </div>
+              
+              {queueOrders.length === 0 ? (
+                <div className="text-center py-6 text-slate-400 italic text-[11px] flex-1 flex items-center justify-center">
+                  💤 No orders in queue.
+                </div>
+              ) : (
+                <div className="space-y-3 divide-y divide-slate-100 flex-1 overflow-y-auto max-h-[350px] pr-1">
+                  {queueOrders.map((ord, idx) => {
+                    const actionLabel = getActionLabel(ord.status);
+                    const nextStatus = getNextStatus(ord.status);
 
-                      <div className="flex flex-wrap gap-1">
-                        {order.items.map((it, itIdx) => (
-                          <span key={it.itemId || it.id || itIdx} className="bg-slate-100 border border-slate-200 text-slate-700 px-2 py-0.5 rounded-lg font-bold text-[11px]">
-                            {it.name} <strong>x{it.quantity}</strong>
-                          </span>
-                        ))}
-                      </div>
+                    return (
+                      <div key={ord.id || ord._id} className="pt-3 first:pt-0 space-y-2 text-xs">
+                        <div className="flex justify-between items-start gap-2 flex-wrap">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="inline-block bg-slate-950 text-blue-400 font-mono text-[10px] font-bold px-1.5 py-0.5 rounded">
+                                {ord.tokenNumber}
+                              </span>
+                              <strong className="text-slate-900">{ord.userName}</strong>
+                            </div>
+                            <span className="text-[10px] text-slate-400 block font-mono">{ord.userEmail}</span>
+                          </div>
+                          <div className="text-right">
+                            <strong className="font-mono text-slate-900 block">₹{ord.totalAmount}</strong>
+                            <span className={`inline-block text-[9px] font-bold px-1 rounded uppercase border ${
+                              ord.status === 'Pending' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                              ord.status === 'Approved' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                              ord.status === 'Preparing' ? 'bg-green-50 text-green-700 border-green-100 animate-pulse' :
+                              'bg-emerald-500 text-white border-emerald-500'
+                            }`}>
+                              {ord.status}
+                            </span>
+                          </div>
+                        </div>
 
-                      {order.items[0]?.customInstructions && (
-                        <p className="text-[10px] text-slate-500 bg-slate-50 border border-slate-150 p-1 rounded font-medium">
-                          Note: {order.items[0].customInstructions}
-                        </p>
-                      )}
-                    </div>
+                        <div className="flex flex-wrap gap-1">
+                          {ord.items.map((it, itIdx) => (
+                            <span key={it.itemId || it.id || itIdx} className="bg-slate-50 border border-slate-200 text-slate-700 px-1.5 py-0.5 rounded-lg font-bold text-[10px]">
+                              {it.name} <strong>x{it.quantity}</strong>
+                            </span>
+                          ))}
+                        </div>
 
-                    <div className="flex items-center gap-4 shrink-0自right">
-                      <strong className="font-mono text-slate-900">₹{order.totalAmount}</strong>
-                      <div className="flex gap-1.5">
-                        {['Pending', 'Approved', 'Preparing'].includes(order.status) && (
-                          <span className="text-[10px] text-amber-700 bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-100 font-bold max-w-[180px] text-center">
-                            Cancellations disabled (Food Wastage Policy)
-                          </span>
+                        {ord.items[0]?.customInstructions && (
+                          <p className="text-[10px] text-slate-500 bg-slate-50 border border-slate-150 p-1.5 rounded font-medium">
+                            Note: {ord.items[0].customInstructions}
+                          </p>
                         )}
-                        {actionLabel && nextStatus ? (
-                          <button
-                            onClick={() => onUpdateOrderStatus(order.id || order._id, nextStatus)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-all"
-                          >
-                            {actionLabel}
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
-                        ) : (
-                          <span className="bg-slate-100 text-slate-400 p-1.5 rounded italics capitalize">
-                            {order.status}
-                          </span>
-                        )}
+
+                        <div className="flex justify-end gap-1.5 pt-1">
+                          {['Pending', 'Approved', 'Preparing'].includes(ord.status) && (
+                            <span className="text-[9px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 font-medium text-center">
+                              Cancellations disabled
+                            </span>
+                          )}
+                          {actionLabel && nextStatus && (
+                            <button
+                              onClick={() => onUpdateOrderStatus(ord.id || ord._id, nextStatus)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded font-bold flex items-center gap-0.5 transition-all text-[10px] cursor-pointer"
+                            >
+                              {actionLabel}
+                              <ChevronRight className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      )}
+          );
+        };
+
+        return (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+            <h4 className="font-sans font-bold text-slate-900 text-sm uppercase tracking-wider">Live Active Kitchen Queues</h4>
+            {activeOrders.length === 0 ? (
+              <div className="text-center py-10 text-slate-450 italic text-xs">
+                💤 Low traffic! No active orders in the kitchen queues.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {renderQueueSection("Breakfast Queue", breakfastQueue, "border-amber-200 bg-amber-50/20 text-amber-800")}
+                {renderQueueSection("Lunch Queue", lunchQueue, "border-blue-200 bg-blue-50/20 text-blue-800")}
+                {renderQueueSection("Snacks Queue", snacksQueue, "border-emerald-200 bg-emerald-50/20 text-emerald-800")}
+                {renderQueueSection("Dinner Queue", dinnerQueue, "border-purple-200 bg-purple-50/20 text-purple-800")}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Dynamic menu list handles */}
       {activeAdminSubTab === 'menu' && (
