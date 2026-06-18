@@ -1419,26 +1419,9 @@ export default function App() {
             <span className="text-[11px] font-bold text-slate-700 truncate max-w-[120px]">Sphoorthy Canteen</span>
           </div>
 
-          {/* Central Search Bar */}
-          <div className="flex-1 relative">
-            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl h-10 px-3 gap-2 focus-within:border-[#1B4D3E] focus-within:ring-2 focus-within:ring-[#1B4D3E]/10 transition-all">
-              <Search className="w-4 h-4 text-slate-400 shrink-0" />
-              <input
-                type="text"
-                placeholder={searchPlaceholders[currentPlaceholderIdx]}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent outline-none border-none text-sm text-slate-800 placeholder-slate-400 font-medium"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer">✕</button>
-              )}
-            </div>
-          </div>
 
           {/* Right Utilities */}
           <div className="flex items-center gap-1 shrink-0">
-            {/* Nav pills — desktop only */}
             <nav className="hidden lg:flex items-center gap-1 mr-2">
               <button
                 onClick={() => setActiveTab('menu')}
@@ -1459,6 +1442,21 @@ export default function App() {
                   <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                 )}
               </button>
+              <button
+                onClick={() => setActiveTab('cart')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 relative ${
+                  activeTab === 'cart' ? 'bg-[#1B4D3E] text-white' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                <ShoppingCart className="w-3.5 h-3.5" /> Cart
+                {Object.values(cart).reduce((s: number, v) => s + (v as number), 0) > 0 && (
+                  <span className={`min-w-[16px] h-4 rounded-full text-[9px] font-black flex items-center justify-center px-0.5 ${
+                    activeTab === 'cart' ? 'bg-white text-[#1B4D3E]' : 'bg-[#1B4D3E] text-white'
+                  }`}>
+                    {Object.values(cart).reduce((s: number, v) => s + (v as number), 0)}
+                  </span>
+                )}
+              </button>
               {isUserAdmin && (
                 <button
                   onClick={() => setActiveTab('admin')}
@@ -1471,21 +1469,6 @@ export default function App() {
               )}
             </nav>
 
-            {/* Cart icon with badge */}
-            {activeTab === 'menu' && (
-              <button
-                onClick={() => setIsMobileCartOpen(true)}
-                className="relative p-2 rounded-xl hover:bg-slate-100 text-slate-700 transition-all cursor-pointer"
-                title="View Cart"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                {Object.values(cart).reduce((s: number, v) => s + (v as number), 0) > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-[#1B4D3E] text-white text-[9px] font-black rounded-full flex items-center justify-center px-0.5">
-                    {Object.values(cart).reduce((s: number, v) => s + (v as number), 0)}
-                  </span>
-                )}
-              </button>
-            )}
 
             {/* Notifications */}
             <NotificationsDrawer
@@ -1520,28 +1503,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Swiggy-style horizontal category strip — only on menu tab */}
-        {activeTab === 'menu' && (
-          <div className="border-t border-slate-100 bg-white">
-            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center gap-1.5 overflow-x-auto py-2.5 scrollbar-none">
-                {['All','Breakfast','Meals','Beverages','Snacks','Desserts','Stationery'].map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-4 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer border shrink-0 ${
-                      selectedCategory === cat
-                        ? 'bg-[#1B4D3E] text-white border-[#1B4D3E] shadow-sm'
-                        : 'bg-white text-slate-600 border-slate-200 hover:border-[#1B4D3E]/40 hover:text-[#1B4D3E]'
-                    }`}
-                  >
-                    {cat === 'All' && '🍽️ '}{cat === 'Breakfast' && '🌅 '}{cat === 'Meals' && '🍔 '}{cat === 'Beverages' && '☕ '}{cat === 'Snacks' && '🍟 '}{cat === 'Desserts' && '🍕 '}{cat === 'Stationery' && '📚 '}{cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </header>
       
       {/* Hamburger dropdown for md/tablet screens */}
@@ -1562,6 +1523,15 @@ export default function App() {
               <button onClick={() => { setActiveTab('orders'); setIsMobileMenuOpen(false); }}
                 className={`py-2 px-3 text-left text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer ${ activeTab === 'orders' ? 'bg-[#E8F5E9] text-[#1B4D3E]' : 'text-slate-600 hover:bg-slate-50' }`}>
                 <ShoppingBag className="w-4 h-4" /> My Orders
+              </button>
+              <button onClick={() => { setActiveTab('cart'); setIsMobileMenuOpen(false); }}
+                className={`py-2 px-3 text-left text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer ${ activeTab === 'cart' ? 'bg-[#E8F5E9] text-[#1B4D3E]' : 'text-slate-600 hover:bg-slate-50' }`}>
+                <ShoppingCart className="w-4 h-4" /> Cart
+                {Object.values(cart).reduce((s: number, v) => s + (v as number), 0) > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 bg-[#1B4D3E] text-white text-[9px] font-black rounded-full">
+                    {Object.values(cart).reduce((s: number, v) => s + (v as number), 0)}
+                  </span>
+                )}
               </button>
               {isUserAdmin && (
                 <button onClick={() => { setActiveTab('admin'); setIsMobileMenuOpen(false); }}
@@ -1734,6 +1704,33 @@ export default function App() {
                 )}
               </div>
             </motion.div>
+          ) : activeTab === 'cart' ? (
+            <motion.div
+              key="cart"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.18 }}
+              className="max-w-2xl mx-auto"
+            >
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+                <div className="p-5 border-b border-slate-100 flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5 text-[#1B4D3E]" />
+                  <h2 className="font-black text-slate-900 text-base">Your Cart</h2>
+                </div>
+                <div className="p-5">
+                  <CartDrawer
+                    user={user!}
+                    cart={cart}
+                    menuItems={menuItems}
+                    onUpdateCart={handleUpdateCart}
+                    onClearCart={handleClearCart}
+                    onOrderPlacement={(order) => { handleOrderCreated(order); setActiveTab('orders'); }}
+                    onExploreMenu={() => { setFilteredStoreId(null); setSelectedCategory('All'); setSearchQuery(''); setActiveTab('menu'); }}
+                  />
+                </div>
+              </div>
+            </motion.div>
           ) : (
             <motion.div
               key="menu"
@@ -1861,7 +1858,7 @@ export default function App() {
                    3-COLUMN SWIGGY-STYLE LAYOUT
                    Left: Filters  |  Center: Menu  |  Right: Cart
               ═══════════════════════════════════════════════════ */}
-              <div className="grid grid-cols-1 xl:grid-cols-[220px_1fr_300px] lg:grid-cols-[200px_1fr] gap-6 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 items-start">
 
                 {/* ── LEFT SIDEBAR: Filters ── */}
                 <aside className="hidden lg:block space-y-4">
@@ -1951,33 +1948,11 @@ export default function App() {
                       setSearchQuery={setSearchQuery}
                       vegetarianOnly={vegetarianOnly}
                       setVegetarianOnly={setVegetarianOnly}
-                      hideSearchHeader={true}
                     />
                   )}
                 </div>
 
-                {/* ── RIGHT: Sticky Cart ── */}
-                <div className="hidden xl:block">
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-100 sticky top-[148px]">
-                    <div className="p-4 border-b border-slate-100">
-                      <h3 className="font-black text-sm text-slate-900 flex items-center gap-2">
-                        <ShoppingCart className="w-4 h-4 text-[#1B4D3E]" />
-                        Your Cart
-                      </h3>
-                    </div>
-                    <div className="p-4">
-                       <CartDrawer
-                        user={user!}
-                        cart={cart}
-                        menuItems={menuItems}
-                        onUpdateCart={handleUpdateCart}
-                        onClearCart={handleClearCart}
-                        onOrderPlacement={handleOrderCreated}
-                        onExploreMenu={() => { setFilteredStoreId(null); setSelectedCategory('All'); setSearchQuery(''); setActiveTab('menu'); }}
-                      />
-                    </div>
-                  </div>
-                </div>
+                {/* ── RIGHT: Sticky Cart removed — Cart is now its own tab ── */}
 
               </div>
 
