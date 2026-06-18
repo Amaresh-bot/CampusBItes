@@ -9,6 +9,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { OrderProgress } from './components/OrderProgress';
 import { AdminPanel } from './components/AdminPanel';
 import { ProfileModal } from './components/ProfileModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationsDrawer } from './components/NotificationsDrawer';
 import { FallbackImage } from './components/FallbackImage';
 import { MenuSkeleton } from './components/MenuSkeleton';
@@ -1136,19 +1137,21 @@ export default function App() {
                 transition={{ duration: 0.12, ease: 'easeOut' }}
                 className="p-4 bg-slate-50 min-h-[75vh]"
               >
-                <AdminPanel 
-                  onBack={() => setMobileTab('profile')}
-                  orders={orders}
-                  onUpdateOrderStatus={handleUpdateOrderStatus}
-                  foodItems={menuItems}
-                  onAddMenuItem={handleAddMenuItem}
-                  onEditMenuItem={handleEditMenuItem}
-                  onDeleteMenuItem={handleDeleteMenuItem}
-                  students={allStudents}
-                  paymentSettings={paymentSettings}
-                  onUpdatePaymentSettings={handleUpdatePaymentSettings}
-                  onToggleStudentVerify={handleToggleStudentVerify}
-                />
+                <ErrorBoundary>
+                  <AdminPanel 
+                    onBack={() => setMobileTab('profile')}
+                    orders={orders}
+                    onUpdateOrderStatus={handleUpdateOrderStatus}
+                    foodItems={menuItems}
+                    onAddMenuItem={handleAddMenuItem}
+                    onEditMenuItem={handleEditMenuItem}
+                    onDeleteMenuItem={handleDeleteMenuItem}
+                    students={allStudents}
+                    paymentSettings={paymentSettings}
+                    onUpdatePaymentSettings={handleUpdatePaymentSettings}
+                    onToggleStudentVerify={handleToggleStudentVerify}
+                  />
+                </ErrorBoundary>
               </motion.div>
             )}
           </AnimatePresence>
@@ -1476,19 +1479,21 @@ export default function App() {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.18 }}
             >
-              <AdminPanel 
-                onBack={() => setActiveTab('menu')}
-                orders={orders}
-                onUpdateOrderStatus={handleUpdateOrderStatus}
-                foodItems={menuItems}
-                onAddMenuItem={handleAddMenuItem}
-                onEditMenuItem={handleEditMenuItem}
-                onDeleteMenuItem={handleDeleteMenuItem}
-                students={allStudents}
-                paymentSettings={paymentSettings}
-                onUpdatePaymentSettings={handleUpdatePaymentSettings}
-                onToggleStudentVerify={handleToggleStudentVerify}
-              />
+              <ErrorBoundary>
+                <AdminPanel 
+                  onBack={() => setActiveTab('menu')}
+                  orders={orders}
+                  onUpdateOrderStatus={handleUpdateOrderStatus}
+                  foodItems={menuItems}
+                  onAddMenuItem={handleAddMenuItem}
+                  onEditMenuItem={handleEditMenuItem}
+                  onDeleteMenuItem={handleDeleteMenuItem}
+                  students={allStudents}
+                  paymentSettings={paymentSettings}
+                  onUpdatePaymentSettings={handleUpdatePaymentSettings}
+                  onToggleStudentVerify={handleToggleStudentVerify}
+                />
+              </ErrorBoundary>
             </motion.div>
 
           ) : activeTab === 'orders' ? (

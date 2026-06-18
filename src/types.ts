@@ -8,12 +8,16 @@ export interface User {
 }
 
 export interface StudentProfile {
+  id?: string;
   userId?: string;
   fullName: string;
   rollNo?: string;
+  rollNumber?: string;
   branch?: string;
-  year?: '1st Year' | '2nd Year' | '3rd Year' | '4th Year';
+  year?: '1st Year' | '2nd Year' | '3rd Year' | '4th Year' | string;
+  academicYear?: string;
   contactNo: string;
+  phoneNumber?: string;
   email: string;
   isVerified?: boolean;
   collegeName?: string;

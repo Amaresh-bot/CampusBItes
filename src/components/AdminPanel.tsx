@@ -46,7 +46,8 @@ export function AdminPanel({
   // Helper to retrieve stock count safely for any item
   const getItemStock = (itemId: string, isAvailable: boolean) => {
     if (!isAvailable) return 0;
-    if (itemId in itemStocks) return itemStocks[itemId];
+    if (itemId && itemId in itemStocks) return itemStocks[itemId];
+    if (!itemId) return 5;
     // Create a stable, deterministic visual stock count for realism
     const seed = itemId.charCodeAt(itemId.length - 1) || 7;
     return (seed % 12) + 2; // Returns custom value between 2 and 13
@@ -149,6 +150,8 @@ export function AdminPanel({
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState('');
 
   // Edit item form states
   const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
@@ -272,31 +275,82 @@ export function AdminPanel({
 
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newItemName || !newItemPrice || uploading || !newItemImg) return;
-    onAddMenuItem({
+    console.log("[AdminPanel:handleAddSubmit] Form submission started.");
+    console.log("[AdminPanel:handleAddSubmit] Current state values:", {
       name: newItemName,
-      description: newItemDesc,
-      price: Number(newItemPrice),
+      price: newItemPrice,
       category: newItemCat,
-      estimatedPrepTime: Number(newItemPrep),
-      imageUrl: newItemImg || undefined
+      estimatedPrepTime: newItemPrep,
+      imageUrl: newItemImg,
+      uploading,
+      selectedFile: selectedFile ? selectedFile.name : null
     });
-    setNewItemName('');
-    setNewItemDesc('');
-    setNewItemImg('');
-    setSelectedFile(null);
-    setPreviewUrl('');
-    setUploadProgress(0);
-    setUploadError(null);
-    setUploading(false);
-    setShowAddModal(false);
+
+    try {
+      // 1. Verify form state values are defined and valid
+      if (!newItemName || newItemName.trim() === '') {
+        console.error("[AdminPanel:handleAddSubmit] Validation failed: Item Title is empty.");
+        setUploadError("Item title is required.");
+        return;
+      }
+      if (!newItemPrice || isNaN(Number(newItemPrice)) || Number(newItemPrice) <= 0) {
+        console.error("[AdminPanel:handleAddSubmit] Validation failed: Price is invalid.");
+        setUploadError("Price must be a valid number greater than zero.");
+        return;
+      }
+      if (uploading) {
+        console.error("[AdminPanel:handleAddSubmit] Validation failed: Image is currently uploading.");
+        setUploadError("Please wait for image upload to complete.");
+        return;
+      }
+      // 2. Verify image upload result is not null/empty
+      if (!newItemImg) {
+        console.error("[AdminPanel:handleAddSubmit] Validation failed: No image uploaded.");
+        setUploadError("An image must be uploaded before adding an item.");
+        return;
+      }
+
+      console.log("[AdminPanel:handleAddSubmit] All validations passed. Dispatching onAddMenuItem payload...");
+      onAddMenuItem({
+        name: newItemName.trim(),
+        description: newItemDesc.trim(),
+        price: Number(newItemPrice),
+        category: newItemCat,
+        estimatedPrepTime: Number(newItemPrep) || 10,
+        imageUrl: newItemImg
+      });
+
+      console.log("[AdminPanel:handleAddSubmit] onAddMenuItem called successfully. Resetting form state.");
+      setNewItemName('');
+      setNewItemDesc('');
+      setNewItemImg('');
+      setSelectedFile(null);
+      setPreviewUrl('');
+      setUploadProgress(0);
+      setUploadError(null);
+      setUploading(false);
+      setShowAddModal(false);
+    } catch (err: any) {
+      console.error("[AdminPanel:handleAddSubmit] Critical exception caught during form submission:", err);
+      setUploadError(err.message || "An unexpected error occurred during item addition.");
+    }
   };
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingItem) return;
-    onEditMenuItem(editingItem.id, editingItem);
-    setEditingItem(null);
+    console.log("[AdminPanel:handleEditSubmit] Edit form submission started.");
+    try {
+      if (!editingItem) {
+        console.error("[AdminPanel:handleEditSubmit] No item is currently being edited.");
+        return;
+      }
+      console.log("[AdminPanel:handleEditSubmit] Editing item payload:", editingItem);
+      onEditMenuItem(editingItem.id, editingItem);
+      console.log("[AdminPanel:handleEditSubmit] onEditMenuItem called successfully.");
+      setEditingItem(null);
+    } catch (err: any) {
+      console.error("[AdminPanel:handleEditSubmit] Exception caught during item edit submission:", err);
+    }
   };
 
   // Metrics
