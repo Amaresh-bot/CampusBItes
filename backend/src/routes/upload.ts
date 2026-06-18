@@ -54,8 +54,17 @@ router.post('/', requireAuth, requireAdmin, (req, res, next) => {
         // Simulate progress/network delay (1.2 seconds)
         await new Promise(resolve => setTimeout(resolve, 1200));
 
-        // Use a high-quality food image from Unsplash
-        const mockUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80";
+        // Set of premium Unsplash food images to avoid duplicate previews
+        const mockImages = [
+          "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80", // Salad
+          "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80", // Pizza
+          "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80", // Sandwich
+          "https://images.unsplash.com/photo-1484723091739-30a097e8f929?auto=format&fit=crop&w=800&q=80", // Toast
+          "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=800&q=80"  // Pancakes
+        ];
+        const randomIndex = Math.floor(Math.random() * mockImages.length);
+        const mockUrl = mockImages[randomIndex];
+        
         console.log("[Upload Route] Simulated mock upload success. URL:", mockUrl);
         return res.status(200).json({ success: true, secure_url: mockUrl });
       }

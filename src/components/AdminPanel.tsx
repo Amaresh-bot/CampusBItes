@@ -187,6 +187,11 @@ export function AdminPanel({
       return;
     }
     
+    // Generate local preview immediately after validation passes
+    setSelectedFile(file);
+    const localUrl = URL.createObjectURL(file);
+    setPreviewUrl(localUrl);
+    
     setUploadError(null);
     setUploading(true);
     setUploadProgress(0);
@@ -208,6 +213,7 @@ export function AdminPanel({
         const resData = JSON.parse(xhr.responseText);
         if (xhr.status === 200 && resData.success) {
           setNewItemImg(resData.secure_url);
+          setPreviewUrl(resData.secure_url); // Replace local preview with Cloudinary URL preview
           console.log("[Upload Component] Upload success. secure_url:", resData.secure_url);
         } else {
           setUploadError(resData.message || 'Image upload failed. Server rejected.');
@@ -256,6 +262,8 @@ export function AdminPanel({
     setNewItemName('');
     setNewItemDesc('');
     setNewItemImg('');
+    setSelectedFile(null);
+    setPreviewUrl('');
     setUploadProgress(0);
     setUploadError(null);
     setUploading(false);
@@ -276,6 +284,8 @@ export function AdminPanel({
     setNewItemName('');
     setNewItemDesc('');
     setNewItemImg('');
+    setSelectedFile(null);
+    setPreviewUrl('');
     setUploadProgress(0);
     setUploadError(null);
     setUploading(false);
@@ -1986,7 +1996,7 @@ WITH CHECK (
                   className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${
                     isDragging
                       ? 'border-[#1B4D3E] bg-[#E8F5E9]/30'
-                      : newItemImg
+                      : previewUrl
                       ? 'border-emerald-500 bg-emerald-50/10'
                       : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50'
                   }`}
@@ -2000,38 +2010,46 @@ WITH CHECK (
                     onChange={handleFileChange}
                   />
                   
-                  {newItemImg ? (
+                  {previewUrl ? (
                     <div className="space-y-2 relative" onClick={(e) => e.stopPropagation()}>
-                      <img
-                        src={newItemImg}
-                        alt="Preview"
-                        className="w-full h-32 object-cover rounded-lg shadow-xs"
-                      />
-                      <div className="flex justify-between items-center text-[10px] text-emerald-700 font-bold px-1">
-                        <span>✓ Upload Successful</span>
-                        <button
-                          type="button"
-                          onClick={() => setNewItemImg('')}
-                          className="text-red-500 hover:text-red-700 underline font-semibold transition-all cursor-pointer"
-                        >
-                          Change Image
-                        </button>
+                      <div className="relative w-full h-32 rounded-lg overflow-hidden shadow-xs border border-slate-100">
+                        <img
+                          src={previewUrl}
+                          alt="Food Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        {uploading && (
+                          <div className="absolute inset-0 bg-slate-950/60 flex flex-col items-center justify-center space-y-2 text-white">
+                            <RefreshCw className="w-5 h-5 animate-spin text-[#4CAF50]" />
+                            <span className="text-[10px] font-bold">Uploading {uploadProgress}%</span>
+                            <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden">
+                              <div className="bg-[#4CAF50] h-full" style={{ width: `${uploadProgress}%` }} />
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ) : uploading ? (
-                    <div className="py-4 space-y-3" onClick={(e) => e.stopPropagation()}>
-                      <div className="w-10 h-10 bg-[#E8F5E9] text-[#1B4D3E] rounded-full flex items-center justify-center mx-auto">
-                        <RefreshCw className="w-5 h-5 animate-spin" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-[11px] font-bold text-slate-700">Uploading Image...</p>
-                        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden max-w-xs mx-auto">
-                          <div 
-                            className="bg-[#1B4D3E] h-1.5 rounded-full transition-all duration-300"
-                            style={{ width: `${uploadProgress}%` }}
-                          />
-                        </div>
-                        <p className="text-[9px] font-mono text-slate-400">{uploadProgress}%</p>
+                      <div className="flex justify-between items-center text-[10px] px-1">
+                        {uploading ? (
+                          <span className="text-amber-600 font-bold">Uploading to cloud...</span>
+                        ) : newItemImg ? (
+                          <span className="text-emerald-700 font-bold">✓ Cloud Sync Complete</span>
+                        ) : (
+                          <span className="text-slate-500 font-bold">Preparing upload...</span>
+                        )}
+                        {!uploading && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNewItemImg('');
+                              setPreviewUrl('');
+                              setSelectedFile(null);
+                              setUploadError(null);
+                            }}
+                            className="text-red-500 hover:text-red-700 underline font-semibold transition-all cursor-pointer"
+                          >
+                            Change Image
+                          </button>
+                        )}
                       </div>
                     </div>
                   ) : (
