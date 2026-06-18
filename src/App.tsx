@@ -22,6 +22,7 @@ import { BottomNavbar } from './components/BottomNavbar';
 import PrintHub from './components/PrintHub/PrintHub';
 import { SafeStorage } from './lib/storage';
 import { ProfileDropdown } from '@/components/ui/profile-dropdown';
+import explodedBurger from './assets/images/exploded_burger.png';
 
 
 export default function App() {
@@ -986,7 +987,7 @@ export default function App() {
                 {/* Hero Banner promoting canteens & digital tokens */}
                 {!searchQuery && (
                   <div className="px-4 pt-2">
-                    <div className="bg-gradient-to-br from-[#FFB300] to-[#FF6F00] rounded-3xl p-5 text-white shadow-lg relative flex items-center justify-between min-h-[140px]">
+                    <div className="bg-gradient-to-br from-[#1B4D3E] to-[#2E7D5A] rounded-3xl p-5 text-white shadow-lg relative flex items-center justify-between min-h-[140px]">
                       {/* Left contents */}
                       <div className="space-y-2 max-w-[55%] z-10">
                         <h3 className="text-xl font-black leading-[1.15] text-white">
@@ -997,7 +998,7 @@ export default function App() {
                       {/* Right illustration / overlapping exploded burger image */}
                       <div className="absolute right-[-10px] top-[-15px] bottom-[-15px] w-[160px] h-[170px] z-20 pointer-events-none">
                         <img 
-                          src="/src/assets/images/exploded_burger.png" 
+                          src={explodedBurger} 
                           alt="Canteen Special" 
                           className="w-full h-full object-contain"
                         />
@@ -1741,7 +1742,7 @@ export default function App() {
               ═══════════════════════════════════════════════════ */}
               <div
                 className="relative rounded-2xl text-white overflow-hidden shadow-xl select-none"
-                style={{ background: 'linear-gradient(135deg, #FFB300 0%, #FF8F00 50%, #FF6F00 100%)' }}
+                style={{ background: 'linear-gradient(135deg, #1B4D3E 0%, #225C47 45%, #2E7D5A 100%)' }}
               >
                 {/* Glowing orbs */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -1762,7 +1763,7 @@ export default function App() {
                   {/* Right illustration / overlapping stacked burger image */}
                   <div className="hidden lg:flex lg:col-span-5 justify-end relative h-[220px] pointer-events-none">
                     <img 
-                      src="/src/assets/images/exploded_burger.png" 
+                      src={explodedBurger} 
                       alt="Canteen Special" 
                       className="w-[260px] h-[260px] object-contain drop-shadow-2xl absolute -bottom-12 right-4"
                     />
