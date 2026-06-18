@@ -861,7 +861,7 @@ export default function App() {
     ];
 
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex flex-col justify-between pb-24 select-none relative overflow-x-hidden">
+      <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex flex-col select-none relative overflow-x-hidden">
         
         {/* Compact Swiggy-style Sticky Mobile Header (Height: 70px) */}
         {mobileTab !== 'home' && (
@@ -910,7 +910,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.10, ease: 'easeOut' }}
-                className="space-y-6 pb-20 bg-slate-50 min-h-screen text-left"
+                className="space-y-6 bg-slate-50 text-left"
               >
                 {/* Redesigned Home Header inline with page */}
                 <div className="bg-white px-4 pt-4 pb-3 flex flex-col space-y-3 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
@@ -1379,7 +1379,7 @@ export default function App() {
         )}
 
         {/* Shared App Footer */}
-        <AppFooter onPolicyClick={(key) => setComplianceModal(key)} className="mt-8" />
+        <AppFooter onPolicyClick={(key) => setComplianceModal(key)} className="pb-20" />
       </div>
     );
   }
