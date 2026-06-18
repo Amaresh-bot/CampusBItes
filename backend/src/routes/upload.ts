@@ -47,26 +47,16 @@ router.post('/', requireAuth, requireAdmin, (req, res, next) => {
 
       console.log(`[Upload Route] File upload request received: ${req.file.originalname} (${req.file.size} bytes, ${req.file.mimetype})`);
 
-      // Fallback if Cloudinary is not configured
+      // Fallback if Cloudinary is not configured: convert buffer to base64 data URL
       if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-        console.warn("[Upload Route] Cloudinary credentials are not defined in env. Simulating mock upload latency...");
+        console.warn("[Upload Route] Cloudinary credentials are not defined in env. Returning base64 Data URL fallback...");
         
-        // Simulate progress/network delay (1.2 seconds)
-        await new Promise(resolve => setTimeout(resolve, 1200));
-
-        // Set of premium Unsplash food images to avoid duplicate previews
-        const mockImages = [
-          "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80", // Salad
-          "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80", // Pizza
-          "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80", // Sandwich
-          "https://images.unsplash.com/photo-1484723091739-30a097e8f929?auto=format&fit=crop&w=800&q=80", // Toast
-          "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=800&q=80"  // Pancakes
-        ];
-        const randomIndex = Math.floor(Math.random() * mockImages.length);
-        const mockUrl = mockImages[randomIndex];
+        // Convert the buffer to a base64 Data URL
+        const base64Data = req.file.buffer.toString('base64');
+        const dataUrl = `data:${req.file.mimetype};base64,${base64Data}`;
         
-        console.log("[Upload Route] Simulated mock upload success. URL:", mockUrl);
-        return res.status(200).json({ success: true, secure_url: mockUrl });
+        console.log(`[Upload Route] Converted uploaded image to base64 data URL (${dataUrl.length} characters)`);
+        return res.status(200).json({ success: true, secure_url: dataUrl });
       }
 
       console.log("[Upload Route] Uploading image buffer to Cloudinary...");

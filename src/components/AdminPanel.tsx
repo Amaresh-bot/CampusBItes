@@ -525,11 +525,7 @@ export function AdminPanel({
             { id: 'dashboard', label: '📊 Dashboard' },
             { id: 'kitchen', label: 'Queues' },
             { id: 'menu', label: 'Menu Catalog' },
-            { id: 'students', label: 'Students' },
-            { id: 'upi', label: 'UPI Payouts' },
-            { id: 'transactions', label: '💳 Payment Audit Logs' },
-            { id: 'database', label: '📊 Supabase Monitor' },
-            { id: 'security', label: '🛡️ Security Compliance' }
+            { id: 'students', label: 'Students' }
           ].map(subTab => (
             <button
               key={subTab.id}
