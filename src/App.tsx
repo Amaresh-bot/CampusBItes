@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ShoppingBag, ChefHat, Sparkles, LogOut, BookOpen, User, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Search, Home, Mic, ShoppingCart, AlertCircle, CheckCircle2, MapPin, Star, Clock, Check } from 'lucide-react';
+import { ShoppingBag, ChefHat, Sparkles, LogOut, BookOpen, User, Shield, ArrowRight, Menu as MenuIcon, X as XIcon, Search, Home, Mic, ShoppingCart, AlertCircle, CheckCircle2, MapPin, Star, Clock, Check, SlidersHorizontal, Leaf, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FoodItem, Order, StudentProfile, PaymentSettings, SystemNotification } from './types';
 import { useUser } from './context/UserContext';
@@ -1391,158 +1391,160 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F7F5] text-slate-100 antialiased font-sans flex flex-col justify-between">
-      
-      {/* Sphoorthy Engineering College Brand Banner (Requirement 3) */}
-      <FallbackImage
-        srcs={[
-          '/assets/college_banner.png',
-          '/assets/college_banner.jpg',
-          '/assets/banner.png',
-          '/assets/banner.jpg',
-          '/banner.png',
-          '/banner.jpg'
-        ]}
-        alt="Sphoorthy Engineering College Banner"
-        type="banner"
-        className="w-full h-auto max-h-48 object-cover border-b border-slate-200"
-      />
-      
-      {/* SubtleSpacing details between top banner and navbar (Requirement 9) */}
-      <div className="h-2 w-full bg-slate-100/50 border-b border-slate-200/40"></div>
+    <div className="min-h-screen bg-[#F4F6F8] text-slate-900 antialiased font-sans flex flex-col">
 
-      {/* Top Universal Header */}
-      <header id="main-header" className="h-20 bg-white sticky top-0 z-45 shadow-sm transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      {/* ═══════════════════════════════════════════════════
+           SWIGGY-STYLE DESKTOP HEADER
+      ═══════════════════════════════════════════════════ */}
+      <header id="main-header" className="bg-white sticky top-0 z-45 shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition-all duration-300">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-[72px] flex items-center gap-4">
           
-          {/* Logo Brand area (Swiggy Signature Locator Layout) */}
+          {/* Logo — left anchor */}
           <button 
             onClick={() => { setHasEnteredApp(false); setActiveTab('menu'); setFilteredStoreId(null); }}
-            className="flex items-center gap-3 hover:opacity-90 transition-all text-left bg-transparent border-none outline-none cursor-pointer"
+            className="flex items-center gap-2.5 hover:opacity-90 transition-all text-left bg-transparent border-none outline-none cursor-pointer shrink-0"
           >
-            <FallbackImage
-              srcs={[
-                '/assets/college_logo.png',
-                '/assets/logo.png',
-                '/logo.png',
-                '/assets/logo.jpg',
-                '/assets/logo.svg'
-              ]}
-              alt="Sphoorthy Engineering College Logo"
-              type="logo"
-              className="w-12 h-12 object-contain rounded-full shrink-0 border border-emerald-500/15 p-0.5"
-            />
-            <div className="flex flex-col">
-              <span className="font-display font-black text-lg text-[#1B4D3E] tracking-tight leading-none uppercase">
-                CampusBites
-              </span>
-              <span className="text-[10px] text-[#4CAF50] font-black tracking-wider uppercase block mt-1.5 font-mono">
-                SPHN Campus
-              </span>
+            <div className="w-10 h-10 rounded-xl bg-[#1B4D3E] flex items-center justify-center shadow-md shrink-0">
+              <ChefHat className="w-5 h-5 text-white" />
+            </div>
+            <div className="hidden sm:flex flex-col">
+              <span className="font-black text-[15px] text-[#1B4D3E] tracking-tight leading-none">CampusBites</span>
+              <span className="text-[9px] text-[#4CAF50] font-black tracking-widest uppercase block mt-0.5">SPHN Campus</span>
             </div>
           </button>
 
-          {/* Nav Links Tabs & Session controllers */}
-          <div className="flex items-center gap-2 sm:gap-6 h-full text-slate-900">
-            
-            {/* View selectors - HIDDEN on mobile, visible on medium+ screens */}
-            <nav className="hidden md:flex gap-8 text-sm font-black h-20">
+          {/* Location pill */}
+          <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5 cursor-default shrink-0">
+            <MapPin className="w-3.5 h-3.5 text-[#1B4D3E]" />
+            <span className="text-[11px] font-bold text-slate-700 truncate max-w-[120px]">Sphoorthy Canteen</span>
+          </div>
+
+          {/* Central Search Bar */}
+          <div className="flex-1 relative">
+            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl h-10 px-3 gap-2 focus-within:border-[#1B4D3E] focus-within:ring-2 focus-within:ring-[#1B4D3E]/10 transition-all">
+              <Search className="w-4 h-4 text-slate-400 shrink-0" />
+              <input
+                type="text"
+                placeholder={searchPlaceholders[currentPlaceholderIdx]}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-transparent outline-none border-none text-sm text-slate-800 placeholder-slate-400 font-medium"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer">✕</button>
+              )}
+            </div>
+          </div>
+
+          {/* Right Utilities */}
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Nav pills — desktop only */}
+            <nav className="hidden lg:flex items-center gap-1 mr-2">
               <button
-                onClick={() => { setActiveTab('menu'); }}
-                className={`h-20 flex items-center gap-2 px-1.5 transition-all text-xs font-black uppercase tracking-wider cursor-pointer hover:text-[#1B4D3E] ${
-                  activeTab === 'menu' ? 'text-[#1B4D3E] border-[#1B4D3E] border-b-4' : 'text-slate-400 border-transparent hover:border-slate-200 border-b-4'
+                onClick={() => setActiveTab('menu')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'menu' ? 'bg-[#1B4D3E] text-white' : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
-                <ChefHat className="w-4 h-4" />
-                Menu
+                <ChefHat className="w-3.5 h-3.5" /> Menu
               </button>
-
-
-
               <button
-                onClick={() => { setActiveTab('orders'); }}
-                className={`h-20 flex items-center gap-2 px-1.5 transition-all text-xs font-black uppercase tracking-wider cursor-pointer relative hover:text-[#1B4D3E] ${
-                  activeTab === 'orders' ? 'text-[#1B4D3E] border-[#1B4D3E] border-b-4' : 'text-slate-400 border-transparent hover:border-slate-200 border-b-4'
+                onClick={() => setActiveTab('orders')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 relative ${
+                  activeTab === 'orders' ? 'bg-[#1B4D3E] text-white' : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
-                <ShoppingBag className="w-4 h-4" />
-                Orders
+                <ShoppingBag className="w-3.5 h-3.5" /> Orders
                 {orders.some(o => ['Pending', 'Preparing', 'Ready for Pickup'].includes(o.status)) && (
-                  <span className="w-2 h-2 rounded-full bg-[#4CAF50] absolute top-6 right-[-4px] animate-ping" />
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                 )}
               </button>
-
-
-
               {isUserAdmin && (
                 <button
                   onClick={() => setActiveTab('admin')}
-                  className={`h-20 flex items-center gap-2 px-1.5 transition-all text-xs font-black uppercase tracking-wider cursor-pointer hover:text-[#1B4D3E] ${
-                    activeTab === 'admin' ? 'text-[#1B4D3E] border-[#1B4D3E] border-b-4 font-black' : 'text-slate-400 border-transparent hover:border-slate-200 border-b-4'
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === 'admin' ? 'bg-[#1B4D3E] text-white' : 'text-slate-600 hover:bg-slate-100'
                   }`}
                 >
-                  <Shield className="w-4 h-4" />
-                  Admin Box
+                  <Shield className="w-3.5 h-3.5" /> Admin
                 </button>
               )}
             </nav>
 
-            <div className="flex items-center gap-1.5 sm:gap-3 border-l border-slate-100 pl-2 sm:pl-6 h-10 shrink-0">
-              
-              {/* Communication alerts drawer */}
-              <NotificationsDrawer
-                notifications={notifications}
-                onMarkRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
-                onClearAll={() => setNotifications([])}
-              />
-
-              {/* Profile Dropdown Component */}
-              <ProfileDropdown
-                data={{
-                  name: user.name,
-                  email: user.email,
-                  avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`,
-                  subscription: user.role === 'admin' ? 'ADMIN' : 'STUDENT',
-                  model: walletBalance !== null ? `₹${walletBalance.toFixed(2)}` : 'Loading...'
-                }}
-                onProfileClick={() => setShowProfileModal(true)}
-                onSettingsClick={() => setShowProfileModal(true)}
-                onWalletClick={() => {
-                  if (isMobile) {
-                    setMobileTab('profile');
-                  } else {
-                    setShowProfileModal(true);
-                  }
-                }}
-                onOrdersClick={() => {
-                  if (isMobile) {
-                    setMobileTab('orders');
-                  } else {
-                    setActiveTab('orders');
-                  }
-                }}
-                onSignOutClick={handleLogout}
-              />
-
-              {/* Hamburger Button for mobile devices (Requirement 11) */}
+            {/* Cart icon with badge */}
+            {activeTab === 'menu' && (
               <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-1.5 border border-slate-200 rounded-xl md:hidden hover:bg-slate-50 text-slate-600 hover:text-[#1B4D3E] transition-all cursor-pointer ml-1"
-                title="Toggle Menu Navigation"
+                onClick={() => setIsMobileCartOpen(true)}
+                className="relative p-2 rounded-xl hover:bg-slate-100 text-slate-700 transition-all cursor-pointer"
+                title="View Cart"
               >
-                {isMobileMenuOpen ? (
-                  <XIcon className="w-4 h-4" />
-                ) : (
-                  <MenuIcon className="w-4 h-4" />
+                <ShoppingCart className="w-5 h-5" />
+                {Object.values(cart).reduce((s: number, v) => s + (v as number), 0) > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-[#1B4D3E] text-white text-[9px] font-black rounded-full flex items-center justify-center px-0.5">
+                    {Object.values(cart).reduce((s: number, v) => s + (v as number), 0)}
+                  </span>
                 )}
               </button>
-            </div>
+            )}
 
+            {/* Notifications */}
+            <NotificationsDrawer
+              notifications={notifications}
+              onMarkRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
+              onClearAll={() => setNotifications([])}
+            />
+
+            {/* Profile */}
+            <ProfileDropdown
+              data={{
+                name: user.name,
+                email: user.email,
+                avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`,
+                subscription: user.role === 'admin' ? 'ADMIN' : 'STUDENT',
+                model: walletBalance !== null ? `₹${walletBalance.toFixed(2)}` : 'Loading...'
+              }}
+              onProfileClick={() => setShowProfileModal(true)}
+              onSettingsClick={() => setShowProfileModal(true)}
+              onWalletClick={() => { if (isMobile) setMobileTab('profile'); else setShowProfileModal(true); }}
+              onOrdersClick={() => { if (isMobile) setMobileTab('orders'); else setActiveTab('orders'); }}
+              onSignOutClick={handleLogout}
+            />
+
+            {/* Hamburger for md screens */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-1.5 border border-slate-200 rounded-xl lg:hidden hover:bg-slate-50 text-slate-600 hover:text-[#1B4D3E] transition-all cursor-pointer ml-1"
+            >
+              {isMobileMenuOpen ? <XIcon className="w-4 h-4" /> : <MenuIcon className="w-4 h-4" />}
+            </button>
           </div>
         </div>
+
+        {/* Swiggy-style horizontal category strip — only on menu tab */}
+        {activeTab === 'menu' && (
+          <div className="border-t border-slate-100 bg-white">
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center gap-1.5 overflow-x-auto py-2.5 scrollbar-none">
+                {['All','Breakfast','Meals','Beverages','Snacks','Desserts','Stationery'].map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-4 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer border shrink-0 ${
+                      selectedCategory === cat
+                        ? 'bg-[#1B4D3E] text-white border-[#1B4D3E] shadow-sm'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-[#1B4D3E]/40 hover:text-[#1B4D3E]'
+                    }`}
+                  >
+                    {cat === 'All' && '🍽️ '}{cat === 'Breakfast' && '🌅 '}{cat === 'Meals' && '🍔 '}{cat === 'Beverages' && '☕ '}{cat === 'Snacks' && '🍟 '}{cat === 'Desserts' && '🍕 '}{cat === 'Stationery' && '📚 '}{cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </header>
       
-      {/* Mobile Nav Menu Drawer (Requirement 11) */}
+      {/* Hamburger dropdown for md/tablet screens */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -1550,51 +1552,21 @@ export default function App() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.18 }}
-            className="md:hidden border-b border-slate-100 bg-white overflow-hidden shadow-xs"
+            className="lg:hidden border-b border-slate-100 bg-white overflow-hidden shadow-sm z-40 relative"
           >
-            <div className="px-4 py-3 space-y-1.5 flex flex-col text-slate-900 bg-white">
-              <button
-                onClick={() => {
-                  setActiveTab('menu');
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`py-2 px-3 text-left text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-                  activeTab === 'menu' ? 'bg-[#E8F5E9] text-[#1B4D3E]' : 'text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <ChefHat className="w-4 h-4" />
-                Menu
+            <div className="px-4 py-3 space-y-1.5 flex flex-col">
+              <button onClick={() => { setActiveTab('menu'); setIsMobileMenuOpen(false); }}
+                className={`py-2 px-3 text-left text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer ${ activeTab === 'menu' ? 'bg-[#E8F5E9] text-[#1B4D3E]' : 'text-slate-600 hover:bg-slate-50' }`}>
+                <ChefHat className="w-4 h-4" /> Menu
               </button>
-
-
-
-              <button
-                onClick={() => {
-                  setActiveTab('orders');
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`py-2 px-3 text-left text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-                  activeTab === 'orders' ? 'bg-[#E8F5E9] text-[#1B4D3E]' : 'text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <ShoppingBag className="w-4 h-4" />
-                My Orders
+              <button onClick={() => { setActiveTab('orders'); setIsMobileMenuOpen(false); }}
+                className={`py-2 px-3 text-left text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer ${ activeTab === 'orders' ? 'bg-[#E8F5E9] text-[#1B4D3E]' : 'text-slate-600 hover:bg-slate-50' }`}>
+                <ShoppingBag className="w-4 h-4" /> My Orders
               </button>
-
-
-
               {isUserAdmin && (
-                <button
-                  onClick={() => {
-                    setActiveTab('admin');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`py-2 px-3 text-left text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-                    activeTab === 'admin' ? 'bg-[#E8F5E9] text-[#1B4D3E]' : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  <Shield className="w-4 h-4" />
-                  Admin Box
+                <button onClick={() => { setActiveTab('admin'); setIsMobileMenuOpen(false); }}
+                  className={`py-2 px-3 text-left text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer ${ activeTab === 'admin' ? 'bg-[#E8F5E9] text-[#1B4D3E]' : 'text-slate-600 hover:bg-slate-100' }`}>
+                  <Shield className="w-4 h-4" /> Admin
                 </button>
               )}
             </div>
@@ -1602,8 +1574,8 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Main Page Canvas Fluid Layout */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full text-slate-900">
+      {/* Main Page Canvas */}
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full text-slate-900">
         
         {studentProfile === null && !isProfileLoading && user.role === 'customer' && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 text-slate-900 text-xs">
@@ -1762,170 +1734,248 @@ export default function App() {
                 )}
               </div>
             </motion.div>
-) : (
+          ) : (
             <motion.div
               key="menu"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.18 }}
-              className="space-y-8"
+              className="space-y-6"
             >
-              {/* 1. Stunning Organic Green Hero Banner exactly like mock */}
-              <div 
-                className="relative rounded-3xl text-white overflow-hidden p-6 sm:p-10 lg:p-12 shadow-xl flex flex-col justify-center select-none"
-                style={{
-                  background: `linear-gradient(135deg, #1B4D3E 0%, #225C47 50%, #2E7D5A 100%)`
-                }}
+              {/* ═══════════════════════════
+                   SWIGGY-STYLE HERO BANNER
+              ═══════════════════════════ */}
+              <div
+                className="relative rounded-2xl text-white overflow-hidden shadow-xl select-none"
+                style={{ background: 'linear-gradient(135deg, #1B4D3E 0%, #225C47 45%, #2E7D5A 100%)' }}
               >
-                {/* Decorative faint grid lines / glowing bubbles */}
-                <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-                  <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-[#4CAF50]/15 rounded-full blur-2xl" />
-                  <div className="absolute bottom-1/4 right-1/4 w-60 h-60 bg-[#E8F5E9]/5 rounded-full blur-2xl animate-pulse" />
+                {/* Glowing orbs */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                  <div className="absolute -top-12 -left-12 w-64 h-64 bg-[#4CAF50]/20 rounded-full blur-3xl" />
+                  <div className="absolute -bottom-8 -right-8 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-32 bg-[#4CAF50]/10 rounded-full blur-2xl" />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-                  {/* Hero Left Content */}
-                  <div className="lg:col-span-7 space-y-4 text-left">
-                    <div className="inline-flex items-center gap-1.5 bg-[#E8F5E9]/15 border border-[#4CAF50]/20 px-3 py-1 rounded-full text-[10px] font-black tracking-wide text-[#E8F5E9] uppercase">
-                      <Sparkles className="w-3.5 h-3.5 text-[#4CAF50] shrink-0" />
-                      <span>SPHN CAMPUS EXCLUSIVE</span>
+                <div className="relative z-10 p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                  {/* Left text */}
+                  <div className="lg:col-span-7 space-y-4">
+                    <div className="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                      <Sparkles className="w-3 h-3 text-[#A5D6A7]" />
+                      <span className="text-[10px] font-black tracking-widest text-[#C8E6C9] uppercase">SPHN Campus Exclusive</span>
                     </div>
-
-                    <div className="space-y-2">
-                      <h1 className="text-2xl sm:text-3.5xl lg:text-[44px] font-display font-extrabold tracking-tight text-white leading-tight">
-                        Order Food & Essentials.
+                    <div>
+                      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.1]">
+                        Order Food &<br className="hidden sm:block" /> College Essentials
                       </h1>
-                      <p className="text-[11px] sm:text-xs text-slate-200 font-semibold max-w-md leading-relaxed mt-1">
-                        Fresh meals, snacks, stationery, printouts and more. Delivered fast to your campus. Welcome back, <strong className="text-white">{user?.name}</strong>!
+                      <p className="mt-3 text-sm text-[#C8E6C9] font-medium max-w-lg leading-relaxed">
+                        Fresh canteen meals • Snacks • Stationery • Printouts — ready for pickup in minutes. Welcome back, <strong className="text-white">{user?.name}</strong>!
                       </p>
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <button
+                        onClick={() => setSelectedCategory('Meals')}
+                        className="inline-flex items-center gap-2 bg-white text-[#1B4D3E] font-black text-xs px-5 py-2.5 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                      >
+                        <ChefHat className="w-4 h-4" /> Order Now
+                      </button>
+                      <button
+                        onClick={() => setSelectedCategory('Stationery')}
+                        className="inline-flex items-center gap-2 bg-white/10 border border-white/25 backdrop-blur-sm text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-white/20 transition-all cursor-pointer"
+                      >
+                        📚 Stationery
+                      </button>
+                    </div>
+                    {/* Trust badges */}
+                    <div className="flex items-center gap-4 pt-1">
+                      {[['⚡','Quick Pickup'],['🔒','Secure Pay'],['⭐','Top Rated']].map(([icon, label]) => (
+                        <div key={label} className="flex items-center gap-1.5 text-[10px] text-[#A5D6A7] font-bold">
+                          <span>{icon}</span><span>{label}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Hero Right Floating Graphics Column mimicking mockup */}
-                  <div className="hidden md:flex lg:col-span-5 relative h-[250px] md:h-[280px] items-center justify-center pointer-events-none select-none overflow-hidden">
-                    {/* Circular backlight */}
-                    <div className="absolute w-44 h-44 rounded-full bg-radial from-[#4CAF50]/15 to-transparent blur-xl" />
-                    
-                    {/* Burger FLOATER */}
-                    <motion.div 
-                      animate={{ y: [0, -6, 0] }}
-                      transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                      className="absolute top-[8%] left-[8%] bg-white/95 backdrop-blur-md border border-slate-100 rounded-xl p-2 shadow-md flex items-center gap-2 max-w-[130px]"
-                    >
-                      <span className="text-xl">🍔</span>
-                      <div className="text-left">
-                        <h4 className="font-extrabold text-slate-900 text-[9px] leading-tight font-sans">Cheesy Burger</h4>
-                        <span className="font-mono text-[9px] text-slate-500 font-bold block">₹120</span>
-                      </div>
-                    </motion.div>
-
-                    {/* Coffee FLOATER */}
-                    <motion.div 
-                      animate={{ y: [0, 8, 0] }}
-                      transition={{ repeat: Infinity, duration: 4.6, ease: "easeInOut" }}
-                      className="absolute top-[5%] right-[5%] bg-white/95 backdrop-blur-md border border-slate-100 rounded-xl p-2 shadow-md flex items-center gap-2 max-w-[130px]"
-                    >
-                      <span className="text-xl">🥤</span>
-                      <div className="text-left">
-                        <h4 className="font-extrabold text-slate-900 text-[9px] leading-tight font-sans">Cold Coffee</h4>
-                        <span className="font-mono text-[9px] text-slate-500 font-bold block">₹60</span>
-                      </div>
-                    </motion.div>
-
-                    {/* Red Sauce Pasta FLOATER */}
-                    <motion.div 
+                  {/* Right floating food cards */}
+                  <div className="hidden lg:block lg:col-span-5 relative h-[220px] pointer-events-none">
+                    <motion.div
                       animate={{ y: [0, -8, 0] }}
-                      transition={{ repeat: Infinity, duration: 5.2, ease: "easeInOut" }}
-                      className="absolute bottom-[8%] right-[10%] bg-white/95 backdrop-blur-md border border-slate-100 rounded-xl p-2 shadow-md flex items-center gap-2 max-w-[140px]"
+                      transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut' }}
+                      className="absolute top-0 left-4 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-lg flex items-center gap-2.5 min-w-[140px]"
                     >
-                      <span className="text-xl">🍝</span>
-                      <div className="text-left">
-                        <h4 className="font-extrabold text-slate-900 text-[9px] leading-tight font-sans">Red Sauce Pasta</h4>
-                        <span className="font-mono text-[9px] text-slate-500 font-bold block">₹150</span>
+                      <span className="text-2xl">🍔</span>
+                      <div>
+                        <p className="text-[10px] font-black text-slate-900">Cheesy Burger</p>
+                        <p className="text-[9px] text-[#1B4D3E] font-bold">₹120 • ⭐ 4.6</p>
                       </div>
                     </motion.div>
-
-                    {/* Notebook FLOATER */}
-                    <motion.div 
-                      className="absolute bottom-[10%] left-[5%] bg-white/95 backdrop-blur-md border border-[#E8F5E9] rounded-xl p-2 shadow-md flex items-center gap-2 max-w-[130px]"
+                    <motion.div
+                      animate={{ y: [0, 8, 0] }}
+                      transition={{ repeat: Infinity, duration: 4.2, ease: 'easeInOut' }}
+                      className="absolute top-4 right-0 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-lg flex items-center gap-2.5 min-w-[140px]"
                     >
-                      <span className="text-xl">📓</span>
-                      <div className="text-left">
-                        <h4 className="font-extrabold text-slate-900 text-[9px] leading-tight font-sans">Record Book</h4>
-                        <span className="font-mono text-[9px] text-slate-500 font-bold block">₹40</span>
+                      <span className="text-2xl">☕</span>
+                      <div>
+                        <p className="text-[10px] font-black text-slate-900">Filter Coffee</p>
+                        <p className="text-[9px] text-[#1B4D3E] font-bold">₹40 • ⭐ 4.8</p>
                       </div>
                     </motion.div>
-
-                    {/* Big central beautiful mockup bags illustration */}
-                    <div className="w-[180px] h-[180px] bg-white/5 border border-white/5 rounded-3xl backdrop-blur-xs flex items-center justify-center relative overflow-hidden p-4">
-                      <div className="text-center space-y-2">
-                        <div className="w-12 h-12 bg-[#4CAF50] rounded-2xl flex items-center justify-center mx-auto text-xl text-white shadow-md">📦</div>
-                        <span className="text-[10px] font-black tracking-widest text-[#E8F5E9] uppercase block font-sans">SPHN EXPRESS</span>
+                    <motion.div
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }}
+                      className="absolute bottom-2 left-8 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-lg flex items-center gap-2.5 min-w-[140px]"
+                    >
+                      <span className="text-2xl">🍟</span>
+                      <div>
+                        <p className="text-[10px] font-black text-slate-900">Samosa Plate</p>
+                        <p className="text-[9px] text-[#1B4D3E] font-bold">₹30 • ⭐ 4.5</p>
                       </div>
-                    </div>
+                    </motion.div>
+                    <motion.div
+                      animate={{ y: [0, 6, 0] }}
+                      transition={{ repeat: Infinity, duration: 3.8, ease: 'easeInOut' }}
+                      className="absolute bottom-0 right-4 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-lg flex items-center gap-2.5 min-w-[120px]"
+                    >
+                      <span className="text-2xl">📓</span>
+                      <div>
+                        <p className="text-[10px] font-black text-slate-900">Record Book</p>
+                        <p className="text-[9px] text-[#1B4D3E] font-bold">₹40 • 📚</p>
+                      </div>
+                    </motion.div>
                   </div>
                 </div>
               </div>
 
-              {/* Today's Specials Dynamic Featured Slider (Responsive desktop and large screens support) */}
+              {/* Today's Specials Slider */}
               <div className="w-full">
                 <TodaysSpecialsSlider
                   items={menuItems}
                   cart={cart}
                   onUpdateCart={handleUpdateCart}
                   userRole={user?.role}
-                  onGoToAdmin={() => {
-                    setActiveTab('admin');
-                  }}
+                  onGoToAdmin={() => setActiveTab('admin')}
                 />
               </div>
 
-              {/* 2. Three Column Responsive Dashboard Layout mirroring mockup */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                
-                {/* Left Columns (Canteen Catalogue & Store selection) */}
-                <div className="lg:col-span-2 space-y-8">
-                  
+              {/* ═══════════════════════════════════════════════════
+                   3-COLUMN SWIGGY-STYLE LAYOUT
+                   Left: Filters  |  Center: Menu  |  Right: Cart
+              ═══════════════════════════════════════════════════ */}
+              <div className="grid grid-cols-1 xl:grid-cols-[220px_1fr_300px] lg:grid-cols-[200px_1fr] gap-6 items-start">
 
+                {/* ── LEFT SIDEBAR: Filters ── */}
+                <aside className="hidden lg:block space-y-4">
+                  {/* Filter Panel */}
+                  <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                    <div className="flex items-center gap-2 mb-4">
+                      <SlidersHorizontal className="w-4 h-4 text-[#1B4D3E]" />
+                      <span className="text-xs font-black text-slate-800 uppercase tracking-wider">Filters</span>
+                    </div>
 
+                    {/* Veg / Non-Veg */}
+                    <div className="space-y-2 mb-4">
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Dietary</p>
+                      <button
+                        onClick={() => setVegetarianOnly(!vegetarianOnly)}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                          vegetarianOnly
+                            ? 'bg-green-50 border-green-400 text-green-700'
+                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <Leaf className="w-3.5 h-3.5" />
+                          Pure Veg Only
+                        </span>
+                        <div className={`w-8 h-4 rounded-full transition-all relative ${ vegetarianOnly ? 'bg-green-500' : 'bg-slate-200' }`}>
+                          <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-all ${ vegetarianOnly ? 'left-[17px]' : 'left-0.5' }`} />
+                        </div>
+                      </button>
+                    </div>
 
-
-                  {/* Catalogue Products Render Spot */}
-                  <div className="space-y-4">
-                    {isMenuLoading ? (
-                      <MenuSkeleton count={4} />
-                    ) : (
-                      <CanteenMenu 
-                        items={menuItems} 
-                        cart={cart} 
-                        onUpdateCart={handleUpdateCart} 
-                        filteredStoreId={filteredStoreId}
-                        onClearStoreFilter={() => setFilteredStoreId(null)}
-                        selectedCategory={selectedCategory}
-                        setSelectedCategory={setSelectedCategory}
-                        searchQuery={searchQuery}
-                        setSearchQuery={setSearchQuery}
-                        vegetarianOnly={vegetarianOnly}
-                        setVegetarianOnly={setVegetarianOnly}
-                      />
-                    )}
+                    {/* Categories */}
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Categories</p>
+                      {['All','Breakfast','Meals','Beverages','Snacks','Desserts','Stationery'].map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setSelectedCategory(cat)}
+                          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center gap-2.5 ${
+                            selectedCategory === cat
+                              ? 'bg-[#1B4D3E] text-white'
+                              : 'text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <span>{cat === 'All' ? '🍽️' : cat === 'Breakfast' ? '🌅' : cat === 'Meals' ? '🍔' : cat === 'Beverages' ? '☕' : cat === 'Snacks' ? '🍟' : cat === 'Desserts' ? '🍕' : '📚'}</span>
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
+                  {/* Canteen Info Card */}
+                  <div className="bg-[#1B4D3E] rounded-2xl p-5 text-white">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
+                        <ChefHat className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black leading-none">Sphoorthy Canteen</p>
+                        <p className="text-[9px] text-[#A5D6A7] font-medium mt-0.5">SPHN Campus</p>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5 text-[10px] text-[#C8E6C9]">
+                      <div className="flex items-center gap-1.5"><Star className="w-3 h-3 fill-amber-400 stroke-none" /><span className="font-bold text-white">4.6</span> Rated</div>
+                      <div className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> 10–15 min pickup</div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> Open Now
+                      </div>
+                    </div>
+                  </div>
+                </aside>
+
+                {/* ── CENTER: Menu Items ── */}
+                <div className="space-y-4 min-w-0">
+                  {isMenuLoading ? (
+                    <MenuSkeleton count={4} />
+                  ) : (
+                    <CanteenMenu
+                      items={menuItems}
+                      cart={cart}
+                      onUpdateCart={handleUpdateCart}
+                      filteredStoreId={filteredStoreId}
+                      onClearStoreFilter={() => setFilteredStoreId(null)}
+                      selectedCategory={selectedCategory}
+                      setSelectedCategory={setSelectedCategory}
+                      searchQuery={searchQuery}
+                      setSearchQuery={setSearchQuery}
+                      vegetarianOnly={vegetarianOnly}
+                      setVegetarianOnly={setVegetarianOnly}
+                      hideSearchHeader={true}
+                    />
+                  )}
                 </div>
 
-                {/* Right Sidebar Column - My Cart */}
-                <div className="hidden lg:block lg:col-span-1 text-slate-900">
-                  <div className="bg-white rounded-3xl p-6 shadow-xl sticky top-[180px] border border-slate-100">
-                    <CartDrawer 
-                      user={user!}
-                      cart={cart}
-                      menuItems={menuItems}
-                      onUpdateCart={handleUpdateCart}
-                      onClearCart={handleClearCart}
-                      onOrderPlacement={handleOrderCreated}
-                      onExploreMenu={() => { setFilteredStoreId(null); setSelectedCategory('All'); setSearchQuery(''); setActiveTab('menu'); }}
-                    />
+                {/* ── RIGHT: Sticky Cart ── */}
+                <div className="hidden xl:block">
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-100 sticky top-[148px]">
+                    <div className="p-4 border-b border-slate-100">
+                      <h3 className="font-black text-sm text-slate-900 flex items-center gap-2">
+                        <ShoppingCart className="w-4 h-4 text-[#1B4D3E]" />
+                        Your Cart
+                      </h3>
+                    </div>
+                    <div className="p-4">
+                       <CartDrawer
+                        user={user!}
+                        cart={cart}
+                        menuItems={menuItems}
+                        onUpdateCart={handleUpdateCart}
+                        onClearCart={handleClearCart}
+                        onOrderPlacement={handleOrderCreated}
+                        onExploreMenu={() => { setFilteredStoreId(null); setSelectedCategory('All'); setSearchQuery(''); setActiveTab('menu'); }}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -2006,18 +2056,48 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* Elegant minimalist footer */}
-      <footer className="mt-20 py-8 border-t border-slate-200 bg-white text-center text-xs text-slate-500 w-full shrink-0">
-        <p className="font-sans font-semibold text-slate-600 leading-none">CampusBites Hub • Sphoorthy Engineering College Canteen Portal</p>
-        <p className="mt-1 text-slate-400">Powered by active PCI compliance Razorpay checkout pathways and Valute instant ledger transactions.</p>
-        <div className="mt-3 flex justify-center space-x-4 flex-wrap gap-y-2 text-[11px] text-blue-600 font-medium">
-          <button onClick={() => setComplianceModal('terms')} className="hover:underline cursor-pointer">Terms & Conditions</button>
-          <span>•</span>
-          <button onClick={() => setComplianceModal('privacy')} className="hover:underline cursor-pointer">Privacy Policy</button>
-          <span>•</span>
-          <button onClick={() => setComplianceModal('refund')} className="hover:underline cursor-pointer">Refund & Cancellation</button>
-          <span>•</span>
-          <button onClick={() => setComplianceModal('contact')} className="hover:underline cursor-pointer">Contact Us</button>
+      {/* ═══════════════════════════════════════
+           SWIGGY-STYLE FOOTER
+      ═══════════════════════════════════════ */}
+      <footer className="mt-16 bg-[#1B4D3E] text-white w-full shrink-0">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-white/10">
+            {/* Brand */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center">
+                  <ChefHat className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-black text-base leading-none">CampusBites</p>
+                  <p className="text-[9px] text-[#A5D6A7] font-bold tracking-widest uppercase mt-0.5">SPHN Campus</p>
+                </div>
+              </div>
+              <p className="text-xs text-[#A5D6A7] leading-relaxed max-w-[220px]">Your go-to canteen ordering platform at Sphoorthy Engineering College.</p>
+            </div>
+            {/* Quick Links */}
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#A5D6A7] mb-3">Quick Links</p>
+              <div className="space-y-2">
+                {[['Menu', () => setActiveTab('menu')], ['My Orders', () => setActiveTab('orders')], ['Profile', () => setShowProfileModal(true)]].map(([label, fn]) => (
+                  <button key={label as string} onClick={fn as () => void} className="block text-xs text-white/70 hover:text-white font-medium cursor-pointer transition-colors">{label as string}</button>
+                ))}
+              </div>
+            </div>
+            {/* Policies */}
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#A5D6A7] mb-3">Policies</p>
+              <div className="space-y-2">
+                {[['Terms & Conditions','terms'],['Privacy Policy','privacy'],['Refund Policy','refund'],['Contact Us','contact']].map(([label, key]) => (
+                  <button key={key} onClick={() => setComplianceModal(key as any)} className="block text-xs text-white/70 hover:text-white font-medium cursor-pointer transition-colors">{label}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-[11px] text-white/50 font-medium">© 2025 CampusBites Hub · Sphoorthy Engineering College</p>
+            <p className="text-[10px] text-white/40">Powered by Razorpay · Secure PCI-DSS Checkout</p>
+          </div>
         </div>
       </footer>
 
