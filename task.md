@@ -35,7 +35,7 @@
   - [x] Create `backend/src/sockets/socketHandler.ts`
   - [x] Integrate Socket.IO server within `backend/src/server.ts`
 
-- [/] **Phase 5: Data Migration, Seeding & Frontend Adaptation**
+- [x] **Phase 5: Data Migration, Seeding & Frontend Adaptation**
   - [x] Create data migration script (`migrate.ts`)
   - [x] Create seed script (`seed.ts`)
-  - [ ] Update Frontend `UserContext.tsx` and components to point to the new backend API endpoints and Socket.IO client connections.
+  - [x] Update Frontend `UserContext.tsx` and components to point to the new backend API endpoints and Socket.IO client connections.
