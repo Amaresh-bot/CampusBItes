@@ -81,7 +81,7 @@ export function CanteenMenu({
   }, [filteredStoreId]);
 
   // Derive unique categories
-  const categories = ['All', 'Breakfast', 'Meals', 'Beverages', 'Snacks', 'Desserts', 'Stationery'];
+  const categories = ['All', 'Breakfast', 'Meals', 'Beverages', 'Snacks', 'Desserts'];
 
   // Filtering filter logic
   const filteredItems = items.filter(item => {
