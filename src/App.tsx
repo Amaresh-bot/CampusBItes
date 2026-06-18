@@ -79,7 +79,7 @@ export default function App() {
 
   // Mobile Redesign states
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [mobileTab, setMobileTab] = useState<'home' | 'orders' | 'stores' | 'cart' | 'profile' | 'admin' | 'printhub' | 'tokens'>('home');
+  const [mobileTab, setMobileTab] = useState<'home' | 'orders' | 'stores' | 'cart' | 'profile' | 'admin' | 'printhub'>('home');
   const [promoIndex, setPromoIndex] = useState<number>(0);
 
   // Clean event listener to identify handheld devices dynamically
@@ -904,41 +904,7 @@ export default function App() {
           </header>
         )}
 
-        {/* Slider Choice Modal for SPHN Campus Locations */}
-        {showLocationSelector && (
-          <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-55 flex items-end">
-            <div className="absolute inset-0" onClick={() => setShowLocationSelector(false)} />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              className="w-full bg-white rounded-t-3xl p-5 shadow-2xl relative z-10 space-y-4"
-            >
-              <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-                <h3 className="font-display font-black text-slate-800 text-sm uppercase tracking-wide">Select Delivery Hub</h3>
-                <button onClick={() => setShowLocationSelector(false)} className="text-slate-400 text-lg font-bold">×</button>
-              </div>
-              <div className="space-y-1.5 max-h-[45vh] overflow-y-auto">
-                {campusLocations.map((loc) => (
-                  <button
-                    key={loc}
-                    onClick={() => {
-                      setSelectedLocation(loc);
-                      setShowLocationSelector(false);
-                      addNotification('📍 Location Updated', `Delivery point changed to ${loc}.`, 'info');
-                    }}
-                    className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-between ${
-                      selectedLocation === loc ? 'bg-[#E8F5E9] text-[#1B4D3E]' : 'hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <span>{loc}</span>
-                    {selectedLocation === loc && <span className="text-[#4CAF50] font-black">✓</span>}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        )}
+        {/* Location selector popup removed */}
 
         {/* Dynamic Nav Tabs Body rendering conditional content */}
         <main className="flex-1 w-full bg-white">
@@ -956,10 +922,9 @@ export default function App() {
                 <div className="bg-white px-4 pt-4 pb-3 flex flex-col space-y-3 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                   {/* Top Header Row */}
                   <div className="flex justify-between items-center">
-                    {/* College Location Selector */}
-                    <button
-                      onClick={() => setShowLocationSelector(true)}
-                      className="flex items-center gap-1.5 text-left bg-transparent border-none outline-none cursor-pointer"
+                    {/* College Location Selector - Static */}
+                    <div
+                      className="flex items-center gap-1.5 text-left bg-transparent border-none outline-none"
                     >
                       <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-[#FA4A0C]">
                         <MapPin className="w-4 h-4 stroke-[2.5]" />
@@ -967,11 +932,10 @@ export default function App() {
                       <div>
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sphoorthy Canteen</span>
                         <div className="flex items-center gap-0.5">
-                          <span className="text-xs font-extrabold text-slate-900 truncate max-w-[150px]">{selectedLocation}</span>
-                          <ChevronDown className="w-3.5 h-3.5 text-[#FA4A0C] stroke-[2.5]" />
+                          <span className="text-xs font-extrabold text-slate-900 truncate max-w-[150px]">Block B Dining Hall</span>
                         </div>
                       </div>
-                    </button>
+                    </div>
 
                     {/* Right utilities: Notification and User Greeting */}
                     <div className="flex items-center gap-2">
@@ -1033,9 +997,6 @@ export default function App() {
                         <h3 className="text-base font-black leading-tight tracking-tight">
                           Order from college canteens & skip the lines!
                         </h3>
-                        <p className="text-[10px] text-orange-100 font-medium leading-normal">
-                          Get instant digital token pickup numbers (B-001, L-012) directly on your device when payment completes.
-                        </p>
                       </div>
 
                       {/* Right illustration / overlapping stacked burger image */}
@@ -1059,7 +1020,7 @@ export default function App() {
                     )}
                   </div>
                   
-                  <div className="flex gap-2 overflow-x-auto pb-1 px-4 scrollbar-none">
+                  <div className="grid grid-cols-4 gap-2 px-4">
                     {[
                       { id: 'All', label: 'All' },
                       { id: 'Breakfast', label: 'Breakfast' },
@@ -1076,7 +1037,7 @@ export default function App() {
                           onClick={() => {
                             setSelectedCategory(cat.id);
                           }}
-                          className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all border cursor-pointer ${
+                          className={`w-full text-center py-2 px-1 text-xs font-bold transition-all border rounded-full cursor-pointer ${
                             isSelected
                               ? 'bg-[#FA4A0C] border-[#FA4A0C] text-white shadow-sm'
                               : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -1088,71 +1049,6 @@ export default function App() {
                     })}
                   </div>
                 </div>
-
-                {/* Popular Canteens Section */}
-                {!searchQuery && selectedCategory === 'All' && (
-                  <div className="space-y-3 px-4">
-                    <h4 className="font-display font-black text-slate-800 text-sm tracking-tight">Popular Campus Stalls</h4>
-                    
-                    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
-                      {[
-                        {
-                          id: 'canteen_cafe',
-                          name: 'Campus Central Cafe',
-                          imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=300',
-                          rating: 4.8,
-                          prepTime: '10 mins',
-                          desc: 'Block B Dining Hall'
-                        },
-                        {
-                          id: 'block_b_lounge',
-                          name: 'Juice & Coffee Lounge',
-                          imageUrl: 'https://images.unsplash.com/photo-1541167750496-1628856ab772?w=300',
-                          rating: 4.6,
-                          prepTime: '5 mins',
-                          desc: 'Block B Ground Floor'
-                        },
-                        {
-                          id: 'books_depot',
-                          name: 'Sphoorthy Book Depot',
-                          imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=300',
-                          rating: 4.7,
-                          prepTime: '8 mins',
-                          desc: 'Academic Block A'
-                        }
-                      ].map(store => (
-                        <button
-                          key={store.id}
-                          onClick={() => {
-                            setFilteredStoreId(store.id);
-                            if (store.id === 'canteen_cafe') setSelectedCategory('Breakfast');
-                            else if (store.id === 'block_b_lounge') setSelectedCategory('Beverages');
-                            else if (store.id === 'books_depot') setSelectedCategory('Stationery');
-                          }}
-                          className="bg-white rounded-2xl border border-slate-100 p-3 flex flex-col space-y-2 text-left min-w-[200px] max-w-[200px] shadow-sm hover:shadow-md transition-all shrink-0 cursor-pointer"
-                        >
-                          <div className="h-24 w-full rounded-xl overflow-hidden bg-slate-100">
-                            <img src={store.imageUrl} alt={store.name} className="w-full h-full object-cover" />
-                          </div>
-                          <div>
-                            <h5 className="font-extrabold text-slate-800 text-xs truncate">{store.name}</h5>
-                            <span className="text-[10px] text-slate-450 truncate block mt-0.5">{store.desc}</span>
-                            <div className="flex items-center gap-2 mt-1.5">
-                              <span className="flex items-center gap-0.5 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded">
-                                <Star className="w-2.5 h-2.5 fill-amber-500 stroke-none" />
-                                {store.rating}
-                              </span>
-                              <span className="flex items-center gap-0.5 text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded font-mono">
-                                <Clock className="w-2.5 h-2.5" />
-                                {store.prepTime}
-                              </span>
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {/* Today's Specials Section */}
                 {!searchQuery && selectedCategory === 'All' && (
@@ -1409,67 +1305,7 @@ export default function App() {
               />
             )}
 
-            {mobileTab === 'tokens' && (
-              <motion.div
-                key="tokens"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="p-4 bg-slate-50 min-h-[75vh]"
-                transition={{ duration: 0.10, ease: 'easeOut' }}
-              >
-                <div className="space-y-4 text-left">
-                  <h3 className="font-display font-black text-slate-800 text-lg">My Active Pickup Tokens</h3>
-                  <p className="text-xs text-slate-500">Show these digital token tickets at the canteen counter to pick up your food.</p>
-                  
-                  {orders.filter(o => ['Pending', 'Approved', 'Preparing', 'Ready for Pickup'].includes(o.status)).length === 0 ? (
-                    <div className="bg-white rounded-3xl border border-slate-100 p-8 text-center space-y-3 shadow-xs">
-                      <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto">
-                        <Ticket className="w-6 h-6 animate-pulse" />
-                      </div>
-                      <h4 className="font-bold text-slate-900 text-xs">No Active Tokens</h4>
-                      <p className="text-[11px] text-slate-450 max-w-xs mx-auto">Place a new canteen order to generate a category-based token ticket.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {orders.filter(o => ['Pending', 'Approved', 'Preparing', 'Ready for Pickup'].includes(o.status)).map(o => (
-                        <div key={o.id} className="bg-white rounded-2xl border-2 border-dashed border-orange-200 overflow-hidden shadow-sm relative">
-                          {/* Ticket Header */}
-                          <div className="bg-[#FA4A0C] text-white px-4 py-3 flex justify-between items-center">
-                            <div>
-                              <span className="text-[9px] font-black uppercase tracking-wider block opacity-75">Canteen Order Token</span>
-                              <span className="text-xs font-bold font-mono">ID: {o.id.slice(-8).toUpperCase()}</span>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-[10px] font-black uppercase bg-white/20 px-2 py-0.5 rounded-md">
-                                {o.status}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          {/* Ticket Body */}
-                          <div className="p-4 flex justify-between items-center bg-white">
-                            <div className="space-y-1">
-                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Token Number</span>
-                              <span className="text-2xl font-black text-[#FA4A0C] font-mono tracking-wide">{o.tokenNumber || 'T-000'}</span>
-                            </div>
-                            <div className="text-right space-y-1">
-                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Total Amount</span>
-                              <span className="text-sm font-extrabold text-slate-900">₹{o.totalAmount}</span>
-                            </div>
-                          </div>
-
-                          <div className="bg-slate-50 px-4 py-2 text-[10px] text-slate-500 flex justify-between items-center border-t border-slate-100">
-                            <span>{o.items?.length || 1} Item(s) &bull; {o.paymentMethod}</span>
-                            <span className="font-semibold text-[#FA4A0C]">Ready in ~10m</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
+            {/* Tokens Tab removed */}
 
             {mobileTab === 'admin' && (
               <motion.div
@@ -1500,31 +1336,7 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        {/* Floating cart bar — raised above floating nav capsule */}
-        {mobileCartItemCount > 0 && mobileTab !== 'cart' && (
-          <div className="fixed bottom-[88px] left-4 right-4 z-40 select-none">
-            <button
-              onClick={() => setMobileTab('cart')}
-              className="w-full bg-[#1B4D3E] text-white px-4.5 py-3.5 rounded-2xl shadow-lg flex items-center justify-between font-sans hover:bg-[#2E7D5A] active:scale-[0.98] transition-all cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-2 rounded-xl text-white">
-                  <ShoppingCart className="w-4 h-4 stroke-[2.5]" />
-                </div>
-                <div className="text-left">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-emerald-100 block leading-none">Your Mobile Tray</span>
-                  <span className="text-[11.5px] font-extrabold mt-1 block leading-none">
-                    {mobileCartItemCount} {mobileCartItemCount === 1 ? 'Item' : 'Items'} • ₹{mobileCartSubtotal}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-1 font-black text-[11px] uppercase tracking-wider">
-                <span>Configure Cart</span>
-                <ArrowRight className="w-4 h-4" />
-              </div>
-            </button>
-          </div>
-        )}
+        {/* Floating cart summary bar removed */}
 
         {/* Premium Floating Bottom Navigation */}
         <BottomNavbar
