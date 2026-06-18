@@ -850,15 +850,6 @@ export default function App() {
       { title: "Skip Queue Instant Pickup", code: "Ready in 10 minutes", color: "from-[#3F51B5] to-[#00BCD4]" }
     ];
 
-    const quickCategories = [
-      { label: 'Meals', icon: '🍔', cat: 'Meals' },
-      { label: 'Beverages', icon: '☕', cat: 'Beverages' },
-      { label: 'Snacks', icon: '🍟', cat: 'Snacks' },
-      { label: 'Desserts', icon: '🍕', cat: 'Desserts' },
-      { label: 'Stationery', icon: '📚', cat: 'Stationery' },
-      { label: 'Printouts', icon: '🖨', cat: 'Stationery' },
-      { label: 'Lab Kits', icon: '🧪', cat: 'Stationery' },
-    ];
 
     const campusLocations = [
       'Block B Dining Hall',
