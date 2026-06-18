@@ -66,7 +66,7 @@ export function UserProvider({ children }: UserProviderProps) {
         if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
           const data = await res.json();
           if (data && data.authenticated && data.user) {
-            const resolvedRole = (data.user.email && data.user.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com') || (data.user.role === 'admin') ? 'admin' : 'customer';
+            const resolvedRole = (data.user.email && data.user.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || data.user.email.toLowerCase() === 'amareshkaturi@gmail.com' || data.user.email.toLowerCase() === 'akshith5481@gmail.com') || (data.user.role === 'admin') ? 'admin' : 'customer';
             setUserState({
               id: data.user.id,
               name: data.user.fullName || 'Student',
@@ -136,7 +136,7 @@ export function UserProvider({ children }: UserProviderProps) {
               };
               setStudentProfile(mappedProfile);
               // Construct UserState in memory
-              const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com') || (profileData.email && profileData.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' : 'customer';
+              const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || resolvedEmail.toLowerCase() === 'amareshkaturi@gmail.com' || resolvedEmail.toLowerCase() === 'akshith5481@gmail.com') || (profileData.email && profileData.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || profileData.email.toLowerCase() === 'amareshkaturi@gmail.com' || profileData.email.toLowerCase() === 'akshith5481@gmail.com') ? 'admin' : 'customer';
               setUserState({
                 id: resolvedUserId,
                 name: profileData.fullName || resolvedName || 'Student',
@@ -145,7 +145,7 @@ export function UserProvider({ children }: UserProviderProps) {
               });
             } else {
               // Fallback default in-memory state if profile not fully created yet
-              const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' : 'customer';
+              const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || resolvedEmail.toLowerCase() === 'amareshkaturi@gmail.com' || resolvedEmail.toLowerCase() === 'akshith5481@gmail.com') ? 'admin' : 'customer';
               setUserState({
                 id: resolvedUserId,
                 name: resolvedName || 'Student',
@@ -155,7 +155,7 @@ export function UserProvider({ children }: UserProviderProps) {
             }
           } else {
             // Reconstruct minimal memory UserState if profile query fails but we have ID
-            const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' : 'customer';
+            const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || resolvedEmail.toLowerCase() === 'amareshkaturi@gmail.com' || resolvedEmail.toLowerCase() === 'akshith5481@gmail.com') ? 'admin' : 'customer';
             setUserState({
               id: resolvedUserId,
               name: resolvedName || 'Student',
@@ -166,7 +166,7 @@ export function UserProvider({ children }: UserProviderProps) {
         } catch (err) {
           console.error("[UserContext] Failed to fetch profile on restore:", err);
           // Reconstruct minimal memory UserState
-          const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com') ? 'admin' : 'customer';
+          const resolvedRole = (resolvedEmail && resolvedEmail.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || resolvedEmail.toLowerCase() === 'amareshkaturi@gmail.com' || resolvedEmail.toLowerCase() === 'akshith5481@gmail.com') ? 'admin' : 'customer';
           setUserState({
             id: resolvedUserId,
             name: resolvedName || 'Student',

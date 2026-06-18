@@ -29,7 +29,7 @@ export const configurePassport = () => {
           }
 
           let user = await User.findOne({ email });
-          const isAdminEmail = email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || email.toLowerCase() === 'amareshkaturi@gmail.com';
+          const isAdminEmail = email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || email.toLowerCase() === 'amareshkaturi@gmail.com' || email.toLowerCase() === 'akshith5481@gmail.com';
 
           if (!user) {
             user = new User({
