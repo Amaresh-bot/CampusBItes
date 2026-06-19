@@ -90,7 +90,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
   useEffect(() => {
     const handleLoginSuccess = async (authedUser: any, hasProfile: boolean, profile: any) => {
       if (authedUser) {
-        if (authedUser.email && authedUser.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || authedUser.email.toLowerCase() === 'amareshkaturi@gmail.com' || authedUser.email.toLowerCase() === 'akshith5481@gmail.com') {
+        if (authedUser.email && authedUser.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || authedUser.email.toLowerCase() === 'amareshkaturi@gmail.com' || authedUser.email.toLowerCase() === 'akshith5481@gmail.com' || authedUser.email.toLowerCase() === 'coresoft.srinivas@gmail.com') {
           authedUser.role = 'admin';
         }
 
@@ -607,7 +607,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
             try {
               const { doc, setDoc } = await import('firebase/firestore');
               const { db } = await import('../firebase/config');
-              const isAdminEmail = payload.email && payload.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || payload.email.toLowerCase() === 'amareshkaturi@gmail.com' || payload.email.toLowerCase() === 'akshith5481@gmail.com';
+              const isAdminEmail = payload.email && payload.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || payload.email.toLowerCase() === 'amareshkaturi@gmail.com' || payload.email.toLowerCase() === 'akshith5481@gmail.com' || payload.email.toLowerCase() === 'coresoft.srinivas@gmail.com';
               await setDoc(doc(db, 'users', payload.userId), {
                 id: payload.userId,
                 name: payload.fullName,
@@ -629,7 +629,7 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
             id: payload.userId,
             name: payload.fullName,
             email: payload.email,
-            role: (payload.email && payload.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || payload.email.toLowerCase() === 'amareshkaturi@gmail.com' || payload.email.toLowerCase() === 'akshith5481@gmail.com') ? 'admin' as const : 'customer' as const
+            role: (payload.email && payload.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || payload.email.toLowerCase() === 'amareshkaturi@gmail.com' || payload.email.toLowerCase() === 'akshith5481@gmail.com' || payload.email.toLowerCase() === 'coresoft.srinivas@gmail.com') ? 'admin' as const : 'customer' as const
           };
 
           setSuccessMsg("Profile saved successfully! Loading CampusBites...");

@@ -75,7 +75,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
         id="hero" 
         className="relative text-white overflow-hidden min-h-screen flex flex-col justify-center pt-28 pb-8 sm:pb-10 selection:bg-[#4CAF50]/30"
         style={{
-          backgroundImage: 'linear-gradient(rgba(27, 77, 62, 0.3), rgba(27, 77, 62, 0.35)), url(/assets/hero_bg.jpg)',
+          backgroundImage: 'linear-gradient(rgba(27, 77, 62, 0.3), rgba(27, 77, 62, 0.35)), url(/assets/landing_bg.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'

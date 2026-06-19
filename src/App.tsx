@@ -70,7 +70,7 @@ export default function App() {
   const [menuItems, setMenuItems] = useState<FoodItem[]>([]);
   const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [orders, setOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<'menu' | 'orders' | 'profile' | 'admin' | 'stores' | 'offers' | 'printhub'>('menu');
+  const [activeTab, setActiveTab] = useState<'menu' | 'orders' | 'profile' | 'admin' | 'stores' | 'offers' | 'printhub' | 'cart'>('menu');
   const [filteredStoreId, setFilteredStoreId] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isMenuLoading, setIsMenuLoading] = useState<boolean>(true);
