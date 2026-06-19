@@ -144,6 +144,7 @@ export function AdminPanel({
   const [newItemCat, setNewItemCat] = useState('Snacks');
   const [newItemPrep, setNewItemPrep] = useState('8');
   const [newItemImg, setNewItemImg] = useState('');
+  const [newItemIsVeg, setNewItemIsVeg] = useState(true);
 
   // Drag and drop image upload states
   const [isDragging, setIsDragging] = useState(false);
@@ -270,6 +271,7 @@ export function AdminPanel({
     setUploadProgress(0);
     setUploadError(null);
     setUploading(false);
+    setNewItemIsVeg(true);
     setShowAddModal(false);
   };
 
@@ -317,7 +319,8 @@ export function AdminPanel({
         price: Number(newItemPrice),
         category: newItemCat,
         estimatedPrepTime: Number(newItemPrep) || 10,
-        imageUrl: newItemImg
+        imageUrl: newItemImg,
+        tags: newItemIsVeg ? ['New', 'Vegetarian'] : ['New', 'Non-Vegetarian']
       });
 
       console.log("[AdminPanel:handleAddSubmit] onAddMenuItem called successfully. Resetting form state.");
@@ -329,6 +332,7 @@ export function AdminPanel({
       setUploadProgress(0);
       setUploadError(null);
       setUploading(false);
+      setNewItemIsVeg(true);
       setShowAddModal(false);
     } catch (err: any) {
       console.error("[AdminPanel:handleAddSubmit] Critical exception caught during form submission:", err);
@@ -1982,9 +1986,9 @@ WITH CHECK (
 
       {/* Add MenuItem dialog modal overlays */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white text-slate-900 w-full max-w-sm rounded-2xl p-6 shadow-xl space-y-4">
-            <h4 className="font-bold text-slate-900 text-base">Add New Food Item</h4>
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white text-slate-900 w-full max-w-sm rounded-2xl p-6 shadow-xl space-y-4 my-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <h4 className="font-bold text-slate-900 text-base sticky top-0 bg-white pb-1">Add New Food Item</h4>
 
             <form onSubmit={handleAddSubmit} className="space-y-3 text-xs">
               <div>
@@ -2013,6 +2017,40 @@ WITH CHECK (
                   <option value="Desserts">Desserts</option>
                   <option value="Chinese">Chinese</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Food Type</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewItemIsVeg(true)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
+                      newItemIsVeg
+                        ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
+                        : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span className="w-3 h-3 border-2 border-emerald-600 rounded-sm flex items-center justify-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                    </span>
+                    Pure Veg
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewItemIsVeg(false)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
+                      !newItemIsVeg
+                        ? 'bg-rose-50 border-rose-500 text-rose-700'
+                        : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span className="w-3 h-3 border-2 border-rose-600 rounded-sm flex items-center justify-center">
+                      <span className="w-1.5 h-1.5 bg-rose-600 rotate-45" />
+                    </span>
+                    Non-Veg
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -2162,9 +2200,9 @@ WITH CHECK (
 
       {/* Edit MenuItem dialog modal overlays */}
       {editingItem && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white text-slate-900 w-full max-w-sm rounded-2xl p-6 shadow-xl space-y-4">
-            <h4 className="font-bold text-slate-900 text-base">Edit Food Item</h4>
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white text-slate-900 w-full max-w-sm rounded-2xl p-6 shadow-xl space-y-4 my-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <h4 className="font-bold text-slate-900 text-base sticky top-0 bg-white pb-1">Edit Food Item</h4>
 
             <form onSubmit={handleEditSubmit} className="space-y-3 text-xs">
               <div>
@@ -2193,6 +2231,48 @@ WITH CHECK (
                   <option value="Desserts">Desserts</option>
                   <option value="Chinese">Chinese</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Food Type</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const tags = (editingItem.tags || []).filter(t => t !== 'Vegetarian' && t !== 'Non-Vegetarian');
+                      setEditingItem({ ...editingItem, tags: [...tags, 'Vegetarian'] });
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
+                      editingItem.tags?.includes('Vegetarian') ||
+                      (!editingItem.tags?.includes('Non-Vegetarian') &&
+                        (editingItem.category === 'Desserts' || editingItem.category === 'Beverages'))
+                        ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
+                        : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span className="w-3 h-3 border-2 border-emerald-600 rounded-sm flex items-center justify-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                    </span>
+                    Pure Veg
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const tags = (editingItem.tags || []).filter(t => t !== 'Vegetarian' && t !== 'Non-Vegetarian');
+                      setEditingItem({ ...editingItem, tags: [...tags, 'Non-Vegetarian'] });
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
+                      editingItem.tags?.includes('Non-Vegetarian')
+                        ? 'bg-rose-50 border-rose-500 text-rose-700'
+                        : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span className="w-3 h-3 border-2 border-rose-600 rounded-sm flex items-center justify-center">
+                      <span className="w-1.5 h-1.5 bg-rose-600 rotate-45" />
+                    </span>
+                    Non-Veg
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">

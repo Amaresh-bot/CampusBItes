@@ -75,7 +75,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
         id="hero" 
         className="relative text-white overflow-hidden min-h-screen flex flex-col justify-center pt-28 pb-8 sm:pb-10 selection:bg-[#4CAF50]/30"
         style={{
-          backgroundImage: 'linear-gradient(rgba(27, 77, 62, 0.3), rgba(27, 77, 62, 0.35)), url(/assets/landing_bg.png)',
+          backgroundImage: 'linear-gradient(rgba(27, 77, 62, 0.55), rgba(27, 77, 62, 0.65)), url(/assets/landing_bg.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
@@ -177,9 +177,9 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                   className="cursor-pointer bg-white rounded-[32px] p-6 shadow-xl flex flex-col justify-between h-[280px] w-[80%] max-w-[300px] sm:w-auto sm:max-w-none shrink-0 snap-center border border-slate-100 transition-all duration-300 relative overflow-hidden group select-none text-left"
                 >
                   <img 
-                    src="/assets/thali.jpg" 
+                    src="/assets/thali.png" 
                     alt="Campus Canteen" 
-                    className="absolute right-0 bottom-0 w-[140px] h-[140px] sm:w-[160px] sm:h-[160px] object-contain select-none transition-transform duration-500 ease-out origin-bottom-right z-0 group-hover:scale-105"
+                    className="absolute right-0 bottom-0 w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] object-contain select-none transition-transform duration-500 ease-out origin-bottom-right z-0 group-hover:scale-105"
                   />
                   
                   <div className="space-y-2 relative z-10 max-w-[65%]">
@@ -205,9 +205,9 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                   className="cursor-pointer bg-white rounded-[32px] p-6 shadow-xl flex flex-col justify-between h-[280px] w-[80%] max-w-[300px] sm:w-auto sm:max-w-none shrink-0 snap-center border border-slate-100 transition-all duration-300 relative overflow-hidden group select-none text-left"
                 >
                   <img 
-                    src="/assets/printer.jpg" 
+                    src="/assets/printer.png" 
                     alt="Print & Hub" 
-                    className="absolute right-0 bottom-0 w-[140px] h-[140px] sm:w-[160px] sm:h-[160px] object-contain select-none transition-transform duration-500 ease-out origin-bottom-right z-0 group-hover:scale-105"
+                    className="absolute right-0 bottom-0 w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] object-contain select-none transition-transform duration-500 ease-out origin-bottom-right z-0 group-hover:scale-105"
                   />
 
                   <div className="space-y-2 relative z-10 max-w-[65%]">
