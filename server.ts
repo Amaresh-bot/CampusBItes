@@ -1348,7 +1348,7 @@ app.post("/api/menu/add", async (req, res) => {
 
 app.put("/api/menu/:itemId/edit", async (req, res) => {
   const { itemId } = req.params;
-  const { name, description, price, category, imageUrl, isAvailable, estimatedPrepTime, isTodaySpecial } = req.body;
+  const { name, description, price, category, imageUrl, isAvailable, estimatedPrepTime, isTodaySpecial, tags } = req.body;
   const itemIndex = dynamicMenuItems.findIndex(it => it.id === itemId);
   if (itemIndex !== -1) {
     dynamicMenuItems[itemIndex] = {
@@ -1360,7 +1360,8 @@ app.put("/api/menu/:itemId/edit", async (req, res) => {
       imageUrl: imageUrl !== undefined ? imageUrl : dynamicMenuItems[itemIndex].imageUrl,
       isAvailable: isAvailable !== undefined ? Boolean(isAvailable) : dynamicMenuItems[itemIndex].isAvailable,
       estimatedPrepTime: estimatedPrepTime !== undefined ? Number(estimatedPrepTime) : dynamicMenuItems[itemIndex].estimatedPrepTime,
-      isTodaySpecial: isTodaySpecial !== undefined ? Boolean(isTodaySpecial) : dynamicMenuItems[itemIndex].isTodaySpecial
+      isTodaySpecial: isTodaySpecial !== undefined ? Boolean(isTodaySpecial) : dynamicMenuItems[itemIndex].isTodaySpecial,
+      tags: tags !== undefined ? tags : dynamicMenuItems[itemIndex].tags
     };
     savePersistedData("canteen_menu.json", dynamicMenuItems);
   }
@@ -1374,6 +1375,7 @@ app.put("/api/menu/:itemId/edit", async (req, res) => {
   if (isAvailable !== undefined) updates.isAvailable = Boolean(isAvailable);
   if (estimatedPrepTime !== undefined) updates.estimatedPrepTime = Number(estimatedPrepTime);
   if (isTodaySpecial !== undefined) updates.isTodaySpecial = Boolean(isTodaySpecial);
+  if (tags !== undefined) updates.tags = tags;
 
   const updatedDb = await updateMenuItemDb(itemId, updates);
   res.json({ success: true, item: updatedDb || (itemIndex !== -1 ? dynamicMenuItems[itemIndex] : null) });

@@ -179,8 +179,8 @@ export function CanteenMenu({
               </div>
             )}
 
-            {/* Horizontal Swiggy-Style Category Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-0.5 scrollbar-none">
+            {/* Horizontal Swiggy-Style Category Pills — hidden on desktop (sidebar has categories) */}
+            <div className="flex lg:hidden items-center gap-2 overflow-x-auto pb-1.5 pt-0.5 scrollbar-none">
               {categories.map(category => {
                 const isSelected = selectedCategory.toLowerCase() === category.toLowerCase();
                 return (

@@ -955,28 +955,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Search Bar pill */}
-                <div className="px-4">
-                  <div className="relative shadow-sm rounded-full bg-white border border-slate-200 flex items-center h-12 focus-within:ring-2 focus-within:ring-orange-500/20 focus-within:border-orange-500 transition-all px-4">
-                    <Search className="w-4.5 h-4.5 text-slate-400 stroke-[2.5] mr-2" />
-                    <input
-                      type="text"
-                      placeholder="Search food, canteens..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full text-xs font-semibold bg-transparent border-none outline-none text-slate-700 placeholder-slate-400"
-                    />
-                    {searchQuery && (
-                      <button 
-                        onClick={() => setSearchQuery('')}
-                        className="text-xs font-bold text-slate-450 hover:text-slate-700"
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </div>
-                </div>
-
                 {/* Hero Banner promoting canteens & digital tokens */}
                 {!searchQuery && (
                   <div className="px-4 pt-2">
@@ -999,6 +977,43 @@ export default function App() {
                     </div>
                   </div>
                 )}
+
+                {/* Today's Specials Section */}
+                {!searchQuery && selectedCategory === 'All' && (
+                  <div className="px-4">
+                    <TodaysSpecialsSlider
+                      items={menuItems}
+                      cart={cart}
+                      onUpdateCart={handleUpdateCart}
+                      userRole={user?.role}
+                      onGoToAdmin={() => {
+                        setMobileTab('admin');
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Search Bar pill */}
+                <div className="px-4">
+                  <div className="relative shadow-sm rounded-full bg-white border border-slate-200 flex items-center h-12 focus-within:ring-2 focus-within:ring-orange-500/20 focus-within:border-orange-500 transition-all px-4">
+                    <Search className="w-4.5 h-4.5 text-slate-400 stroke-[2.5] mr-2" />
+                    <input
+                      type="text"
+                      placeholder="Search food, canteens..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full text-xs font-semibold bg-transparent border-none outline-none text-slate-700 placeholder-slate-400"
+                    />
+                    {searchQuery && (
+                      <button 
+                        onClick={() => setSearchQuery('')}
+                        className="text-xs font-bold text-slate-450 hover:text-slate-700"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
 
                 {/* Categories Horizontal Scroll */}
                 <div className="space-y-3">
@@ -1039,23 +1054,8 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Today's Specials Section */}
-                {!searchQuery && selectedCategory === 'All' && (
-                  <div className="px-4">
-                    <TodaysSpecialsSlider
-                      items={menuItems}
-                      cart={cart}
-                      onUpdateCart={handleUpdateCart}
-                      userRole={user?.role}
-                      onGoToAdmin={() => {
-                        setMobileTab('admin');
-                      }}
-                    />
-                  </div>
-                )}
-
                 {/* Popular Food Items Section (Category Catalog) */}
-                <div className="space-y-4 px-4">
+                <div className="space-y-4 px-4 pb-28 mb-4">
                   <div className="flex justify-between items-center">
                     <h4 className="font-display font-black text-slate-800 text-sm tracking-tight">
                       {searchQuery 
@@ -1379,7 +1379,7 @@ export default function App() {
         )}
 
         {/* Shared App Footer */}
-        <AppFooter onPolicyClick={(key) => setComplianceModal(key)} />
+        <AppFooter className="mt-6" onPolicyClick={(key) => setComplianceModal(key)} />
       </div>
     );
   }
