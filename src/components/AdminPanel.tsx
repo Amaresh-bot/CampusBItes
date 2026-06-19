@@ -1986,9 +1986,9 @@ WITH CHECK (
 
       {/* Add MenuItem dialog modal overlays */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white text-slate-900 w-full max-w-sm rounded-2xl p-6 shadow-xl space-y-4">
-            <h4 className="font-bold text-slate-900 text-base">Add New Food Item</h4>
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white text-slate-900 w-full max-w-sm rounded-2xl p-6 shadow-xl space-y-4 my-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <h4 className="font-bold text-slate-900 text-base sticky top-0 bg-white pb-1">Add New Food Item</h4>
 
             <form onSubmit={handleAddSubmit} className="space-y-3 text-xs">
               <div>
@@ -2200,9 +2200,9 @@ WITH CHECK (
 
       {/* Edit MenuItem dialog modal overlays */}
       {editingItem && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white text-slate-900 w-full max-w-sm rounded-2xl p-6 shadow-xl space-y-4">
-            <h4 className="font-bold text-slate-900 text-base">Edit Food Item</h4>
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white text-slate-900 w-full max-w-sm rounded-2xl p-6 shadow-xl space-y-4 my-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <h4 className="font-bold text-slate-900 text-base sticky top-0 bg-white pb-1">Edit Food Item</h4>
 
             <form onSubmit={handleEditSubmit} className="space-y-3 text-xs">
               <div>
