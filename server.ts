@@ -2023,7 +2023,7 @@ app.post("/api/auth/login", async (req, res) => {
       return res.json({
         success: true,
         session: data.session,
-        user: { id: user.id, name: profile?.fullName || email.split("@")[0], email: user.email, role: (user.email && user.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || user.email.toLowerCase() === 'amareshkaturi@gmail.com' || user.email.toLowerCase() === 'akshith5481@gmail.com' || user.email.toLowerCase() === 'coresoft.srinivas@gmail.com') ? 'admin' : 'customer' },
+        user: { id: user.id, name: profile?.fullName || email.split("@")[0], email: user.email, role: (user.email && user.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || user.email.toLowerCase() === 'amareshkaturi@gmail.com' || user.email.toLowerCase() === 'akshith5481@gmail.com' || user.email.toLowerCase() === 'coresoft.srinivas@gmail.com' || email.toLowerCase() === 'campusbitesadmin26@gmail.com') ? 'admin' : 'customer' },
         hasProfile,
         profile
       });
@@ -2498,7 +2498,7 @@ app.post("/api/auth/session-from-token", async (req, res) => {
 
       return res.json({
         success: true,
-        user: { id: user.id, name: profile?.fullName || user.email?.split("@")[0] || "Student", email: user.email, role: (user.email && user.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || user.email.toLowerCase() === 'amareshkaturi@gmail.com' || user.email.toLowerCase() === 'akshith5481@gmail.com' || user.email.toLowerCase() === 'coresoft.srinivas@gmail.com') ? 'admin' : 'customer' },
+        user: { id: user.id, name: profile?.fullName || user.email?.split("@")[0] || "Student", email: user.email, role: (user.email && user.email.toLowerCase() === 'shivaganeshmummadi7@gmail.com' || user.email.toLowerCase() === 'amareshkaturi@gmail.com' || user.email.toLowerCase() === 'akshith5481@gmail.com' || user.email.toLowerCase() === 'coresoft.srinivas@gmail.com' || user.email.toLowerCase() === 'campusbitesadmin26@gmail.com') ? 'admin' : 'customer' },
         hasProfile,
         profile
       });

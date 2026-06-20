@@ -176,11 +176,28 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                   onClick={() => isLoggedIn ? onEnterApp('', 'All') : onSignIn('', 'All')}
                   className="cursor-pointer bg-white rounded-[32px] p-6 shadow-xl flex flex-col justify-between h-[280px] w-[80%] max-w-[300px] sm:w-auto sm:max-w-none shrink-0 snap-center border border-slate-100 transition-all duration-300 relative overflow-hidden group select-none text-left"
                 >
-                  <img 
-                    src="/assets/thali.png" 
-                    alt="CampusBites" 
-                    className="absolute right-0 bottom-0 w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] object-contain select-none transition-transform duration-500 ease-out origin-bottom-right z-0 group-hover:scale-105"
-                  />
+                  {/* Food Icon SVG */}
+                  <div className="absolute right-[-10px] bottom-[-10px] w-[150px] h-[150px] sm:w-[190px] sm:h-[190px] select-none transition-transform duration-500 ease-out origin-bottom-right z-0 group-hover:scale-105 opacity-90">
+                    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                      {/* Plate */}
+                      <ellipse cx="100" cy="130" rx="72" ry="20" fill="#C8E6C9" opacity="0.5"/>
+                      <circle cx="100" cy="115" r="68" fill="#E8F5E9"/>
+                      <circle cx="100" cy="115" r="60" fill="white" stroke="#A5D6A7" strokeWidth="2"/>
+                      {/* Rice mound */}
+                      <ellipse cx="100" cy="110" rx="38" ry="22" fill="#FFF9C4"/>
+                      <ellipse cx="100" cy="108" rx="35" ry="18" fill="#FFFDE7"/>
+                      {/* Dal/curry */}
+                      <ellipse cx="68" cy="118" rx="18" ry="12" fill="#FF8F00" opacity="0.85"/>
+                      <ellipse cx="132" cy="118" rx="18" ry="12" fill="#388E3C" opacity="0.85"/>
+                      {/* Roti */}
+                      <ellipse cx="100" cy="135" rx="22" ry="10" fill="#FFCC80"/>
+                      <ellipse cx="100" cy="134" rx="20" ry="8" fill="#FFE0B2"/>
+                      {/* Steam lines */}
+                      <path d="M85 68 Q88 58 85 48" stroke="#4CAF50" strokeWidth="2.5" strokeLinecap="round" opacity="0.6"/>
+                      <path d="M100 62 Q103 52 100 42" stroke="#4CAF50" strokeWidth="2.5" strokeLinecap="round" opacity="0.6"/>
+                      <path d="M115 68 Q118 58 115 48" stroke="#4CAF50" strokeWidth="2.5" strokeLinecap="round" opacity="0.6"/>
+                    </svg>
+                  </div>
                   
                   <div className="space-y-2 relative z-10 max-w-[65%]">
                     <span className="text-[9px] font-black uppercase text-[#1B4D3E] tracking-wider bg-[#E8F5E9] px-2.5 py-1 rounded-full">
@@ -204,11 +221,30 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                   onClick={() => isLoggedIn ? onEnterApp('', 'printhub') : onSignIn('', 'printhub')}
                   className="cursor-pointer bg-white rounded-[32px] p-6 shadow-xl flex flex-col justify-between h-[280px] w-[80%] max-w-[300px] sm:w-auto sm:max-w-none shrink-0 snap-center border border-slate-100 transition-all duration-300 relative overflow-hidden group select-none text-left"
                 >
-                  <img 
-                    src="/assets/printer.png" 
-                    alt="Print & Hub" 
-                    className="absolute right-0 bottom-0 w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] object-contain select-none transition-transform duration-500 ease-out origin-bottom-right z-0 group-hover:scale-105"
-                  />
+                  {/* Printer Icon SVG */}
+                  <div className="absolute right-[-10px] bottom-[-10px] w-[150px] h-[150px] sm:w-[190px] sm:h-[190px] select-none transition-transform duration-500 ease-out origin-bottom-right z-0 group-hover:scale-105 opacity-90">
+                    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                      {/* Paper output */}
+                      <rect x="68" y="135" width="64" height="42" rx="4" fill="white" stroke="#B0BEC5" strokeWidth="2"/>
+                      <line x1="80" y1="148" x2="120" y2="148" stroke="#90A4AE" strokeWidth="2" strokeLinecap="round"/>
+                      <line x1="80" y1="158" x2="115" y2="158" stroke="#90A4AE" strokeWidth="2" strokeLinecap="round"/>
+                      <line x1="80" y1="168" x2="108" y2="168" stroke="#90A4AE" strokeWidth="2" strokeLinecap="round"/>
+                      {/* Printer body */}
+                      <rect x="52" y="95" width="96" height="52" rx="10" fill="#37474F"/>
+                      <rect x="58" y="101" width="84" height="38" rx="6" fill="#455A64"/>
+                      {/* Paper feed slot */}
+                      <rect x="70" y="130" width="60" height="8" rx="2" fill="#263238"/>
+                      {/* Top paper */}
+                      <rect x="72" y="70" width="56" height="32" rx="3" fill="white" stroke="#CFD8DC" strokeWidth="1.5"/>
+                      <line x1="82" y1="80" x2="118" y2="80" stroke="#CFD8DC" strokeWidth="1.5" strokeLinecap="round"/>
+                      <line x1="82" y1="88" x2="112" y2="88" stroke="#CFD8DC" strokeWidth="1.5" strokeLinecap="round"/>
+                      {/* Indicator light */}
+                      <circle cx="128" cy="117" r="5" fill="#4CAF50"/>
+                      <circle cx="128" cy="117" r="3" fill="#81C784"/>
+                      {/* Button */}
+                      <rect x="108" y="113" width="12" height="8" rx="2" fill="#1B4D3E"/>
+                    </svg>
+                  </div>
 
                   <div className="space-y-2 relative z-10 max-w-[65%]">
                     <span className="text-[9px] font-black uppercase text-[#1B4D3E] tracking-wider bg-[#E8F5E9] px-2.5 py-1 rounded-full">
