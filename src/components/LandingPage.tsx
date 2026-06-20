@@ -171,14 +171,14 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
               {/* Quick Access Cards */}
               <div className="flex sm:grid sm:grid-cols-2 gap-4 sm:gap-6 mt-8 sm:mt-10 w-full overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4 sm:pb-0 max-w-3xl mx-auto">
                 
-                {/* Card 1: Campus Canteen */}
+                {/* Card 1: CampusBites */}
                 <div
                   onClick={() => isLoggedIn ? onEnterApp('', 'All') : onSignIn('', 'All')}
                   className="cursor-pointer bg-white rounded-[32px] p-6 shadow-xl flex flex-col justify-between h-[280px] w-[80%] max-w-[300px] sm:w-auto sm:max-w-none shrink-0 snap-center border border-slate-100 transition-all duration-300 relative overflow-hidden group select-none text-left"
                 >
                   <img 
                     src="/assets/thali.png" 
-                    alt="Campus Canteen" 
+                    alt="CampusBites" 
                     className="absolute right-0 bottom-0 w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] object-contain select-none transition-transform duration-500 ease-out origin-bottom-right z-0 group-hover:scale-105"
                   />
                   
@@ -187,7 +187,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
                       Fresh & Hot
                     </span>
                     <h3 className="font-extrabold text-[#1B4D3E] text-xl sm:text-2xl tracking-tight leading-tight uppercase mt-2">
-                      Campus Canteen
+                      CampusBites
                     </h3>
                     <p className="text-xs text-slate-500 font-semibold leading-normal">
                       Fresh meals from campus canteens

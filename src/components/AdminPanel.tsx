@@ -495,9 +495,6 @@ export function AdminPanel({
           </div>
         </form>
 
-        <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-[10px] text-slate-500 font-mono text-center">
-          Supervisors passcode is <strong className="text-slate-800 select-all font-mono">CAMPUS2026</strong> or <strong className="text-slate-800 select-all font-mono">SecurePassword123</strong>
-        </div>
       </div>
     );
   }
@@ -524,21 +521,26 @@ export function AdminPanel({
         </div>
 
         {/* Categories Selector */}
-        <div className="flex gap-1 overflow-x-auto pb-1 max-w-full">
+        <div className="grid grid-cols-4 gap-1.5 w-full pb-1">
           {[
             { id: 'dashboard', label: '📊 Dashboard' },
             { id: 'kitchen', label: 'Queues' },
             { id: 'menu', label: 'Menu Catalog' },
-            { id: 'students', label: 'Students' }
+            { id: 'students', label: 'Students' },
+            { id: 'upi', label: 'UPI / Payout' },
+            { id: 'database', label: 'Database' },
+            { id: 'security', label: 'Security' },
+            { id: 'transactions', label: 'Transactions' }
           ].map(subTab => (
             <button
               key={subTab.id}
               onClick={() => setActiveAdminSubTab(subTab.id as any)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 cursor-pointer transition-all ${
+              className={`px-1 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-[9px] sm:text-xs font-semibold text-center truncate cursor-pointer transition-all ${
                 activeAdminSubTab === subTab.id
-                  ? 'bg-black text-white'
+                  ? 'bg-black text-white border border-black'
                   : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200'
               }`}
+              title={subTab.label}
             >
               {subTab.label}
             </button>
@@ -1010,27 +1012,27 @@ export function AdminPanel({
 
           <div className="divide-y divide-slate-100">
             {foodItems.map(item => (
-              <div key={item.id} className="py-3 flex items-center justify-between gap-4 text-xs">
+              <div key={item.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border shrink-0">
                     <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                   </div>
                   <div>
-                    <h5 className="font-bold text-slate-950">{item.name}</h5>
+                    <h5 className="font-bold text-slate-950 text-xs sm:text-sm">{item.name}</h5>
                     <span className="text-[10px] text-slate-400 font-medium tracking-wider uppercase block">{item.category} • Prep: {item.estimatedPrepTime} mins</span>
                     <span className="font-mono text-slate-600">₹{item.price}</span>
                   </div>
                 </div>
 
-                <div className="flex gap-1 pb-1">
+                <div className="flex flex-wrap gap-1.5 items-center self-end sm:self-center">
                   <button
                     onClick={() => {
                       onEditMenuItem(item.id, { isAvailable: !item.isAvailable });
                     }}
-                    className={`px-2.5 py-1.5 rounded-lg font-bold border cursor-pointer ${
+                    className={`px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-lg font-bold border cursor-pointer text-[10px] sm:text-xs transition-all ${
                       item.isAvailable 
                         ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                        : 'bg-slate-50 text-slate-400 border-slate-250 border-slate-200'
+                        : 'bg-slate-50 text-slate-400 border-slate-200'
                     }`}
                   >
                     {item.isAvailable ? 'In Stock' : 'Out of Stock'}
@@ -1040,9 +1042,9 @@ export function AdminPanel({
                     onClick={() => {
                       onEditMenuItem(item.id, { isTodaySpecial: !item.isTodaySpecial });
                     }}
-                    className={`px-2.5 py-1.5 rounded-lg font-bold border cursor-pointer ${
+                    className={`px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-lg font-bold border cursor-pointer text-[10px] sm:text-xs transition-all ${
                       item.isTodaySpecial 
-                        ? 'bg-amber-50 text-amber-650 text-amber-600 border-amber-100' 
+                        ? 'bg-amber-50 text-amber-600 border-amber-100' 
                         : 'bg-white text-slate-450 border-slate-200'
                     }`}
                   >
@@ -1051,7 +1053,7 @@ export function AdminPanel({
 
                   <button
                     onClick={() => setEditingItem(item)}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer rounded-lg border border-transparent"
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer rounded-lg border border-slate-200 hover:border-blue-200"
                     title="Edit details"
                   >
                     <Edit2 className="w-4 h-4" />
@@ -1059,7 +1061,7 @@ export function AdminPanel({
 
                   <button
                     onClick={() => onDeleteMenuItem(item.id)}
-                    className="p-1.5 text-red-650 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all cursor-pointer rounded-lg border border-transparent"
+                    className="p-1.5 text-red-650 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all cursor-pointer rounded-lg border border-slate-200 hover:border-red-200"
                     title="Delete item"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -1089,48 +1091,16 @@ export function AdminPanel({
                   <tr>
                     <th className="py-3 px-2">Full Name</th>
                     <th className="py-3 px-3">Email Address</th>
-                    <th className="py-3 px-3">Contact Number</th>
-                    <th className="py-3 px-3">Status</th>
-                    <th className="py-3 px-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {students.map(stud => {
-                    const isVerified = stud.isVerified === true;
                     const studentId = stud.userId || (stud as any).user_id;
 
                     return (
                       <tr key={studentId || stud.email} className="hover:bg-slate-50/50">
                         <td className="py-3 px-2 font-semibold text-slate-800">{stud.fullName}</td>
                         <td className="py-3 px-3 font-mono text-slate-600">{stud.email || '—'}</td>
-                        <td className="py-3 px-3 font-mono text-slate-700">{stud.contactNo}</td>
-                        <td className="py-3 px-3">
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                            isVerified 
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' 
-                              : 'bg-amber-100 text-amber-800 border border-amber-200'
-                          }`}>
-                            {isVerified ? 'VERIFIED ✓' : 'PENDING ⏳'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-right">
-                          <button
-                            onClick={() => {
-                              if (onToggleStudentVerify && studentId) {
-                                onToggleStudentVerify(studentId, !isVerified);
-                              } else {
-                                alert("Student record identifier or verify worker not found.");
-                              }
-                            }}
-                            className={`px-2 py-1 text-[10px] font-bold rounded-lg cursor-pointer transition-all ${
-                              isVerified 
-                                ? 'bg-red-50 hover:bg-red-100 text-red-700' 
-                                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
-                            }`}
-                          >
-                            {isVerified ? 'Revoke Verify' : 'Verify Student'}
-                          </button>
-                        </td>
                       </tr>
                     );
                   })}
