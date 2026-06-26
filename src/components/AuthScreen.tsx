@@ -10,7 +10,6 @@ import {
 } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { signInWithGoogle } from '../supabaseClient';
 import { SafeStorage } from '../lib/storage';
 
 interface AuthScreenProps {
@@ -393,12 +392,12 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
       setMode('verification');
 
       if (data.emailSentCloud) {
-        setSuccessMsg(`OTP code dispatched successfully to ${emailAddress.trim()} via Supabase! Please check your email inbox.`);
+        setSuccessMsg(`OTP code dispatched successfully to ${emailAddress.trim()} via MongoDB / CampusBites Server! Please check your email inbox.`);
       } else {
         setSuccessMsg(`Registration pending verification! OTP code generated: ${data.otp}`);
         
         // Trigger high-fidelity Mail client Inbox push simulator
-        setSimulatorEmailMessage(`[CampusBites] Hello ${fullName.trim()}, your secure OTP verification code is: ${data.otp}. We have also attempted dispatching a real OTP via Supabase to ${emailAddress.trim()}.`);
+        setSimulatorEmailMessage(`[CampusBites] Hello ${fullName.trim()}, your secure OTP verification code is: ${data.otp}. We have also attempted dispatching a real OTP via MongoDB / CampusBites Server to ${emailAddress.trim()}.`);
         setShowEmailSimulator(true);
         setTimeout(() => {
           setShowEmailSimulator(false);

@@ -7,7 +7,7 @@ import { SafeStorage } from '../lib/storage';
 interface AdminPanelProps {
   onBack: () => void;
   orders: Order[];
-  onUpdateOrderStatus: (orderId: string, nextStatus: OrderStatus) => void;
+  onUpdateOrderStatus: (orderId: string, nextStatus: OrderStatus, estimatedReadyAt?: string) => void;
   foodItems: FoodItem[];
   onAddMenuItem: (item: Partial<FoodItem>) => void;
   onEditMenuItem: (itemId: string, item: Partial<FoodItem>) => void;
@@ -35,6 +35,17 @@ export function AdminPanel({
   const [activeAdminSubTab, setActiveAdminSubTab] = useState<'dashboard' | 'kitchen' | 'menu' | 'students' | 'upi' | 'database' | 'security' | 'transactions'>('dashboard');
   const [dbStatus, setDbStatus] = useState<any>(null);
   const [dbLoading, setDbLoading] = useState(false);
+  const [printOrder, setPrintOrder] = useState<Order | null>(null);
+
+  useEffect(() => {
+    if (printOrder) {
+      const timer = setTimeout(() => {
+        window.print();
+        setPrintOrder(null);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [printOrder]);
 
   // Global payment audit logs states
   const [paymentLogs, setPaymentLogs] = useState<any[]>([]);
@@ -387,19 +398,19 @@ export function AdminPanel({
 
   const getActionLabel = (status: OrderStatus): string | null => {
     switch (status) {
-      case 'Pending': return 'Approve Order';
-      case 'Approved': return 'Start Preparing';
-      case 'Preparing': return 'Dispatch to Counter';
-      case 'Ready for Pickup': return 'Archive Handover';
+      case 'Pending': return 'Accept Order';
+      case 'Approved': return 'Handover Order';
+      case 'Preparing': return 'Handover Order';
+      case 'Ready for Pickup': return 'Handover Order';
       default: return null;
     }
   };
 
   const getNextStatus = (status: OrderStatus): OrderStatus | null => {
     switch (status) {
-      case 'Pending': return 'Approved';
-      case 'Approved': return 'Preparing';
-      case 'Preparing': return 'Ready for Pickup';
+      case 'Pending': return 'Preparing';
+      case 'Approved': return 'Completed';
+      case 'Preparing': return 'Completed';
       case 'Ready for Pickup': return 'Completed';
       default: return null;
     }
@@ -916,6 +927,11 @@ export function AdminPanel({
                                 {ord.tokenNumber}
                               </span>
                               <strong className="text-slate-900">{ord.userName}</strong>
+                              {ord.scheduledDate && (
+                                <span className="inline-flex items-center gap-0.5 bg-purple-50 text-purple-700 border border-purple-100 px-1.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider">
+                                  📅 Scheduled: {ord.scheduledDate}
+                                </span>
+                              )}
                             </div>
                             <span className="text-[10px] text-slate-400 block font-mono">{ord.userEmail}</span>
                           </div>
@@ -954,7 +970,24 @@ export function AdminPanel({
                           )}
                           {actionLabel && nextStatus && (
                             <button
-                              onClick={() => onUpdateOrderStatus(ord.id || ord._id, nextStatus)}
+                              onClick={() => {
+                                if (nextStatus === 'Preparing') {
+                                  const prepMinutesStr = window.prompt("Enter estimated preparation time (in minutes):", "15");
+                                  if (prepMinutesStr === null) return; // user cancelled prompt
+                                  const prepMinutes = parseInt(prepMinutesStr, 10);
+                                  if (isNaN(prepMinutes) || prepMinutes <= 0) {
+                                    alert("Please enter a valid preparation time in minutes.");
+                                    return;
+                                  }
+                                  const estimatedReadyAt = new Date(Date.now() + prepMinutes * 60000).toISOString();
+                                  onUpdateOrderStatus(ord.id || ord._id, nextStatus, estimatedReadyAt);
+                                } else if (nextStatus === 'Completed') {
+                                  setPrintOrder(ord);
+                                  onUpdateOrderStatus(ord.id || ord._id, nextStatus);
+                                } else {
+                                  onUpdateOrderStatus(ord.id || ord._id, nextStatus);
+                                }
+                              }}
                               className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded font-bold flex items-center gap-0.5 transition-all text-[10px] cursor-pointer"
                             >
                               {actionLabel}
@@ -1208,9 +1241,9 @@ export function AdminPanel({
             <div className="space-y-1">
               <h4 className="font-sans font-bold text-slate-900 text-sm flex items-center gap-2">
                 <Database className="w-4.5 h-4.5 text-blue-600" />
-                Supabase Real-Time Cloud Synchronization Diagnostics
+                MongoDB Database Diagnostics
               </h4>
-              <p className="text-xs text-slate-500">Compare your local server state against live tables. Verify schema structures and bypass RLS constraints instantly.</p>
+              <p className="text-xs text-slate-500">Monitor your MongoDB collections. Verify documents counts and connectivity status instantly.</p>
             </div>
             <button
               onClick={fetchDbStatus}
@@ -1230,25 +1263,25 @@ export function AdminPanel({
                 <div className="mt-2 flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${dbStatus.supabaseConfigured ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
                   <span className="font-bold text-slate-900">
-                    {dbStatus.supabaseConfigured ? 'Secrets Configured' : 'Variables Missing!'}
+                    {dbStatus.supabaseConfigured ? 'MongoDB Configured' : 'Variables Missing!'}
                   </span>
                 </div>
                 <p className="text-slate-500 mt-1 leading-normal">
                   {dbStatus.supabaseConfigured 
                     ? `Connected to: ${dbStatus.supabaseUrl.slice(0, 32)}...`
-                    : 'To save details to Supabase, you must configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY inside the secrets panel.'
+                    : 'The application is fully migrated to MongoDB. Ensure MONGODB_URI is configured.'
                   }
                 </p>
               </div>
 
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs">
-                <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Access Bridge Role</span>
+                <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Database Layer</span>
                 <div className="mt-2 flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span className="font-bold text-slate-900 font-sans">Administrative</span>
+                  <span className="font-bold text-slate-900 font-sans">Mongoose ODM</span>
                 </div>
                 <p className="text-slate-500 mt-1 leading-normal">
-                  Service Role token acts as super-user. RLS (Row Level Security) is automatically bypassed on the platform.
+                  Connecting directly to the MongoDB server using native ODM schemas and schemas validations.
                 </p>
               </div>
 
@@ -1259,10 +1292,10 @@ export function AdminPanel({
                     dbStatus.supabaseStatus === 'Connected' ? 'bg-emerald-500' :
                     dbStatus.supabaseStatus === 'Error Connecting' ? 'bg-red-500 animate-pulse' : 'bg-slate-400'
                   }`} />
-                  <span className="font-bold text-slate-900">{dbStatus.supabaseStatus}</span>
+                  <span className="font-bold text-slate-900">{dbStatus.supabaseStatus === 'Connected' ? 'Connected' : dbStatus.supabaseStatus}</span>
                 </div>
                 <p className="text-slate-500 mt-1 leading-normal font-mono text-[10px] truncate">
-                  {dbStatus.overallError ? `Log: ${dbStatus.overallError}` : 'Connection established with cloud gateway! All systems green.'}
+                  {dbStatus.overallError ? `Log: ${dbStatus.overallError}` : 'Connection established with MongoDB! All systems green.'}
                 </p>
               </div>
             </div>
@@ -1275,7 +1308,7 @@ export function AdminPanel({
           {/* Tables Diagnostic Grid */}
           {dbStatus && dbStatus.tableDiagnostics && (
             <div className="space-y-4">
-              <h5 className="font-sans font-bold text-slate-900 text-xs uppercase tracking-wider">Canteen Table Real-time Diagnostics</h5>
+              <h5 className="font-sans font-bold text-slate-900 text-xs uppercase tracking-wider">MongoDB Collections Health Diagnostics</h5>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.entries(dbStatus.tableDiagnostics).map(([tableName, diag]: [string, any]) => (
@@ -1285,13 +1318,13 @@ export function AdminPanel({
                       <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] font-bold ${
                         diag.success ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800 animate-pulse'
                       }`}>
-                        {diag.success ? 'Connected' : diag.errorType}
+                        {diag.success ? 'Active' : diag.errorType}
                       </span>
                     </div>
 
                     {diag.success ? (
                       <p className="text-slate-500 font-sans leading-normal">
-                        🎉 Verified connected! Row counts are currently synchronized. Any additions in details, mess bookings or payments are directly visible in Supabase dashboard.
+                        🎉 Verified connected! Collections are healthy and live document counts are queryable.
                       </p>
                     ) : (
                       <div className="space-y-2">
@@ -2305,6 +2338,85 @@ WITH CHECK (
           </div>
         </div>
       )}
+
+      {printOrder && (
+        <div id="printable-receipt" className="hidden print:block" style={{ width: '80mm', fontFamily: 'monospace', color: '#000', backgroundColor: '#fff', padding: '10px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+            <h2 style={{ margin: '0 0 5px 0', fontSize: '18px', fontWeight: 'bold' }}>CAMPUS BITES</h2>
+            <p style={{ margin: '0 0 5px 0', fontSize: '10px' }}>Student Canteen Ordering Desk</p>
+            <p style={{ margin: '0', fontSize: '9px' }}>Block B Dining Counters, Academic Area</p>
+          </div>
+          <div style={{ borderTop: '1px dashed #000', borderBottom: '1px dashed #000', padding: '5px 0', margin: '5px 0', fontSize: '11px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>TOKEN:</span>
+              <strong style={{ fontSize: '16px' }}>{printOrder.tokenNumber}</strong>
+            </div>
+            <div>Date: {new Date(printOrder.createdAt).toLocaleString()}</div>
+            {printOrder.scheduledDate && <div>Scheduled: {printOrder.scheduledDate}</div>}
+            <div>Customer: {printOrder.userName}</div>
+            {printOrder.rollNo && <div>Roll No: {printOrder.rollNo}</div>}
+            <div>Category: {printOrder.mealCategory || 'Snacks'}</div>
+          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', margin: '10px 0' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px dashed #000' }}>
+                <th style={{ textAlign: 'left', paddingBottom: '3px' }}>Item</th>
+                <th style={{ textAlign: 'center', paddingBottom: '3px' }}>Qty</th>
+                <th style={{ textAlign: 'right', paddingBottom: '3px' }}>Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              {printOrder.items.map((item, idx) => (
+                <tr key={idx}>
+                  <td style={{ padding: '3px 0' }}>{item.name}</td>
+                  <td style={{ textAlign: 'center', padding: '3px 0' }}>{item.quantity}</td>
+                  <td style={{ textAlign: 'right', padding: '3px 0' }}>₹{(item.price * item.quantity).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ borderTop: '1px dashed #000', padding: '5px 0', fontSize: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+              <span>TOTAL AMOUNT:</span>
+              <span>₹{printOrder.totalAmount.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginTop: '3px' }}>
+              <span>Payment Method:</span>
+              <span>{printOrder.paymentMethod.toUpperCase()}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
+              <span>Payment Status:</span>
+              <span>{printOrder.paymentStatus.toUpperCase()}</span>
+            </div>
+            {printOrder.paymentId && (
+              <div style={{ fontSize: '8px', wordBreak: 'break-all', marginTop: '3px' }}>
+                Ref: {printOrder.paymentId}
+              </div>
+            )}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: '20px', borderTop: '1px dashed #000', paddingTop: '10px', fontSize: '9px' }}>
+            <p style={{ margin: '0' }}>Thank you for dining with us!</p>
+            <p style={{ margin: '3px 0 0 0' }}>Amaresh-bot/CampusBites</p>
+          </div>
+        </div>
+      )}
+      
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #printable-receipt, #printable-receipt * {
+            visibility: visible;
+          }
+          #printable-receipt {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+        }
+      `}</style>
 
     </div>
   );

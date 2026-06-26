@@ -22,7 +22,7 @@ const walletSchema = new Schema<IWallet>(
 );
 
 // Hash the PIN before saving
-walletSchema.pre('save', async function (next) {
+walletSchema.pre('save', async function (next: any) {
   if (this.isModified('pinHash') && this.pinHash) {
     // If pinHash is provided as plain text pin in a creation/update, hash it here
     const salt = await bcrypt.genSalt(10);

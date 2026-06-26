@@ -25,6 +25,8 @@ export interface IOrder extends Document {
   tokenNumber?: string;
   mealCategory?: string;
   tokenSequence?: number;
+  scheduledDate?: string;
+  estimatedReadyAt?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -58,13 +60,15 @@ const orderSchema = new Schema<IOrder>(
     paymentId: { type: String },
     tokenNumber: { type: String },
     mealCategory: { type: String },
-    tokenSequence: { type: Number }
+    tokenSequence: { type: Number },
+    scheduledDate: { type: String },
+    estimatedReadyAt: { type: String }
   },
   { timestamps: true }
 );
 
 // Pre-save hook to automatically push status to history on update
-orderSchema.pre('save', function (next) {
+orderSchema.pre('save', function (next: any) {
   if (this.isModified('status') || this.statusHistory.length === 0) {
     this.statusHistory.push({
       status: this.status,

@@ -27,6 +27,21 @@ import explodedBurger from './assets/images/exploded_burger.png';
 import explodedBurgerClean from './assets/images/exploded_burger_clean.png';
 
 
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 export default function App() {
   const {
     user,
@@ -39,6 +54,62 @@ export default function App() {
     logout: contextLogout,
   } = useUser();
   const [isPopupBootstrapping, setIsPopupBootstrapping] = useState<boolean>(false);
+
+  const subscribeToPushNotifications = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const keyResponse = await fetch('/api/notifications/vapid-public-key');
+      if (!keyResponse.ok) return;
+      const { publicKey } = await keyResponse.json();
+      
+      const subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey)
+      });
+
+      await fetch('/api/notifications/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?.id || 'anonymous', subscription }),
+        credentials: 'include'
+      });
+      console.log('Successfully subscribed to Web Push Notifications.');
+    } catch (err) {
+      console.warn('Error subscribing to push notifications:', err);
+    }
+  };
+
+  // Register Service Worker and request notifications permission
+  useEffect(() => {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => {
+          console.log('Service Worker registered successfully with scope:', reg.scope);
+          if (Notification.permission === 'default') {
+            Notification.requestPermission();
+          }
+        })
+        .catch(err => {
+          console.warn('Service Worker registration failed:', err);
+        });
+    }
+  }, []);
+
+  // Subscribe to push notifications if user is logged in and permission is granted
+  useEffect(() => {
+    if (user?.id) {
+      if (Notification.permission === 'granted') {
+        subscribeToPushNotifications();
+      } else if (Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            subscribeToPushNotifications();
+          }
+        });
+      }
+    }
+  }, [user?.id]);
 
   // Clear legacy insecure localStorage keys on startup
   useEffect(() => {
@@ -452,12 +523,12 @@ export default function App() {
   };
 
   // Order status progression & admin updates with automatic cancellation refunds (Feature 30)
-  const handleUpdateOrderStatus = async (orderId: string, nextStatus: any) => {
+  const handleUpdateOrderStatus = async (orderId: string, nextStatus: any, estimatedReadyAt?: string) => {
     try {
       const response = await fetch(`/api/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: nextStatus }),
+        body: JSON.stringify({ status: nextStatus, estimatedReadyAt }),
         credentials: 'include'
       });
       if (response.ok) {
@@ -609,14 +680,14 @@ export default function App() {
         setShowProfileModal(false);
         if (data.savedToCloud) {
           addNotification(
-            'Academic Profile Synced to Supabase',
-            `Lock success! Roll No: ${profilePayload.rollNo} saved in Supabase canteen_student_profiles.`,
+            'Academic Profile Saved to MongoDB',
+            `Lock success! Roll No: ${profilePayload.rollNo} saved in MongoDB User collection.`,
             'success'
           );
         } else {
           addNotification(
             'Profile Saved (Sandbox Fallback Mode)',
-            `Registry locked in local server-memory. Connect Supabase to persist to cloud.`,
+            `Registry locked in local server-memory. Connect MongoDB to persist.`,
             'info'
           );
         }

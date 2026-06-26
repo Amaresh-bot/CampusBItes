@@ -1,7 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { StudentProfile } from '../types';
 import { SafeStorage } from '../lib/storage';
-import { supabase } from '../supabaseClient';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -273,10 +272,6 @@ export function UserProvider({ children }: UserProviderProps) {
     // Call backend logout endpoint to clear HTTP-only cookies
     fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(err => console.error("Backend logout error:", err));
 
-    // Also sign out from Supabase Auth if logged in
-    if (supabase) {
-      supabase.auth.signOut().catch(err => console.error("Supabase signOut error:", err));
-    }
     // Also sign out from Firebase Auth if logged in
     try {
       import('../firebase/config').then(({ auth: firebaseAuth }) => {

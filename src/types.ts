@@ -70,6 +70,7 @@ export interface Order {
   paymentId?: string;
   createdAt: string;
   estimatedReadyAt?: string;
+  scheduledDate?: string;
   tokenNumber: string; // Dynamic small order number for canteen desk pick-up, e.g. "C-14"
   mealCategory?: string;
   tokenSequence?: number;

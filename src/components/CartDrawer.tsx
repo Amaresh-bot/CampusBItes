@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Trash2, ShieldCheck, CreditCard, FileText, ArrowRight, X, AlertCircle, ExternalLink, Sparkles, Percent } from 'lucide-react';
+import { ShoppingBag, Trash2, ShieldCheck, CreditCard, FileText, ArrowRight, X, AlertCircle, ExternalLink, Sparkles, Percent, Calendar } from 'lucide-react';
 import { FoodItem, CartItem, Order, OrderCartItem } from '../types';
 
 interface CartDrawerProps {
@@ -24,6 +24,16 @@ export function CartDrawer({
   const [paymentMethod] = useState<'razorpay'>('razorpay');
   const [customInstructions, setCustomInstructions] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [scheduleType, setScheduleType] = useState<'today' | 'tomorrow'>('today');
+
+  const getTomorrowDateString = (): string => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const yyyy = tomorrow.getFullYear();
+    const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const dd = String(tomorrow.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
 
   // Clean up Razorpay checkout iframe and script tags if this drawer is unmounted
   useEffect(() => {
@@ -221,7 +231,8 @@ export function CartDrawer({
         paymentStatus: payStatus,
         paymentMethod: method,
         paymentId: payId,
-        status: 'Pending'
+        status: 'Pending',
+        scheduledDate: scheduleType === 'tomorrow' ? getTomorrowDateString() : undefined
       };
 
       const resp = await fetch('/api/orders/create', {
@@ -384,6 +395,43 @@ export function CartDrawer({
               onChange={(e) => setCustomInstructions(e.target.value)}
               className="w-full bg-white border border-slate-200 outline-none p-2 text-xs rounded-lg focus:border-[#1B4D3E]/50 transition-all text-slate-800 font-medium"
             />
+          </div>
+
+          {/* 4. Schedule selection panel */}
+          <div className="space-y-1.5 text-left bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <span className="text-[9px] uppercase font-black text-slate-400 tracking-wider flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-[#1B4D3E]" />
+              Order Schedule
+            </span>
+            <div className="grid grid-cols-2 gap-2 mt-1">
+              <button
+                type="button"
+                onClick={() => setScheduleType('today')}
+                className={`py-2 px-3 text-xs font-bold rounded-lg border transition-all cursor-pointer text-center ${
+                  scheduleType === 'today'
+                    ? 'bg-[#1B4D3E] border-[#1B4D3E] text-white shadow-xs'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() => setScheduleType('tomorrow')}
+                className={`py-2 px-3 text-xs font-bold rounded-lg border transition-all cursor-pointer text-center ${
+                  scheduleType === 'tomorrow'
+                    ? 'bg-[#1B4D3E] border-[#1B4D3E] text-white shadow-xs'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                Tomorrow
+              </button>
+            </div>
+            {scheduleType === 'tomorrow' && (
+              <p className="text-[10px] text-emerald-700 bg-emerald-50/50 p-1.5 rounded-md font-semibold text-center mt-1 border border-emerald-100/50">
+                📅 Scheduled for Tomorrow: {getTomorrowDateString()}
+              </p>
+            )}
           </div>
 
           {/* 5. Swiggy detailed bill breakdown */}

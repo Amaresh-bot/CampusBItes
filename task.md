@@ -4,6 +4,13 @@
   - [x] Initialize `backend/package.json` & `backend/tsconfig.json`
   - [x] Create `backend/src/config/db.ts` (MongoDB Connection)
   - [x] Create `backend/src/config/env.ts` (Environment setup)
+  - [x] Component 1: Remove Supabase & Integrate MongoDB in root `server.ts`
+  - [x] Connect root `server.ts` to MongoDB via Mongoose
+  - [x] Rewrite storage helper functions in `server.ts` to use MongoDB Mongoose models
+  - [x] Update `/api/config-status` endpoint in `server.ts` to return MongoDB diagnostic data
+  - [x] Delete `src/supabaseClient.js`
+  - [x] Clean up `supabase` client imports and calls in `UserContext.tsx`, `AuthScreen.tsx`
+  - [x] Update diagnostics UI and notification strings from "Supabase" to "MongoDB"
   - [x] Create Mongoose Models:
     - [x] `User.ts`
     - [x] `College.ts`
@@ -30,12 +37,32 @@
     - [x] Wallets & Transactions
     - [x] Orders & Print Orders
     - [x] Razorpay Payment gateway integration
+  - [x] Component 2: YYMMDD-Category-Sequence Token Format
+    - [x] Implement token generation in `backend/src/controllers/ordersController.ts`
+    - [x] Implement equivalent token generation in root `server.ts`
+  - [x] Component 3: Admin Options & Handover Bill Printing
+    - [x] Restrict order statuses and options in `AdminPanel.tsx` (Accept & Handover)
+    - [x] Add printable receipt layout with `@media print` CSS in `AdminPanel.tsx`
+    - [x] Automatically trigger print dialog on handover completion
 
 - [x] **Phase 4: Sockets & Realtime Updates**
   - [x] Create `backend/src/sockets/socketHandler.ts`
   - [x] Integrate Socket.IO server within `backend/src/server.ts`
+  - [x] Component 4: Next-Day Order Scheduling
+    - [x] Add "Today / Tomorrow" schedule selector in `CartDrawer.tsx`
+    - [x] Update order schemas and payload mapping for `scheduledDate`
+    - [x] Add visual badges for scheduled orders in Admin & Order Progress pages
+  - [x] Component 5: Countdown Timer & Push Notifications
+    - [x] Register service worker `sw.js` in `App.tsx` and request permissions
+    - [x] Create `public/sw.js` to handle background push alerts
+    - [x] Create `/api/notifications/subscribe` to store subscriptions in `push_subscriptions.json`
+    - [x] Implement loop on server check for preparing orders whose time has passed and trigger web push
+    - [x] Add interactive countdown clock in `OrderProgress.tsx`
 
 - [x] **Phase 5: Data Migration, Seeding & Frontend Adaptation**
   - [x] Create data migration script (`migrate.ts`)
   - [x] Create seed script (`seed.ts`)
   - [x] Update Frontend `UserContext.tsx` and components to point to the new backend API endpoints and Socket.IO client connections.
+  - [x] Verification
+    - [x] Run typechecks using `node .\node_modules\typescript\bin\tsc --noEmit`
+    - [x] Validate order placement, print, scheduling, token formats, and notifications

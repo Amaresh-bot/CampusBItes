@@ -6,13 +6,32 @@ import { Transaction } from '../models/Transaction';
 import { Counter } from '../models/Counter';
 import mongoose from 'mongoose';
 
+const getYYMMDD = (date: Date): string => {
+  const yy = String(date.getFullYear()).substring(2);
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yy}${mm}${dd}`;
+};
+
+const parseDateToYYMMDD = (dateStr?: string): string => {
+  if (!dateStr) return getYYMMDD(new Date());
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const yy = parts[0].substring(2);
+    const mm = parts[1].padStart(2, '0');
+    const dd = parts[2].padStart(2, '0');
+    return `${yy}${mm}${dd}`;
+  }
+  return getYYMMDD(new Date());
+};
+
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const orderData = req.body.order || req.body;
-    const { userId, items, totalAmount, paymentMethod, paymentId, tokenNumber } = orderData;
+    const { userId, items, totalAmount, paymentMethod, paymentId, tokenNumber, scheduledDate } = orderData;
     
     console.log("Creating order: starting order compilation in backend MERN");
-    console.log("Payload values:", { userId, paymentMethod, paymentId, totalAmount, itemsCount: items?.length });
+    console.log("Payload values:", { userId, paymentMethod, paymentId, totalAmount, itemsCount: items?.length, scheduledDate });
     
     if (!userId || !items || !totalAmount || !paymentMethod) {
       console.warn("Validation failed: missing required fields");
@@ -104,8 +123,15 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
     let tokenSeq: number | undefined = undefined;
     
     if (!token) {
-      const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-      const counterKey = `token_${resolvedCategory}_${dateStr}`;
+      const prefixMap: Record<string, string> = {
+        'Breakfast': 'B',
+        'Lunch': 'L',
+        'Snacks': 'S',
+        'Dinner': 'D'
+      };
+      const categoryPrefix = prefixMap[resolvedCategory] || 'S';
+      const yymmdd = parseDateToYYMMDD(scheduledDate);
+      const counterKey = `token_${categoryPrefix}_${yymmdd}`;
       
       const counter = await Counter.findOneAndUpdate(
         { key: counterKey },
@@ -114,14 +140,8 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       );
       
       tokenSeq = counter.sequence;
-      const prefixMap: Record<string, string> = {
-        'Breakfast': 'B',
-        'Lunch': 'L',
-        'Snacks': 'S',
-        'Dinner': 'D'
-      };
       const formattedSeq = String(tokenSeq).padStart(3, '0');
-      token = `${prefixMap[resolvedCategory]}-${formattedSeq}`;
+      token = `${yymmdd}-${categoryPrefix}-${formattedSeq}`;
     }
     
     const normalizedItems = (items || []).map((item: any) => ({
@@ -142,6 +162,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       tokenNumber: token,
       mealCategory: resolvedCategory,
       tokenSequence: tokenSeq,
+      scheduledDate: scheduledDate || null,
       status: 'Pending'
     });
     
@@ -195,7 +216,7 @@ export const getAdminOrders = async (req: Request, res: Response, next: NextFunc
 export const updateOrderStatus = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { orderId } = req.params;
-    const { status } = req.body;
+    const { status, estimatedReadyAt } = req.body;
     
     if (!status) {
       return res.status(400).json({ success: false, message: 'Status is required' });
@@ -207,6 +228,9 @@ export const updateOrderStatus = async (req: Request, res: Response, next: NextF
     }
     
     order.status = status;
+    if (estimatedReadyAt) {
+      order.estimatedReadyAt = estimatedReadyAt;
+    }
     await order.save(); // pre-save trigger adds to statusHistory!
     
     const mappedOrder = {
@@ -219,7 +243,8 @@ export const updateOrderStatus = async (req: Request, res: Response, next: NextF
       io.to(order.userId.toString()).emit('order_status_updated', {
         orderId: order._id,
         status: order.status,
-        statusHistory: order.statusHistory
+        statusHistory: order.statusHistory,
+        estimatedReadyAt: order.estimatedReadyAt
       });
     }
     

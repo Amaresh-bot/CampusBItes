@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, CheckCircle2, RefreshCw, XSquare, MessageSquare, AlertCircle, Sparkles, ChefHat, Check, ShoppingBag, ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Order, OrderStatus } from '../types';
@@ -8,6 +8,47 @@ interface OrderProgressProps {
   onCancelOrder: (orderId: string) => void;
   onRefresh: () => void;
   onGoToMenu?: () => void;
+}
+
+function CountdownTimer({ estimatedReadyAt }: { estimatedReadyAt: string }) {
+  const [timeLeft, setTimeLeft] = useState<string>('');
+  const [isOver, setIsOver] = useState(false);
+
+  useEffect(() => {
+    const calculateTime = () => {
+      const difference = new Date(estimatedReadyAt).getTime() - Date.now();
+      if (difference <= 0) {
+        setTimeLeft('00:00');
+        setIsOver(true);
+        return;
+      }
+      
+      const minutes = Math.floor(difference / 60000);
+      const seconds = Math.floor((difference % 60000) / 1000);
+      
+      setTimeLeft(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+      setIsOver(false);
+    };
+
+    calculateTime();
+    const interval = setInterval(calculateTime, 1000);
+    return () => clearInterval(interval);
+  }, [estimatedReadyAt]);
+
+  return (
+    <div className={`flex items-center gap-2 p-3.5 rounded-2xl font-bold border text-xs ${
+      isOver ? 'bg-rose-50 text-rose-700 border-rose-200/50' : 'bg-amber-50 text-amber-700 border-amber-200/50'
+    }`}>
+      <Clock className={`w-4 h-4 ${isOver ? '' : 'animate-pulse'}`} />
+      <span>
+        {isOver ? (
+          <span>⏰ Preparation time is over! Please collect your order from the counter.</span>
+        ) : (
+          <span>⏳ Kitchen countdown: <strong className="font-mono text-sm">{timeLeft}</strong> remaining until pickup.</span>
+        )}
+      </span>
+    </div>
+  );
 }
 
 export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: OrderProgressProps) {
@@ -120,6 +161,11 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
                       <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase border ${getStatusColor(order.status)}`}>
                         {getStatusLabelText(order.status)}
                       </span>
+                      {order.scheduledDate && (
+                        <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-100 uppercase">
+                          📅 Scheduled: {order.scheduledDate}
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-slate-400 font-medium">
                       Ordered {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Via {order.paymentMethod.toUpperCase()}
@@ -192,14 +238,18 @@ export function OrderProgress({ orders, onCancelOrder, onRefresh, onGoToMenu }: 
                   </div>
                 )}
 
-                {/* Swiggy Estimated Waiting details */}
-                {!isCancelled && stepperIndex < 3 && (
-                  <div className="flex items-center gap-3 bg-[#E8F5E9] p-3.5 rounded-2xl border border-[#A5D6A7]/15 text-xs text-[#1B4D3E] font-medium font-sans">
-                    <Clock className="w-4 h-4 text-[#1B4D3E] animate-spin" style={{ animationDuration: '4s' }} />
-                    <span>
-                      Preparation estimated wait time: <strong>{approxWait}</strong>. Don't worry, your food is freshly prepped.
-                    </span>
-                  </div>
+                {/* Swiggy Estimated Waiting details / Countdown Timer */}
+                {!isCancelled && order.status === 'Preparing' && order.estimatedReadyAt ? (
+                  <CountdownTimer estimatedReadyAt={order.estimatedReadyAt} />
+                ) : (
+                  !isCancelled && stepperIndex < 3 && (
+                    <div className="flex items-center gap-3 bg-[#E8F5E9] p-3.5 rounded-2xl border border-[#A5D6A7]/15 text-xs text-[#1B4D3E] font-medium font-sans">
+                      <Clock className="w-4 h-4 text-[#1B4D3E] animate-spin" style={{ animationDuration: '4s' }} />
+                      <span>
+                        Preparation estimated wait time: <strong>{approxWait}</strong>. Don't worry, your food is freshly prepped.
+                      </span>
+                    </div>
+                  )
                 )}
 
                 {/* Cancelled state notification */}

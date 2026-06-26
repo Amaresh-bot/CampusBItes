@@ -5,12 +5,138 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import Razorpay from "razorpay";
-import { createClient } from "@supabase/supabase-js";
+import mongoose from "mongoose";
+import webpush from "web-push";
+import { User } from "./backend/src/models/User";
+import { Wallet } from "./backend/src/models/Wallet";
+import { Transaction } from "./backend/src/models/Transaction";
+import { MenuItem } from "./backend/src/models/MenuItem";
+import { Order } from "./backend/src/models/Order";
+import { PrintOrder } from "./backend/src/models/PrintOrder";
+import { Counter } from "./backend/src/models/Counter";
 import { createServer as createViteServer } from "vite";
 import { TABLES } from "./src/lib/tableNames";
 
 const app = express();
 const PORT = Number(process.env.PORT || "3000");
+
+// Web Push VAPID keys initialization
+let vapidKeys: any;
+try {
+  const vapidKeysPath = path.join(__dirname, "vapid_keys.json");
+  if (fs.existsSync(vapidKeysPath)) {
+    vapidKeys = JSON.parse(fs.readFileSync(vapidKeysPath, "utf8"));
+  } else {
+    vapidKeys = webpush.generateVAPIDKeys();
+    fs.writeFileSync(vapidKeysPath, JSON.stringify(vapidKeys, null, 2));
+  }
+  webpush.setVapidDetails(
+    "mailto:amareshkaturi@gmail.com",
+    vapidKeys.publicKey,
+    vapidKeys.privateKey
+  );
+  console.log("Web Push VAPID keys initialized successfully.");
+} catch (err: any) {
+  console.error("Error setting up Web Push VAPID keys:", err.message || err);
+}
+
+const pushSubscriptionsFile = path.join(__dirname, "push_subscriptions.json");
+
+function loadPushSubscriptions(): any[] {
+  try {
+    if (fs.existsSync(pushSubscriptionsFile)) {
+      return JSON.parse(fs.readFileSync(pushSubscriptionsFile, "utf8"));
+    }
+  } catch (err) {
+    console.error("Error loading push subscriptions:", err);
+  }
+  return [];
+}
+
+function savePushSubscription(userId: string, subscription: any) {
+  try {
+    const subscriptions = loadPushSubscriptions();
+    const filtered = subscriptions.filter(sub => sub.subscription.endpoint !== subscription.endpoint);
+    filtered.push({ userId, subscription, createdAt: new Date().toISOString() });
+    fs.writeFileSync(pushSubscriptionsFile, JSON.stringify(filtered, null, 2));
+  } catch (err) {
+    console.error("Error saving push subscription:", err);
+  }
+}
+
+const notifiedOrdersFile = path.join(__dirname, "notified_orders.json");
+
+function loadNotifiedOrders(): string[] {
+  try {
+    if (fs.existsSync(notifiedOrdersFile)) {
+      return JSON.parse(fs.readFileSync(notifiedOrdersFile, "utf8"));
+    }
+  } catch (err) {
+    console.error("Error loading notified orders:", err);
+  }
+  return [];
+}
+
+function saveNotifiedOrder(orderId: string) {
+  try {
+    const notified = loadNotifiedOrders();
+    if (!notified.includes(orderId)) {
+      notified.push(orderId);
+      fs.writeFileSync(notifiedOrdersFile, JSON.stringify(notified, null, 2));
+    }
+  } catch (err) {
+    console.error("Error saving notified order:", err);
+  }
+}
+
+// Background checker for preparing orders that are overdue
+setInterval(async () => {
+  try {
+    const isMongoConnected = mongoose.connection.readyState === 1;
+    if (!isMongoConnected) return;
+
+    const preparingOrders = await Order.find({ status: 'Preparing' });
+    if (preparingOrders.length === 0) return;
+
+    const now = Date.now();
+    const notified = loadNotifiedOrders();
+    const subscriptions = loadPushSubscriptions();
+
+    for (const order of preparingOrders) {
+      const orderIdStr = order._id.toString();
+      if (notified.includes(orderIdStr)) continue;
+
+      if (order.estimatedReadyAt) {
+        const readyTime = new Date(order.estimatedReadyAt).getTime();
+        if (now >= readyTime) {
+          console.log(`[Push Notification] Order ${orderIdStr} is ready. Overdue by ${Math.round((now - readyTime)/1000)} seconds.`);
+          
+          const userSubs = subscriptions.filter(sub => sub.userId === order.userId.toString() || sub.userId === 'anonymous');
+          
+          if (userSubs.length > 0) {
+            const payload = JSON.stringify({
+              title: 'Your CampusBites Order is Ready! 🍕',
+              body: `Token #${order.tokenNumber} is ready at the counter. Please collect it!`,
+              data: { orderId: orderIdStr }
+            });
+
+            for (const userSub of userSubs) {
+              try {
+                await webpush.sendNotification(userSub.subscription, payload);
+                console.log(`[Push Notification] Successfully sent to subscriber: ${userSub.userId}`);
+              } catch (pushErr: any) {
+                console.warn(`[Push Notification] Error sending notification to user ${userSub.userId}:`, pushErr.message || pushErr);
+              }
+            }
+          }
+          saveNotifiedOrder(orderIdStr);
+        }
+      }
+    }
+  } catch (err: any) {
+    console.error('[Push Background Checker] Error:', err.message || err);
+  }
+}, 5000);
 
 // High-reliability manual parsed fallback for environments where process.env cannot be easily overridden
 let envKeys: Record<string, string> = {};
@@ -40,190 +166,11 @@ try {
 const RAZORPAY_KEY_ID = (process.env.RAZORPAY_KEY_ID?.replace(/['"]/g, "").trim() || envKeys["RAZORPAY_KEY_ID"])?.trim() || "";
 const RAZORPAY_KEY_SECRET = (process.env.RAZORPAY_KEY_SECRET?.replace(/['"]/g, "").trim() || envKeys["RAZORPAY_KEY_SECRET"])?.trim() || "";
 
-const raw_supabase_url = (process.env.SUPABASE_URL?.replace(/['"]/g, "").trim() || envKeys["SUPABASE_URL"])?.trim() || "";
-let SUPABASE_URL = raw_supabase_url;
-
-// Automated Sanitiser: Fully clean up and correct any misconfigured Supabase URL
-if (SUPABASE_URL) {
-  let cleaned = SUPABASE_URL.trim();
-  if (cleaned.includes(".supabase.co")) {
-    try {
-      if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
-        cleaned = "https://" + cleaned;
-      }
-      const parsed = new URL(cleaned);
-      SUPABASE_URL = parsed.origin;
-      console.log(`[Supabase Sanitiser] Cleaned .supabase.co URL down to origin: ${SUPABASE_URL}`);
-    } catch (e) {
-      const subcoMatch = cleaned.match(/([a-zA-Z0-9_-]+)\.supabase\.co/i);
-      if (subcoMatch && subcoMatch[1]) {
-        SUPABASE_URL = `https://${subcoMatch[1]}.supabase.co`;
-        console.log(`[Supabase Sanitiser] Match-extracted .supabase.co endpoint: ${SUPABASE_URL}`);
-      }
-    }
-  } else {
-    const projectMatch = cleaned.match(/\/project\/([a-zA-Z0-9_-]{20})/i) || cleaned.match(/\/project\/([a-zA-Z0-9_-]+)/i);
-    if (projectMatch && projectMatch[1]) {
-      SUPABASE_URL = `https://${projectMatch[1].trim()}.supabase.co`;
-      console.log(`[Supabase Sanitiser] Extracted project identifier from dashboard URL: ${SUPABASE_URL}`);
-    } else {
-      const trimmedValue = cleaned.replace(/['"]/g, "").trim();
-      if (trimmedValue.length === 20 && /^[a-zA-Z0-9]+$/.test(trimmedValue)) {
-        SUPABASE_URL = `https://${trimmedValue}.supabase.co`;
-        console.log(`[Supabase Sanitiser] Formed URL from 20-char project reference: ${SUPABASE_URL}`);
-      }
-    }
-  }
-  SUPABASE_URL = SUPABASE_URL.replace(/\/+$/, "").trim();
-}
-
-const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY?.replace(/['"]/g, "").trim() || envKeys["SUPABASE_SERVICE_ROLE_KEY"] || envKeys["SUPABASE_ANON_KEY"] || process.env.SUPABASE_ANON_KEY?.replace(/['"]/g, "").trim())?.trim() || "";
-
-if (SUPABASE_URL && !process.env.SUPABASE_URL) {
-  process.env.SUPABASE_URL = SUPABASE_URL;
-}
-if (SUPABASE_SERVICE_ROLE_KEY && !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  process.env.SUPABASE_SERVICE_ROLE_KEY = SUPABASE_SERVICE_ROLE_KEY;
-}
-console.log("Supabase URL configured:", !!process.env.SUPABASE_URL);
-console.log("Service role configured:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-
-console.log("====================================");
-console.log("RAZORPAY CREDENTIALS DIAGNOSTICS:");
-console.log("RAW PROCESS ENV KEY ID:", process.env.RAZORPAY_KEY_ID ? `[SET] val_raw: ${process.env.RAZORPAY_KEY_ID} (len: ${process.env.RAZORPAY_KEY_ID.length})` : "[NOT SET]");
-console.log("RAW PROCESS ENV SECRET:", process.env.RAZORPAY_KEY_SECRET ? `[SET] masked: ${process.env.RAZORPAY_KEY_SECRET.substring(0, 4)}... (len: ${process.env.RAZORPAY_KEY_SECRET.length})` : "[NOT SET]");
-console.log("MANUAL ENV ID:", envKeys["RAZORPAY_KEY_ID"] ? `[SET] val_raw: ${envKeys["RAZORPAY_KEY_ID"]} (len: ${envKeys["RAZORPAY_KEY_ID"].length})` : "[NOT SET]");
-console.log("MANUAL ENV SECRET:", envKeys["RAZORPAY_KEY_SECRET"] ? `[SET] masked: ${envKeys["RAZORPAY_KEY_SECRET"].substring(0, 4)}... (len: ${envKeys["RAZORPAY_KEY_SECRET"].length})` : "[NOT SET]");
-console.log("PROCESSED FINAL KEY ID:", RAZORPAY_KEY_ID ? `[SET] val: ${RAZORPAY_KEY_ID} (len: ${RAZORPAY_KEY_ID.length})` : "[NOT SET]");
-console.log("PROCESSED FINAL KEY SECRET:", RAZORPAY_KEY_SECRET ? `[SET] masked: ${RAZORPAY_KEY_SECRET.substring(0, 4)}... (len: ${RAZORPAY_KEY_SECRET.length})` : "[NOT SET]");
-console.log("------------------------------------");
-console.log("SUPABASE DATABASES CONFIGURATION:");
-console.log("RAW INPUT SUPABASE URL:", raw_supabase_url ? `[SET] val: ${raw_supabase_url}` : "[NOT SET]");
-console.log("RESOLVED SUPABASE URL:", SUPABASE_URL ? `[SET] val: ${SUPABASE_URL}` : "[NOT SET]");
-console.log("SUPABASE KEY:", SUPABASE_SERVICE_ROLE_KEY ? `[SET] masked: ${SUPABASE_SERVICE_ROLE_KEY.substring(0, 8)}... (len: ${SUPABASE_SERVICE_ROLE_KEY.length})` : "[NOT SET]");
-console.log("====================================");
-
-// Middleware for parsing JSON and encoding
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// In-Memory Storage mocks with robust local disk-persistence fallback
-const PERSIST_DIR = path.join(process.cwd(), "data_persistence");
-if (!fs.existsSync(PERSIST_DIR)) {
-  try {
-    fs.mkdirSync(PERSIST_DIR, { recursive: true });
-  } catch (e) {}
-}
-
-function loadPersistedData<T>(filename: string, defaultValue: T): T {
-  const filePath = path.join(PERSIST_DIR, filename);
-  if (fs.existsSync(filePath)) {
-    try {
-      const content = fs.readFileSync(filePath, "utf8");
-      return JSON.parse(content) as T;
-    } catch (e) {
-      console.warn(`[Persistence] Error reading ${filename}:`, e);
-    }
-  }
-  return defaultValue;
-}
-
-function savePersistedData(filename: string, data: any) {
-  const filePath = path.join(PERSIST_DIR, filename);
-  try {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
-  } catch (e) {
-    console.warn(`[Persistence] Error writing ${filename}:`, e);
-  }
-}
-
-function createPersistentDb<T extends object>(filename: string, initialValue: T): T {
-  const loaded = loadPersistedData(filename, initialValue);
-  const handler: ProxyHandler<any> = {
-    set(target, key, value) {
-      target[key] = value;
-      savePersistedData(filename, target);
-      return true;
-    },
-    deleteProperty(target, key) {
-      delete target[key];
-      savePersistedData(filename, target);
-      return true;
-    }
-  };
-  return new Proxy(loaded, handler);
-}
-
-// Removed local in-memory/file orders database fallback to enforce single source of truth (Supabase)
-const walletsDb: Record<string, { userId: string; balance: number; pin: string; isAutoTopupEnabled: boolean }> = createPersistentDb("wallets.json", {});
-const supabaseFailedWallets = new Set<string>();
-const walletTransactionsDb: any[] = createPersistentDb("wallet_transactions.json", []);
-const mealBookingsDb: any[] = createPersistentDb("meal_bookings.json", []);
-let paymentSettingsDb = {
-  upiId: "canteen@axisbank",
-  merchantName: "CampusBites Canteen Hub",
-  bankName: "Axis Bank Ltd",
-  accountNo: "918020084920492",
-  ifscCode: "UTIB0000180"
-};
-const studentProfilesDb: Record<string, any> = createPersistentDb("student_profiles.json", {});
-
-// Dynamic column detector for student profiles to ensure backward/forward compatibility
-let studentProfilesColumns: string[] = ["id", "full_name", "roll_number", "branch", "academic_year", "phone_number"];
-let supabaseStudentsTableExists = true;
-let actualStudentsTable: string = "canteen_student_profiles";
-
-async function detectStudentProfileSchema() {
-  if (!supabase) {
-    supabaseStudentsTableExists = false;
-    return;
-  }
-  try {
-    // Probe 1: Try canteen_student_profiles table (from TABLES.STUDENTS definition)
-    const { data: cData, error: cError } = await supabase.from("canteen_student_profiles").select("*").limit(1);
-    if (!cError) {
-      actualStudentsTable = "canteen_student_profiles";
-      supabaseStudentsTableExists = true;
-      console.log("[Supabase Schema Detector] Detected existing 'canteen_student_profiles' table successfully!");
-      return;
-    }
-
-    // Probe 2: Try the 'students' table definition from the SQL schema
-    const { data: sData, error: sError } = await supabase.from("students").select("*").limit(1);
-    if (!sError) {
-      actualStudentsTable = "students";
-      supabaseStudentsTableExists = true;
-      console.log("[Supabase Schema Detector] Detected existing 'students' table successfully!");
-      return;
-    }
-
-    // Neither table exists, fall back to memory
-    console.log("[Supabase Schema Detector] Neither 'canteen_student_profiles' nor 'students' table exists in Supabase. Continuing in memory-only sandbox mode.");
-    supabaseStudentsTableExists = false;
-  } catch (err: any) {
-    console.log("[Supabase Schema Detector] Non-blocking schema probe complete. Local storage memory fallback active.", err.message);
-    supabaseStudentsTableExists = false;
-  }
-}
-
-// Supabase Client Initialization
-let supabase: any = null;
-if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-  try {
-    supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false
-      }
-    });
-    console.log("[Supabase Status] Initialised client with cloud gateway:", SUPABASE_URL);
-    detectStudentProfileSchema();
-  } catch (err: any) {
-    console.error("[Supabase Status] Client instantiation error:", err.message || err);
-  }
-} else {
-  console.log("[Supabase Status] Missing credentials! Operating in high-reliability client-side memory database mode.");
-}
+// Connect to MongoDB using mongoose
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/campusbites";
+mongoose.connect(MONGODB_URI)
+  .then(() => console.log("Connected to MongoDB successfully!"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
 // Explicit Mapper converting PostgreSQL snake_case schema to UI camelCase layout with strict table-specific column pruning
 function mapRowToDb(table: string, row: any): any {
@@ -318,17 +265,26 @@ function mapRowToDb(table: string, row: any): any {
   }
 
   if (table === "canteen_orders") {
+    let items = typeof row.items === "string" ? JSON.parse(row.items) : (row.items || []);
+    if (row.scheduledDate && Array.isArray(items)) {
+      items = items.map((it: any) => ({ ...it, scheduledDate: row.scheduledDate }));
+    }
+    if (row.estimatedReadyAt && Array.isArray(items)) {
+      items = items.map((it: any) => ({ ...it, estimatedReadyAt: row.estimatedReadyAt }));
+    }
     return {
-      id: row.id,
+      id: row.id || row._id?.toString(),
       user_id: row.userId || row.user_id,
-      items: typeof row.items === "string" ? JSON.parse(row.items) : (row.items || []),
+      items: items,
       total_amount: row.totalAmount !== undefined ? Number(row.totalAmount) : (row.total_amount !== undefined ? Number(row.total_amount) : undefined),
       status: row.status || "Pending",
       payment_method: row.paymentMethod || row.payment_method,
       payment_status: row.paymentStatus || row.payment_status,
       payment_id: row.paymentId || row.payment_id,
       token_number: row.tokenNumber || row.token_number,
-      created_at: row.createdAt || row.created_at || new Date().toISOString()
+      created_at: row.createdAt || row.created_at || new Date().toISOString(),
+      scheduledDate: row.scheduledDate,
+      estimatedReadyAt: row.estimatedReadyAt
     };
   }
 
@@ -430,697 +386,713 @@ function mapRowFromDb(table: string, row: any): any {
   }
 
   if (table === "canteen_orders") {
+    const items = typeof row.items === "string" ? JSON.parse(row.items) : (row.items || []);
+    const estimatedReadyAt = row.estimatedReadyAt || items[0]?.estimatedReadyAt || null;
+    const scheduledDate = row.scheduledDate || items[0]?.scheduledDate || null;
     return {
-      id: row.id,
+      id: row.id || row._id?.toString(),
       userId: row.user_id,
-      items: typeof row.items === "string" ? JSON.parse(row.items) : (row.items || []),
+      items,
       totalAmount: Number(row.total_amount),
       status: row.status,
       paymentMethod: row.payment_method,
       paymentStatus: row.payment_status,
       paymentId: row.payment_id,
       tokenNumber: row.token_number,
-      createdAt: row.created_at
+      createdAt: row.created_at,
+      estimatedReadyAt,
+      scheduledDate
     };
   }
 
   return row;
 }
 
-// Supabase Async fetch/commit methods with robust in-memory fallbacks
-async function getMenuItems(): Promise<any[]> {
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from(TABLES.MENU).select("*");
-      if (error) {
-        console.log("[Storage] Reading high-reliability local menu cache.");
-        return dynamicMenuItems;
-      }
-      if (data && data.length > 0) {
-        return data.map((d: any) => mapRowFromDb(TABLES.MENU, d));
-      }
-    } catch (err: any) {
-      console.log("[Storage] Reading high-reliability local menu cache.");
-    }
+// Local in-memory caches and persistent sandboxes
+let walletsDb: Record<string, any> = {};
+let walletTransactionsDb: any[] = [];
+let mealBookingsDb: any[] = [];
+let studentProfilesDb: Record<string, any> = {};
+let paymentSettingsDb: any = {
+  upiId: "demo@upi",
+  merchantName: "Campus Cafe",
+  bankName: "SBI",
+  accountNo: "1234567890",
+  ifscCode: "SBIN0001234"
+};
+let supabaseFailedWallets = new Set<string>();
+const supabase: any = null; // Removed supabase client.
+
+const SUPABASE_URL: string = "";
+const SUPABASE_SERVICE_ROLE_KEY: string = "";
+const supabaseStudentsTableExists = false;
+const actualStudentsTable = "canteen_student_profiles";
+
+function createPersistentDb(fileName: string, defaultValue: any): any {
+  const dir = path.join(process.cwd(), "data_persistence");
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
-  return dynamicMenuItems;
+  const filePath = path.join(dir, fileName);
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, JSON.stringify(defaultValue, null, 2));
+    return defaultValue;
+  }
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  } catch (e) {
+    return defaultValue;
+  }
 }
 
-async function addMenuItem(item: any): Promise<boolean> {
-  if (supabase) {
-    try {
-      const dbRow = mapRowToDb(TABLES.MENU, item);
-      const { error } = await supabase.from(TABLES.MENU).insert([dbRow]);
-      if (error) {
-        console.log("[Storage] Saved menu item to high-reliability local database.");
-      } else {
-        return true;
-      }
-    } catch (err: any) {
-      console.log("[Storage] Saved menu item to high-reliability local database.");
-    }
-  }
-  return false;
+function savePersistedData(fileName: string, data: any) {
+  const dir = path.join(process.cwd(), "data_persistence");
+  const filePath = path.join(dir, fileName);
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
-async function updateMenuItemDb(itemId: string, updates: any): Promise<any> {
-  if (supabase) {
-    try {
-      const dbRow = mapRowToDb(TABLES.MENU, updates);
-      const { data, error } = await supabase.from(TABLES.MENU).update(dbRow).eq("id", itemId).select();
-      if (error) {
-        console.log("[Storage] Updated menu item in high-reliability local database.");
-      } else if (data && data.length > 0) {
-        return mapRowFromDb(TABLES.MENU, data[0]);
-      }
-    } catch (err: any) {
-      console.log("[Storage] Updated menu item in high-reliability local database.");
+// Helper to resolve or create the default canteen ID
+async function getOrCreateDefaultCanteenId(): Promise<mongoose.Types.ObjectId> {
+  let canteen = await Canteen.findOne({});
+  if (!canteen) {
+    let college = await College.findOne({});
+    if (!college) {
+      college = await College.create({
+        name: "Spoorthy Engineering College",
+        location: "Academic Campus Area, Hyderabad, India"
+      });
     }
+    canteen = await Canteen.create({
+      collegeId: college._id,
+      name: "Campus Cafe",
+      description: "Main central dining hall and student food store",
+      isActive: true
+    });
   }
+  return canteen._id as mongoose.Types.ObjectId;
+}
+
+// Helper to find user by ObjectId, googleId, email, or roll number
+async function findUserByIdentifier(userId: string): Promise<any> {
+  if (!userId) return null;
+  if (mongoose.Types.ObjectId.isValid(userId)) {
+    const user = await User.findById(userId);
+    if (user) return user;
+  }
+  const userByGoogle = await User.findOne({ googleId: userId });
+  if (userByGoogle) return userByGoogle;
+  if (userId.includes("@")) {
+    const userByEmail = await User.findOne({ email: userId });
+    if (userByEmail) return userByEmail;
+  }
+  const userByRoll = await User.findOne({ rollNumber: userId });
+  if (userByRoll) return userByRoll;
   return null;
 }
 
-async function deleteMenuItemDb(itemId: string): Promise<boolean> {
-  if (supabase) {
-    try {
-      const { error } = await supabase.from(TABLES.MENU).delete().eq("id", itemId);
-      if (error) {
-        console.log("[Storage] Removed menu item from high-reliability local database.");
-      } else {
-        return true;
-      }
-    } catch (err: any) {
-      console.log("[Storage] Removed menu item from high-reliability local database.");
-    }
+// Date helper for token YYMMDD
+function getYYMMDD(date: Date): string {
+  const yy = String(date.getFullYear()).substring(2);
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yy}${mm}${dd}`;
+}
+
+// Parse custom date (YYYY-MM-DD) to YYMMDD
+function parseDateToYYMMDD(dateStr?: string): string {
+  if (!dateStr) return getYYMMDD(new Date());
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const yy = parts[0].substring(2);
+    const mm = parts[1].padStart(2, '0');
+    const dd = parts[2].padStart(2, '0');
+    return `${yy}${mm}${dd}`;
   }
-  return false;
+  return getYYMMDD(new Date());
+}
+
+// Get the next atomic sequential token
+async function getNextTokenNumber(categoryPrefix: string, yymmdd: string): Promise<string> {
+  const counterKey = `token_${categoryPrefix}_${yymmdd}`;
+  const counter = await Counter.findOneAndUpdate(
+    { key: counterKey },
+    { $inc: { sequence: 1 } },
+    { upsert: true, new: true }
+  );
+  const seqStr = String(counter.sequence).padStart(3, '0');
+  return `${yymmdd}-${categoryPrefix}-${seqStr}`;
+}
+
+// MongoDB Async fetch/commit methods
+async function getMenuItems(): Promise<any[]> {
+  try {
+    const items = await MenuItem.find({}).lean();
+    return items.map((item: any) => ({
+      id: item._id?.toString() || item.id,
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category: item.category,
+      imageUrl: item.imageUrl,
+      isAvailable: item.isAvailable,
+      estimatedPrepTime: item.estimatedPrepTime,
+      rating: item.rating,
+      tags: item.tags || [],
+      isTodaySpecial: item.isTodaySpecial
+    }));
+  } catch (err: any) {
+    console.error("[MongoDB Menu] Error fetching menu items:", err);
+    return dynamicMenuItems || [];
+  }
+}
+
+async function addMenuItem(item: any): Promise<boolean> {
+  try {
+    const canteenId = await getOrCreateDefaultCanteenId();
+    await MenuItem.create({
+      canteenId,
+      name: item.name,
+      description: item.description || "",
+      price: Number(item.price),
+      category: item.category,
+      imageUrl: item.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60",
+      isAvailable: item.isAvailable !== undefined ? Boolean(item.isAvailable) : true,
+      estimatedPrepTime: item.estimatedPrepTime !== undefined ? Number(item.estimatedPrepTime) : 10,
+      rating: item.rating !== undefined ? Number(item.rating) : 5.0,
+      tags: item.tags || [],
+      isTodaySpecial: item.isTodaySpecial !== undefined ? Boolean(item.isTodaySpecial) : false
+    });
+    return true;
+  } catch (err: any) {
+    console.error("[MongoDB Menu] Error adding menu item:", err);
+    return false;
+  }
+}
+
+async function updateMenuItemDb(itemId: string, updates: any): Promise<any> {
+  try {
+    const query = mongoose.Types.ObjectId.isValid(itemId) ? { _id: itemId } : { name: itemId };
+    const updateFields: any = {};
+    if (updates.name !== undefined) updateFields.name = updates.name;
+    if (updates.description !== undefined) updateFields.description = updates.description;
+    if (updates.price !== undefined) updateFields.price = Number(updates.price);
+    if (updates.category !== undefined) updateFields.category = updates.category;
+    if (updates.imageUrl !== undefined) updateFields.imageUrl = updates.imageUrl;
+    if (updates.isAvailable !== undefined) updateFields.isAvailable = Boolean(updates.isAvailable);
+    if (updates.estimatedPrepTime !== undefined) updateFields.estimatedPrepTime = Number(updates.estimatedPrepTime);
+    if (updates.rating !== undefined) updateFields.rating = Number(updates.rating);
+    if (updates.tags !== undefined) updateFields.tags = updates.tags;
+    if (updates.isTodaySpecial !== undefined) updateFields.isTodaySpecial = Boolean(updates.isTodaySpecial);
+
+    const updated = await MenuItem.findOneAndUpdate(query, updateFields, { new: true }).lean();
+    if (updated) {
+      return {
+        id: updated._id.toString(),
+        name: updated.name,
+        description: updated.description,
+        price: updated.price,
+        category: updated.category,
+        imageUrl: updated.imageUrl,
+        isAvailable: updated.isAvailable,
+        estimatedPrepTime: updated.estimatedPrepTime,
+        rating: updated.rating,
+        tags: updated.tags || [],
+        isTodaySpecial: updated.isTodaySpecial
+      };
+    }
+    return null;
+  } catch (err: any) {
+    console.error("[MongoDB Menu] Error updating menu item:", err);
+    return null;
+  }
+}
+
+async function deleteMenuItemDb(itemId: string): Promise<boolean> {
+  try {
+    const query = mongoose.Types.ObjectId.isValid(itemId) ? { _id: itemId } : { name: itemId };
+    const deleted = await MenuItem.findOneAndDelete(query);
+    return !!deleted;
+  } catch (err: any) {
+    console.error("[MongoDB Menu] Error deleting menu item:", err);
+    return false;
+  }
 }
 
 async function getWallet(userId: string): Promise<any> {
-  if (supabaseFailedWallets.has(userId) && walletsDb[userId]) {
-    console.log(`[Storage] Selected high-reliability local disk persistence cache for user key: ${userId}`);
-    return walletsDb[userId];
-  }
-
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from(TABLES.WALLETS).select("*").eq("user_id", userId);
-      if (!error && data && data.length > 0) {
-        const dbWallet = mapRowFromDb("canteen_wallets", data[0]);
-        // Only override local cache if we didn't fail earlier, otherwise respect local updates
-        if (!supabaseFailedWallets.has(userId)) {
-          walletsDb[userId] = dbWallet;
-          return dbWallet;
-        } else {
-          return walletsDb[userId];
-        }
-      } else if (error) {
-        console.log(`[Storage] Selected high-reliability local disk persistence cache (Cloud sync check active).`);
-      }
-    } catch (err: any) {
-      console.log(`[Storage] Selected high-reliability local disk persistence cache.`);
+  try {
+    const user = await findUserByIdentifier(userId);
+    if (!user) return null;
+    
+    let wallet = await Wallet.findOne({ userId: user._id });
+    if (!wallet) {
+      wallet = await Wallet.create({
+        userId: user._id,
+        balance: 0.0,
+        pinHash: "",
+        isAutoTopupEnabled: false
+      });
     }
+    return {
+      userId: user._id.toString(),
+      balance: wallet.balance,
+      pin: wallet.pinHash,
+      isAutoTopupEnabled: wallet.isAutoTopupEnabled
+    };
+  } catch (err: any) {
+    console.error("[MongoDB Wallet] Error fetching wallet:", err);
+    return null;
   }
-  return walletsDb[userId] || null;
 }
 
 async function saveWallet(wallet: any): Promise<boolean> {
-  // Always keep memory updated
-  walletsDb[wallet.userId] = wallet;
-
-  if (supabase) {
-    try {
-      const dbRow = mapRowToDb(TABLES.WALLETS, wallet);
-      const { error } = await supabase.from(TABLES.WALLETS).upsert([dbRow], { onConflict: "user_id" });
-      if (error) {
-        console.error("[Supabase Sync Error] Failed to save wallet:", error.message || error);
-        console.log(`[Storage] Handled backend save via high-reliability local disk persistence. Note: Cloud sync status: pending.`);
-        supabaseFailedWallets.add(wallet.userId);
-      } else {
-        supabaseFailedWallets.delete(wallet.userId);
-        return true;
-      }
-    } catch (err: any) {
-      console.error("[Supabase Exception] Exception saving wallet:", err.message || err);
-      console.log(`[Storage] Handled backend save via high-reliability local disk persistence.`);
-      supabaseFailedWallets.add(wallet.userId);
+  try {
+    const user = await findUserByIdentifier(wallet.userId);
+    if (!user) return false;
+    
+    let wDoc = await Wallet.findOne({ userId: user._id });
+    if (!wDoc) {
+      wDoc = new Wallet({ userId: user._id });
     }
+    if (wallet.balance !== undefined) wDoc.balance = Number(wallet.balance);
+    if (wallet.pin !== undefined && wallet.pin !== wDoc.pinHash) {
+      wDoc.pinHash = wallet.pin;
+    }
+    if (wallet.isAutoTopupEnabled !== undefined) wDoc.isAutoTopupEnabled = Boolean(wallet.isAutoTopupEnabled);
+    await wDoc.save();
+    return true;
+  } catch (err: any) {
+    console.error("[MongoDB Wallet] Error saving wallet:", err);
+    return false;
   }
-  return false;
 }
 
 async function getTransactions(userId: string): Promise<any[]> {
-  let dbTxs: any[] = [];
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from(TABLES.WALLET_TRANSACTIONS).select("*").eq("user_id", userId);
-      if (!error && data) {
-        dbTxs = data.map((d: any) => mapRowFromDb(TABLES.WALLET_TRANSACTIONS, d));
-      } else if (error) {
-        console.log(`[Storage] Selected high-reliability local disk persistence cache (Cloud transactions check active).`);
-      }
-    } catch (err: any) {
-      console.log(`[Storage] Selected high-reliability local disk persistence cache.`);
-    }
+  try {
+    const user = await findUserByIdentifier(userId);
+    if (!user) return [];
+    const txs = await Transaction.find({ userId: user._id }).sort({ createdAt: -1 }).lean();
+    return txs.map((tx: any) => ({
+      id: tx._id.toString(),
+      userId: tx.userId.toString(),
+      amount: tx.amount,
+      type: tx.type,
+      description: tx.description,
+      createdAt: tx.createdAt?.toISOString() || new Date().toISOString()
+    }));
+  } catch (err: any) {
+    console.error("[MongoDB Transactions] Error fetching transactions:", err);
+    return [];
   }
-
-  const localTxs = walletTransactionsDb.filter(t => t.userId === userId);
-  const txMap = new Map();
-  for (const t of localTxs) {
-    txMap.set(t.id, t);
-  }
-  for (const t of dbTxs) {
-    txMap.set(t.id, t);
-  }
-
-  return Array.from(txMap.values()).sort((a, b) => b.id.localeCompare(a.id));
 }
 
 async function addTransaction(tx: any): Promise<boolean> {
-  if (supabase) {
-    try {
-      const dbRow = mapRowToDb(TABLES.WALLET_TRANSACTIONS, tx);
-      const { error } = await supabase.from(TABLES.WALLET_TRANSACTIONS).insert([dbRow]);
-      if (error) {
-        console.error("[Supabase Sync Error] Failed to insert transaction:", error.message || error);
-        console.log("[Storage] Transaction saved to local persistent database.");
-      } else {
-        return true;
-      }
-    } catch (err: any) {
-      console.error("[Supabase Exception] Exception inserting transaction:", err.message || err);
-      console.log("[Storage] Transaction saved to local persistent database.");
-    }
+  try {
+    const user = await findUserByIdentifier(tx.userId);
+    if (!user) return false;
+    await Transaction.create({
+      userId: user._id,
+      amount: Number(tx.amount),
+      type: tx.type,
+      description: tx.description
+    });
+    return true;
+  } catch (err: any) {
+    console.error("[MongoDB Transaction] Error inserting transaction:", err);
+    return false;
   }
-  return false;
 }
 
 async function getMealBookings(userId?: string): Promise<any[]> {
-  let dbBookings: any[] = [];
-  if (supabase) {
-    try {
-      let query = supabase.from(TABLES.MEAL_BOOKINGS).select("*");
-      if (userId) {
-        query = query.eq("user_id", userId);
-      }
-      const { data, error } = await query;
-      if (!error && data) {
-        dbBookings = data.map((d: any) => mapRowFromDb(TABLES.MEAL_BOOKINGS, d));
-      } else if (error) {
-        console.log("[Storage] Reading meal bookings cache.");
-      }
-    } catch (err: any) {
-      console.log("[Storage] Reading meal bookings cache.");
-    }
-  }
-
-  const localBookings = userId ? mealBookingsDb.filter(b => b.userId === userId) : mealBookingsDb;
-  const bookingMap = new Map();
-  for (const b of localBookings) {
-    bookingMap.set(b.id, b);
-  }
-  for (const b of dbBookings) {
-    bookingMap.set(b.id, b);
-  }
-
-  return Array.from(bookingMap.values()).sort((a, b) => b.id.localeCompare(a.id));
+  return userId ? mealBookingsDb.filter(b => b.userId === userId) : mealBookingsDb;
 }
 
 async function addMealBooking(booking: any): Promise<boolean> {
-  if (supabase) {
-    try {
-      const dbRow = mapRowToDb(TABLES.MEAL_BOOKINGS, booking);
-      const { error } = await supabase.from(TABLES.MEAL_BOOKINGS).insert([dbRow]);
-      if (error) {
-        console.error("[Supabase Sync Error] Failed to insert meal booking:", error.message || error);
-        console.log("[Storage] Meal booking synchronized to local disk persistence.");
-      } else {
-        return true;
-      }
-    } catch (err: any) {
-      console.error("[Supabase Exception] Exception inserting meal booking:", err.message || err);
-      console.log("[Storage] Meal booking synchronized to local disk persistence.");
-    }
-  }
-  return false;
+  mealBookingsDb.push(booking);
+  return true;
 }
 
 async function updateMealBookingCollected(bookingId: string): Promise<any> {
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from(TABLES.MEAL_BOOKINGS).update({ is_collected: true }).eq("id", bookingId).select();
-      if (!error && data && data.length > 0) {
-        return mapRowFromDb(TABLES.MEAL_BOOKINGS, data[0]);
-      } else if (error) {
-        console.error("[Supabase Sync Error] Failed to update meal collection status:", error.message || error);
-        console.log("[Storage] Meal collection updated in local disk persistence.");
-      }
-    } catch (err: any) {
-      console.error("[Supabase Exception] Exception updating meal collection status:", err.message || err);
-      console.log("[Storage] Meal collection updated in local disk persistence.");
-    }
+  const booking = mealBookingsDb.find(b => b.id === bookingId);
+  if (booking) {
+    booking.isCollected = true;
+    return booking;
   }
   return null;
 }
 
 async function getPaymentSettings(): Promise<any> {
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from(TABLES.PAYMENT_SETTINGS).select("*").eq("id", "current_config");
-      if (!error && data && data.length > 0) {
-        return mapRowFromDb(TABLES.PAYMENT_SETTINGS, data[0]);
-      } else if (error) {
-        console.log("[Storage] Loading local terminal config for payment settings.");
-      }
-    } catch (err: any) {
-      console.log("[Storage] Loading local terminal config for payment settings.");
-    }
-  }
   return paymentSettingsDb;
 }
 
 async function updatePaymentSettings(settings: any): Promise<boolean> {
-  if (supabase) {
-    try {
-      const dbRow = { ...mapRowToDb(TABLES.PAYMENT_SETTINGS, settings), id: "current_config" };
-      const { error } = await supabase.from(TABLES.PAYMENT_SETTINGS).upsert([dbRow], { onConflict: "id" });
-      if (error) {
-        console.log("[Storage] Terminal settings updated in local persistence.");
-      } else {
-        return true;
-      }
-    } catch (err: any) {
-      console.log("[Storage] Terminal settings updated in local persistence.");
-    }
-  }
-  return false;
+  paymentSettingsDb = {
+    upiId: settings.upiId || paymentSettingsDb.upiId,
+    merchantName: settings.merchantName || paymentSettingsDb.merchantName,
+    bankName: settings.bankName || paymentSettingsDb.bankName,
+    accountNo: settings.accountNo || paymentSettingsDb.accountNo,
+    ifscCode: settings.ifscCode || paymentSettingsDb.ifscCode
+  };
+  return true;
 }
 
 async function getStudentProfile(userId: string, email?: string): Promise<any> {
-  let dbProfile: any = null;
-  if (supabase && supabaseStudentsTableExists) {
-    try {
-      const { data, error } = await supabase.from(actualStudentsTable).select("*").eq("id", userId);
-      if (!error && data && data.length > 0) {
-        dbProfile = mapRowFromDb(actualStudentsTable, data[0]);
-      } else if (error) {
-        if (error.message?.includes("schema cache") || error.message?.includes("does not exist")) {
-          supabaseStudentsTableExists = false;
-          console.log(`[Supabase Sync] '${actualStudentsTable}' table does not exist. Dynamic fallback to memory storage completed.`);
-        } else {
-          console.log(`[Supabase Sync] Student profile lookup: ${error.message}`);
-        }
-      }
-
-      // Check by email if ID lookup was empty to associate Google login accounts with preexisting manual email profiles
-      if (!dbProfile && email && !supabaseStudentsTableExists === false) {
-        const { data: eData, error: eError } = await supabase.from(actualStudentsTable).select("*").eq("email", email);
-        if (!eError && eData && eData.length > 0) {
-          dbProfile = mapRowFromDb(actualStudentsTable, eData[0]);
-          try {
-            // Re-map the profile ID to point to the authorized Google sub-identity key
-            await supabase.from(actualStudentsTable).update({ id: userId }).eq("email", email);
-            dbProfile.userId = userId;
-            dbProfile.id = userId;
-            console.log(`[Supabase Sync] Associated existing student profile (${email}) with new Google Auth ID: ${userId}`);
-          } catch (updateErr: any) {
-            console.log("[Supabase Sync] ID migration warning:", updateErr.message);
-          }
-        }
-      }
-    } catch (err: any) {
-      console.log("[Supabase Sync] Student profile lookup error, falling back to memory.");
-    }
+  try {
+    const user = await findUserByIdentifier(userId) || (email ? await findUserByIdentifier(email) : null);
+    if (!user) return null;
+    return {
+      userId: user._id.toString(),
+      id: user._id.toString(),
+      email: user.email,
+      collegeName: "Spoorthy Engineering College",
+      rollNo: user.rollNumber || "",
+      roll_number: user.rollNumber || "",
+      smartCardNo: "",
+      profileLocked: user.rollNumber ? true : false,
+      profile_locked: user.rollNumber ? true : false,
+      fullName: user.fullName || user.email.split("@")[0],
+      branch: user.branch || "Computer Science (CSE)",
+      year: user.academicYear || "1st Year",
+      contactNo: user.phoneNumber || "",
+      createdAt: user.createdAt?.toISOString() || new Date().toISOString()
+    };
+  } catch (err: any) {
+    console.error("[MongoDB User] Error getting student profile:", err);
+    return null;
   }
-
-  const memProfile = studentProfilesDb[userId] || (email ? Object.values(studentProfilesDb).find((p: any) => p.email === email) : null);
-  if (dbProfile) {
-    if (memProfile) {
-      return {
-        ...memProfile,
-        ...dbProfile,
-        branch: dbProfile.branch || memProfile.branch || "Computer Science (CSE)",
-        year: dbProfile.year || memProfile.year || "1st Year",
-        contactNo: dbProfile.contactNo || memProfile.contactNo || ""
-      };
-    }
-    return dbProfile;
-  }
-  return memProfile;
 }
 
 async function getStudentProfiles(): Promise<any[]> {
-  let dbProfiles: any[] = [];
-  if (supabase && supabaseStudentsTableExists) {
-    try {
-      const { data, error } = await supabase.from(actualStudentsTable).select("*");
-      if (!error && data) {
-        dbProfiles = data.map((d: any) => mapRowFromDb(actualStudentsTable, d));
-      } else if (error) {
-        if (error.message?.includes("schema cache") || error.message?.includes("does not exist")) {
-          supabaseStudentsTableExists = false;
-          console.log(`[Supabase Sync] '${actualStudentsTable}' table does not exist. Profiles database fallback to memory.`);
-        } else {
-          console.log(`[Supabase Sync] Profiles batch lookup status: ${error.message}`);
-        }
-      }
-    } catch (err: any) {
-      console.log("[Supabase Sync] Student profiles list error, using offline sandbox registry.");
-    }
+  try {
+    const users = await User.find({}).lean();
+    return users.map((user: any) => ({
+      userId: user._id.toString(),
+      id: user._id.toString(),
+      email: user.email,
+      collegeName: "Spoorthy Engineering College",
+      rollNo: user.rollNumber || "",
+      roll_number: user.rollNumber || "",
+      smartCardNo: "",
+      profileLocked: user.rollNumber ? true : false,
+      profile_locked: user.rollNumber ? true : false,
+      fullName: user.fullName || user.email.split("@")[0],
+      branch: user.branch || "Computer Science (CSE)",
+      year: user.academicYear || "1st Year",
+      contactNo: user.phoneNumber || "",
+      createdAt: user.createdAt?.toISOString() || new Date().toISOString()
+    }));
+  } catch (err: any) {
+    console.error("[MongoDB User] Error getting student profiles:", err);
+    return [];
   }
-
-  const merged: Record<string, any> = {};
-  dbProfiles.forEach((p) => {
-    const mem = studentProfilesDb[p.userId];
-    if (mem) {
-      merged[p.userId] = {
-        ...mem,
-        ...p,
-        branch: p.branch || mem.branch || "Computer Science (CSE)",
-        year: p.year || mem.year || "1st Year",
-        contactNo: p.contactNo || mem.contactNo || ""
-      };
-    } else {
-      merged[p.userId] = p;
-    }
-  });
-
-  Object.keys(studentProfilesDb).forEach((uid) => {
-    if (!merged[uid]) {
-      merged[uid] = studentProfilesDb[uid];
-    }
-  });
-
-  return Object.values(merged);
 }
 
 async function saveStudentProfile(userId: string, profile: any): Promise<boolean> {
-  if (supabase && supabaseStudentsTableExists) {
-    try {
-      const { data: existingProfiles, error: checkError } = await supabase
-        .from(actualStudentsTable)
-        .select("id")
-        .eq("id", userId);
-
-      if (checkError) {
-        if (checkError.message?.includes("schema cache") || checkError.message?.includes("does not exist")) {
-          supabaseStudentsTableExists = false;
-          console.log(`[Supabase Sync] '${actualStudentsTable}' table does not exist. Saving profile only to local memory storage.`);
-          return false;
-        }
-        console.log(`[Supabase Sync] Verify profile: ${checkError.message}`);
-      }
-
-      const dbRow = { ...mapRowToDb(actualStudentsTable, profile), id: userId };
-      const hasExisting = existingProfiles && existingProfiles.length > 0;
-
-      if (hasExisting) {
-        // Prevent duplicate records for the same user by updating existing profile
-        const { error: updateError } = await supabase
-          .from(actualStudentsTable)
-          .update(dbRow)
-          .eq("id", userId);
-        if (updateError) {
-          console.log(`[Supabase Sync] Update profile status: ${updateError.message}`);
-          return false;
-        }
-        return true;
-      } else {
-        // Insert new record
-        const { error: insertError } = await supabase
-          .from(actualStudentsTable)
-          .insert([dbRow]);
-        if (insertError) {
-          console.log(`[Supabase Sync] Insert profile status: ${insertError.message}`);
-          return false;
-        }
-        return true;
-      }
-    } catch (err: any) {
-      console.log("[Supabase Sync] Non-blocking profile save complete. Sandbox storage updated.");
+  try {
+    let user = await findUserByIdentifier(userId);
+    const emailVal = profile.email || profile.userEmail || (user ? user.email : "");
+    if (!user && emailVal) {
+      user = await User.findOne({ email: emailVal });
     }
+    
+    const updateData: any = {};
+    if (profile.fullName !== undefined) updateData.fullName = profile.fullName;
+    if (profile.rollNo !== undefined) updateData.rollNumber = profile.rollNo;
+    if (profile.roll_number !== undefined) updateData.rollNumber = profile.roll_number;
+    if (profile.branch !== undefined) updateData.branch = profile.branch;
+    if (profile.year !== undefined) updateData.academicYear = profile.year;
+    if (profile.contactNo !== undefined) updateData.phoneNumber = profile.contactNo;
+    if (profile.phoneNumber !== undefined) updateData.phoneNumber = profile.phoneNumber;
+    
+    if (user) {
+      await User.findByIdAndUpdate(user._id, updateData, { runValidators: true });
+    } else {
+      await User.create({
+        _id: mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : new mongoose.Types.ObjectId(),
+        email: emailVal || `${userId}@campusbites.com`,
+        fullName: profile.fullName || userId,
+        role: 'customer',
+        isVerified: true,
+        ...updateData
+      });
+    }
+    return true;
+  } catch (err: any) {
+    console.error("[MongoDB User] Error saving student profile:", err);
+    return false;
   }
-  return false;
 }
 
 async function getOrders(userId?: string): Promise<any[]> {
-  console.log(`[Storage/API] Fetching orders from Supabase. Filter userId: ${userId || "ALL"}`);
-  let dbOrders: any[] = [];
-  if (supabase) {
-    try {
-      let query = supabase.from(TABLES.ORDERS).select("*");
-      if (userId) {
-        query = query.eq("user_id", userId);
-      }
-      const { data, error } = await query;
-      if (error) {
-        console.error(`[Database Error] Failed to fetch orders from Supabase: ${error.code} - ${error.message}`);
-        throw error;
-      }
-      if (data) {
-        dbOrders = data.map((d: any) => mapRowFromDb(TABLES.ORDERS, d));
-      }
-      console.log(`[Storage/API] Successfully retrieved ${dbOrders.length} orders from Supabase.`);
-    } catch (err: any) {
-      console.error(`[Database Exception] Exception fetching orders from Supabase: ${err.message || err}`);
-      throw err;
-    }
-  } else {
-    console.error("[Database Status] Supabase is not configured.");
-    throw new Error("Supabase is not configured");
-  }
-
-  let profiles: any[] = [];
   try {
-    profiles = await getStudentProfiles();
-  } catch (err) {
-    console.warn("Could not retrieve student profiles for orders decorator:", err);
-  }
-
-  const profileMap = new Map<string, any>();
-  for (const p of profiles) {
-    const key = (p.id || p.userId || "").toLowerCase();
-    if (key) {
-      profileMap.set(key, p);
+    const filter: any = {};
+    if (userId) {
+      const user = await findUserByIdentifier(userId);
+      if (user) {
+        filter.userId = user._id;
+      } else {
+        return [];
+      }
     }
+    const orders = await Order.find(filter).populate('userId').lean();
+    const mappedOrders = orders.map((o: any) => {
+      const u = o.userId || {};
+      return {
+        id: o._id.toString(),
+        userId: u._id?.toString() || "",
+        userName: u.fullName || "Student",
+        rollNo: u.rollNumber || "No Profile",
+        items: o.items || [],
+        totalAmount: o.totalAmount,
+        status: o.status,
+        paymentMethod: o.paymentMethod,
+        paymentStatus: o.paymentStatus,
+        paymentId: o.paymentId,
+        tokenNumber: o.tokenNumber,
+        createdAt: o.createdAt?.toISOString() || new Date().toISOString(),
+        estimatedReadyAt: o.estimatedReadyAt || null,
+        scheduledDate: o.scheduledDate || null
+      };
+    });
+    return mappedOrders.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  } catch (err: any) {
+    console.error("[MongoDB Orders] Error getting orders:", err);
+    return [];
   }
-
-  const enrichedOrders = dbOrders.map(o => {
-    const profile = o.userId ? profileMap.get(o.userId.toLowerCase()) : null;
-    return {
-      ...o,
-      userName: o.userName || profile?.fullName || "Student",
-      rollNo: o.rollNo || profile?.rollNo || profile?.roll_number || "No Profile"
-    };
-  });
-
-  return enrichedOrders.sort((a, b) => b.id.localeCompare(a.id));
 }
 
 async function addOrder(order: any): Promise<boolean> {
-  console.log(`[Storage/API] Inserting order ${order.id} into Supabase. Payload:`, JSON.stringify(order));
-  if (supabase) {
-    try {
-      const dbRow = mapRowToDb(TABLES.ORDERS, order);
-      const { error } = await supabase.from(TABLES.ORDERS).insert([dbRow]);
-      if (error) {
-        console.error(`[Supabase Sync Error] Failed to insert order ${order.id}: ${error.code} - ${error.message}`);
-        return false;
+  try {
+    const user = await findUserByIdentifier(order.userId);
+    if (!user) return false;
+
+    let tokenNumber = order.tokenNumber;
+    if (!tokenNumber) {
+      const schedDate = order.scheduledDate || null;
+      const yymmdd = parseDateToYYMMDD(schedDate);
+      
+      let categoryPrefix = "S";
+      const mealCategory = order.mealCategory || (order.items && order.items[0]?.category) || "Snacks";
+      const lowerCategory = mealCategory.toLowerCase();
+      if (lowerCategory.includes("breakfast")) {
+        categoryPrefix = "B";
+      } else if (lowerCategory.includes("lunch")) {
+        categoryPrefix = "L";
+      } else if (lowerCategory.includes("dinner")) {
+        categoryPrefix = "D";
+      } else if (lowerCategory.includes("snack")) {
+        categoryPrefix = "S";
+      } else if (lowerCategory.includes("beverage")) {
+        categoryPrefix = "S";
       }
-      console.log(`[Storage/API] Order ${order.id} successfully inserted into Supabase.`);
-      return true;
-    } catch (err: any) {
-      console.error(`[Supabase Exception] Exception inserting order ${order.id}:`, err.message || err);
-      return false;
+      tokenNumber = await getNextTokenNumber(categoryPrefix, yymmdd);
     }
+
+    const mappedItems = (order.items || []).map((it: any) => ({
+      itemId: it.itemId || it.id || "",
+      name: it.name || "",
+      price: Number(it.price || 0),
+      quantity: Number(it.quantity || 1),
+      customInstructions: it.customInstructions || ""
+    }));
+
+    await Order.create({
+      _id: mongoose.Types.ObjectId.isValid(order.id) ? new mongoose.Types.ObjectId(order.id) : new mongoose.Types.ObjectId(),
+      userId: user._id,
+      items: mappedItems,
+      totalAmount: Number(order.totalAmount || order.total_amount || 0),
+      status: order.status || 'Pending',
+      paymentMethod: order.paymentMethod || order.payment_method || 'wallet',
+      paymentStatus: order.paymentStatus || order.payment_status || 'Pending',
+      paymentId: order.paymentId || order.payment_id || '',
+      tokenNumber: tokenNumber,
+      mealCategory: order.mealCategory || (order.items && order.items[0]?.category) || "Snacks",
+      scheduledDate: order.scheduledDate || null,
+      estimatedReadyAt: order.estimatedReadyAt || null
+    });
+    return true;
+  } catch (err: any) {
+    console.error("[MongoDB Orders] Error adding order:", err);
+    return false;
   }
-  console.error("[Database Status] Supabase is not configured.");
-  return false;
 }
 
-async function updateOrderStatus(orderId: string, status: string): Promise<any> {
-  console.log(`[Storage/API] Updating order ${orderId} status to ${status} in Supabase.`);
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from(TABLES.ORDERS).update({ status }).eq("id", orderId).select();
-      if (error) {
-        console.error(`[Supabase Sync Error] Failed to update order status for ${orderId}: ${error.code} - ${error.message}`);
-        return null;
-      }
-      if (data && data.length > 0) {
-        console.log(`[Storage/API] Order ${orderId} status successfully updated to ${status} in Supabase.`);
-        return mapRowFromDb(TABLES.ORDERS, data[0]);
-      }
-    } catch (err: any) {
-      console.error(`[Supabase Exception] Exception updating order status for ${orderId}:`, err.message || err);
-      return null;
+async function updateOrderStatus(orderId: string, status: string, estimatedReadyAt?: string): Promise<any> {
+  console.log(`[Storage/API] Updating order ${orderId} status to ${status} in MongoDB.`);
+  try {
+    const ord = await Order.findById(orderId);
+    if (!ord) return null;
+    ord.status = status as any;
+    if (estimatedReadyAt) {
+      ord.estimatedReadyAt = estimatedReadyAt;
     }
+    await ord.save();
+    
+    return {
+      id: ord._id.toString(),
+      userId: ord.userId.toString(),
+      items: ord.items,
+      totalAmount: ord.totalAmount,
+      status: ord.status,
+      paymentMethod: ord.paymentMethod,
+      paymentStatus: ord.paymentStatus,
+      paymentId: ord.paymentId,
+      tokenNumber: ord.tokenNumber,
+      createdAt: ord.createdAt.toISOString(),
+      estimatedReadyAt: ord.estimatedReadyAt || null,
+      scheduledDate: ord.scheduledDate || null
+    };
+  } catch (err: any) {
+    console.error(`[MongoDB Orders] Exception updating order status for ${orderId}:`, err.message || err);
+    return null;
   }
-  console.error("[Database Status] Supabase is not configured.");
-  return null;
 }
 
 async function getPrintOrders(userId?: string): Promise<any[]> {
-  console.log(`[Storage/API] Fetching print orders from Supabase. Filter userId: ${userId || "ALL"}`);
-  let dbOrders: any[] = [];
-  if (supabase) {
-    try {
-      let query = supabase.from(TABLES.PRINT_ORDERS).select("*");
-      if (userId) {
-        query = query.eq("user_id", userId);
+  try {
+    const filter: any = {};
+    if (userId) {
+      const user = await findUserByIdentifier(userId);
+      if (user) {
+        filter.userId = user._id;
+      } else {
+        return [];
       }
-      const { data, error } = await query;
-      if (error) {
-        console.error(`[Database Error] Failed to fetch print orders from Supabase: ${error.code} - ${error.message}`);
-        throw error;
-      }
-      if (data) {
-        dbOrders = data.map((d: any) => ({
-          orderId: d.id,
-          userId: d.user_id,
-          studentName: d.student_name,
-          rollNumber: d.roll_number,
-          department: d.department,
-          contactNumber: d.contact_number,
-          pickupTimeSlot: d.pickup_time_slot,
-          items: typeof d.items === 'string' ? JSON.parse(d.items) : (d.items || []),
-          subtotal: Number(d.subtotal),
-          tax: Number(d.tax),
-          total: Number(d.total),
-          status: d.status,
-          upiUtr: d.upi_utr,
-          upiScreenshot: d.upi_screenshot,
-          upiApp: d.upi_app,
-          createdAt: d.created_at
-        }));
-      }
-      console.log(`[Storage/API] Successfully retrieved ${dbOrders.length} print orders from Supabase.`);
-      return dbOrders.sort((a, b) => b.orderId.localeCompare(a.orderId));
-    } catch (err: any) {
-      console.error(`[Database Exception] Exception fetching print orders from Supabase: ${err.message || err}`);
-      throw err;
     }
+    const printOrders = await PrintOrder.find(filter).lean();
+    return printOrders.map((d: any) => ({
+      orderId: d._id.toString(),
+      userId: d.userId.toString(),
+      studentName: d.studentName,
+      rollNumber: d.rollNumber,
+      department: d.department,
+      contactNumber: d.contactNumber,
+      pickupTimeSlot: d.pickupTimeSlot,
+      items: d.items || [],
+      subtotal: d.subtotal,
+      tax: d.tax,
+      total: d.total,
+      status: d.status,
+      upiUtr: d.upiUtr,
+      upiScreenshot: d.upiScreenshot,
+      upiApp: d.upiApp,
+      createdAt: d.createdAt?.toISOString() || new Date().toISOString()
+    })).sort((a, b) => b.orderId.localeCompare(a.orderId));
+  } catch (err: any) {
+    console.error("[MongoDB PrintOrders] Error getting print orders:", err);
+    return [];
   }
-  console.error("[Database Status] Supabase is not configured.");
-  throw new Error("Supabase is not configured");
 }
 
 async function addPrintOrder(order: any): Promise<boolean> {
-  console.log(`[Storage/API] Inserting print order ${order.orderId} into Supabase.`);
-  if (supabase) {
-    try {
-      const dbRow = {
-        id: order.orderId,
-        user_id: order.userId || null,
-        student_name: order.studentName,
-        roll_number: order.rollNumber,
-        department: order.department || null,
-        contact_number: order.contactNumber,
-        pickup_time_slot: order.pickupTimeSlot || null,
-        items: typeof order.items === 'string' ? order.items : JSON.stringify(order.items || []),
-        subtotal: order.subtotal,
-        tax: order.tax,
-        total: order.total,
-        status: order.status || 'PENDING',
-        upi_utr: order.upiUtr || null,
-        upi_screenshot: order.upiScreenshot || null,
-        upi_app: order.upiApp || null,
-        created_at: new Date().toISOString()
-      };
-      const { error } = await supabase.from(TABLES.PRINT_ORDERS).insert([dbRow]);
-      if (error) {
-        console.error(`[Supabase Sync Error] Failed to insert print order ${order.orderId}: ${error.code} - ${error.message}`);
-        return false;
-      }
-      console.log(`[Storage/API] Print order ${order.orderId} successfully inserted into Supabase.`);
-      return true;
-    } catch (err: any) {
-      console.error(`[Supabase Exception] Exception inserting print order ${order.orderId}:`, err.message || err);
-      return false;
-    }
+  try {
+    const user = await findUserByIdentifier(order.userId);
+    if (!user) return false;
+    await PrintOrder.create({
+      _id: mongoose.Types.ObjectId.isValid(order.orderId) ? new mongoose.Types.ObjectId(order.orderId) : new mongoose.Types.ObjectId(),
+      userId: user._id,
+      studentName: order.studentName,
+      rollNumber: order.rollNumber,
+      department: order.department || null,
+      contactNumber: order.contactNumber,
+      pickupTimeSlot: order.pickupTimeSlot || null,
+      items: (order.items || []).map((it: any) => ({
+        fileName: it.fileName,
+        fileUrl: it.fileUrl || null,
+        pages: Number(it.pages || 1),
+        copies: Number(it.copies || 1),
+        colorType: it.colorType || 'bw',
+        printLayout: it.printLayout || 'oneside',
+        price: Number(it.price || 0)
+      })),
+      subtotal: Number(order.subtotal || 0),
+      tax: Number(order.tax || 0),
+      total: Number(order.total || 0),
+      status: order.status || 'PENDING',
+      upiUtr: order.upiUtr || null,
+      upiScreenshot: order.upiScreenshot || null,
+      upiApp: order.upiApp || null
+    });
+    return true;
+  } catch (err: any) {
+    console.error("[MongoDB PrintOrders] Error adding print order:", err);
+    return false;
   }
-  console.error("[Database Status] Supabase is not configured.");
-  return false;
 }
 
 async function updatePrintOrderStatus(orderId: string, status: string): Promise<any> {
-  console.log(`[Storage/API] Updating print order ${orderId} status to ${status} in Supabase.`);
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from(TABLES.PRINT_ORDERS).update({ status }).eq("id", orderId).select();
-      if (error) {
-        console.error(`[Supabase Sync Error] Failed to update print order status for ${orderId}: ${error.code} - ${error.message}`);
-        return null;
-      }
-      if (data && data.length > 0) {
-        console.log(`[Storage/API] Print order ${orderId} status successfully updated to ${status} in Supabase.`);
-        const d = data[0];
-        return {
-          orderId: d.id,
-          userId: d.user_id,
-          studentName: d.student_name,
-          rollNumber: d.roll_number,
-          department: d.department,
-          contactNumber: d.contact_number,
-          pickupTimeSlot: d.pickup_time_slot,
-          items: typeof d.items === 'string' ? JSON.parse(d.items) : (d.items || []),
-          subtotal: Number(d.subtotal),
-          tax: Number(d.tax),
-          total: Number(d.total),
-          status: d.status,
-          upiUtr: d.upi_utr,
-          upiScreenshot: d.upi_screenshot,
-          upiApp: d.upi_app,
-          createdAt: d.created_at
-        };
-      }
-    } catch (err: any) {
-      console.error(`[Supabase Exception] Exception updating print order status for ${orderId}:`, err.message || err);
-      return null;
+  try {
+    const updated = await PrintOrder.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    ).lean();
+    if (updated) {
+      return {
+        orderId: updated._id.toString(),
+        userId: updated.userId.toString(),
+        studentName: updated.studentName,
+        rollNumber: updated.rollNumber,
+        department: updated.department,
+        contactNumber: updated.contactNumber,
+        pickupTimeSlot: updated.pickupTimeSlot,
+        items: updated.items || [],
+        subtotal: updated.subtotal,
+        tax: updated.tax,
+        total: updated.total,
+        status: updated.status,
+        upiUtr: updated.upiUtr,
+        upiScreenshot: updated.upiScreenshot,
+        upiApp: updated.upiApp,
+        createdAt: updated.createdAt?.toISOString() || new Date().toISOString()
+      };
     }
+    return null;
+  } catch (err: any) {
+    console.error("[MongoDB PrintOrders] Error updating print order status:", err);
+    return null;
   }
-  console.error("[Database Status] Supabase is not configured.");
-  return null;
 }
 
 async function deletePrintOrder(orderId: string): Promise<boolean> {
-  console.log(`[Storage/API] Deleting print order ${orderId} from Supabase.`);
-  if (supabase) {
-    try {
-      const { error } = await supabase.from(TABLES.PRINT_ORDERS).delete().eq("id", orderId);
-      if (error) {
-        console.error(`[Supabase Sync Error] Failed to delete print order ${orderId}: ${error.code} - ${error.message}`);
-        return false;
-      }
-      console.log(`[Storage/API] Print order ${orderId} successfully deleted from Supabase.`);
-      return true;
-    } catch (err: any) {
-      console.error(`[Supabase Exception] Exception deleting print order ${orderId}:`, err.message || err);
-      return false;
-    }
+  try {
+    const deleted = await PrintOrder.findByIdAndDelete(orderId);
+    return !!deleted;
+  } catch (err: any) {
+    console.error("[MongoDB PrintOrders] Error deleting print order:", err);
+    return false;
   }
-  console.error("[Database Status] Supabase is not configured.");
-  return false;
 }
 
-async function seedSupabaseIfNeeded() {
-  if (!supabase) return;
+async function seedMongoDBIfNeeded() {
   try {
-    const { data, error } = await supabase.from(TABLES.MENU).select("id").limit(1);
-    if (!error && (!data || data.length === 0)) {
-      console.log(`[Supabase Seeding] ${TABLES.MENU} is empty! Seeding default catalogue...`);
-      const rows = dynamicMenuItems.map(item => mapRowToDb(TABLES.MENU, item));
-      const { error: seedError } = await supabase.from(TABLES.MENU).insert(rows);
-      if (seedError) {
-        console.error("[Supabase Seeding] Seeding failed:", seedError.message);
-      } else {
-        console.log("[Supabase Seeding] Default menu items created in cloud Supabase!");
-      }
+    const count = await MenuItem.countDocuments({});
+    if (count === 0) {
+      console.log("[MongoDB Seeding] MenuItem collection is empty! Seeding default catalogue...");
+      const canteenId = await getOrCreateDefaultCanteenId();
+      const rows = defaultMenuItemsList.map(item => ({
+        canteenId,
+        name: item.name,
+        description: item.description,
+        price: Number(item.price),
+        category: item.category,
+        imageUrl: item.imageUrl,
+        isAvailable: item.isAvailable,
+        estimatedPrepTime: item.estimatedPrepTime,
+        rating: item.rating,
+        tags: item.tags || [],
+        isTodaySpecial: item.isTodaySpecial || false
+      }));
+      await MenuItem.insertMany(rows);
+      console.log("[MongoDB Seeding] Default menu items seeded successfully!");
     }
   } catch (err: any) {
-    console.error("[Supabase Seeding] Seeding error:", err.message || err);
+    console.error("[MongoDB Seeding] Seeding error:", err.message || err);
   }
 }
+
+// Canteen imports and models mapping setup finished.
+import { Canteen } from "./backend/src/models/Canteen";
+import { College } from "./backend/src/models/College";
 
 // Mutable Food items data for the canteen
 const defaultMenuItemsList: any[] = [
@@ -1234,60 +1206,32 @@ function getRazorpay(): Razorpay | null {
 // API: Server configuration status
 app.get("/api/config-status", async (req, res) => {
   const isKeyConfigured = !!(RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET);
-  const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
-  
-  let databaseStatus = "Disconnected";
+  const isMongoConnected = mongoose.connection.readyState === 1;
+  let databaseStatus = isMongoConnected ? "Connected" : "Disconnected";
   let tableDiagnostics: Record<string, any> = {};
   let overallError: string | null = null;
   
-  if (supabase) {
+  if (isMongoConnected) {
     try {
-      databaseStatus = "Connected";
-      const tablesToCheck = [
-        TABLES.MENU,
-        TABLES.WALLETS,
-        TABLES.WALLET_TRANSACTIONS,
-        TABLES.MEAL_BOOKINGS,
-        TABLES.PAYMENT_SETTINGS,
-        TABLES.STUDENTS,
-        TABLES.ORDERS,
-        TABLES.PRINT_ORDERS
+      const modelsToCheck: any[] = [
+        { name: "MenuItem", model: MenuItem },
+        { name: "Wallet", model: Wallet },
+        { name: "Transaction", model: Transaction },
+        { name: "User", model: User },
+        { name: "Order", model: Order },
+        { name: "PrintOrder", model: PrintOrder }
       ];
       
-      for (const t of tablesToCheck) {
+      for (const m of modelsToCheck) {
         try {
-          const { data, error, status } = await supabase.from(t).select("*").limit(1);
-          if (error) {
-            let errorType = "General Error";
-            let resolutionHint = "";
-            
-            if (error.code === "42P01") {
-              errorType = "Table Missing";
-              resolutionHint = `The table "${t}" does not exist in your database. Please run the SQL command from "supabase_schema.sql" inside your Supabase SQL Editor.`;
-            } else if (error.message?.toLowerCase().includes("row-level security") || error.code === "42550" || status === 401) {
-              errorType = "RLS Policy Block";
-              resolutionHint = `Row Level Security is blocking access to "${t}". Add a permissive RLS policy allowing SELECT/INSERT/UPDATE in your Supabase dashboard or SQL Editor.`;
-            } else {
-              errorType = `DB Error: ${error.message}`;
-              resolutionHint = `Database returned error code ${error.code}. Check table schema or user group permissions.`;
-            }
-            
-            tableDiagnostics[t] = {
-              success: false,
-              errorType,
-              errorCode: error.code,
-              errorMessage: error.message,
-              resolutionHint
-            };
-          } else {
-            tableDiagnostics[t] = {
-              success: true,
-              rowCount: data ? data.length : 0,
-              message: "Accessible & Connection Active!"
-            };
-          }
+          const count = await m.model.countDocuments({});
+          tableDiagnostics[m.name] = {
+            success: true,
+            rowCount: count,
+            message: "Accessible & Connection Active!"
+          };
         } catch (tErr: any) {
-          tableDiagnostics[t] = {
+          tableDiagnostics[m.name] = {
             success: false,
             errorType: "Query Exception",
             errorMessage: tErr.message || String(tErr)
@@ -1299,15 +1243,15 @@ app.get("/api/config-status", async (req, res) => {
       overallError = err.message || String(err);
     }
   } else {
-    databaseStatus = "Not Configured";
+    databaseStatus = "Not Connected";
   }
 
   res.json({
     razorpayConfigured: isKeyConfigured,
     keyId: RAZORPAY_KEY_ID || "DEMO_KEY_ID",
-    supabaseConfigured: isSupabaseConfigured,
-    supabaseStatus: databaseStatus,
-    supabaseUrl: SUPABASE_URL || "",
+    supabaseConfigured: true, // Legacy front-end compatibility
+    supabaseStatus: databaseStatus, // Maps to mongo status for legacy UI
+    supabaseUrl: MONGODB_URI.replace(/:([^:@]+)@/, ":***@"), // Redacted connection URI
     tableDiagnostics,
     overallError,
     message: isKeyConfigured 
@@ -3079,57 +3023,26 @@ app.post("/api/payment/create-order", async (req, res) => {
 
 // Helper: Fetch all transactions globally for admin log monitoring
 async function getAllTransactions(): Promise<any[]> {
-  let dbTxs: any[] = [];
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from(TABLES.WALLET_TRANSACTIONS).select("*");
-      if (!error && data) {
-        dbTxs = data.map((d: any) => mapRowFromDb(TABLES.WALLET_TRANSACTIONS, d));
-      } else if (error) {
-        console.log("[Storage] Reading high-reliability global transactions cache.");
-      }
-    } catch (err: any) {
-      console.log("[Storage] Reading high-reliability global transactions cache.");
-    }
-  } else {
-    dbTxs = walletTransactionsDb;
-  }
-
-  // Combine memory with Supabase records
-  const txMap = new Map();
-  for (const t of walletTransactionsDb) {
-    txMap.set(t.id, t);
-  }
-  for (const t of dbTxs) {
-    txMap.set(t.id, t);
-  }
-
-  const allTxs = Array.from(txMap.values());
-
-  let profiles: any[] = [];
   try {
-    profiles = await getStudentProfiles();
-  } catch (pErr) {
-    console.warn("Could not load student profiles for transactions decorator:", pErr);
+    const txs = await Transaction.find({}).sort({ createdAt: -1 }).populate('userId').lean();
+    return txs.map((tx: any) => {
+      const u = tx.userId || {};
+      return {
+        id: tx._id.toString(),
+        userId: u._id?.toString() || "",
+        userName: u.fullName || "Student",
+        userEmail: u.email || "",
+        rollNo: u.rollNumber || "No Roll No",
+        amount: tx.amount,
+        type: tx.type,
+        description: tx.description,
+        createdAt: tx.createdAt?.toISOString() || new Date().toISOString()
+      };
+    });
+  } catch (err: any) {
+    console.error("[MongoDB Transactions] Error fetching all transactions:", err);
+    return [];
   }
-
-  const profileMap = new Map<string, any>();
-  for (const p of profiles) {
-    const key = (p.id || p.userId || "").toLowerCase();
-    if (key) {
-      profileMap.set(key, p);
-    }
-  }
-
-  return allTxs.map(t => {
-    const profile = t.userId ? profileMap.get(t.userId.toLowerCase()) : null;
-    return {
-      ...t,
-      userName: profile?.fullName || t.userName || "Student",
-      userEmail: profile?.email || t.userEmail || "",
-      rollNo: profile?.rollNo || t.rollNo || ""
-    };
-  }).sort((a, b) => b.id.localeCompare(a.id));
 }
 
 // API: Validate payment transaction and register kitchen order
@@ -3234,7 +3147,7 @@ app.get("/api/orders/user/:userId?", async (req, res) => {
 // API: Update order status (For Admin management page)
 app.patch("/api/orders/:orderId/status", async (req, res) => {
   const { orderId } = req.params;
-  const { status } = req.body;
+  const { status, estimatedReadyAt } = req.body;
 
   const validStatuses = ["Pending", "Approved", "Preparing", "Ready for Pickup", "Completed", "Cancelled"];
   if (!validStatuses.includes(status)) {
@@ -3242,7 +3155,7 @@ app.patch("/api/orders/:orderId/status", async (req, res) => {
   }
 
   try {
-    const updatedDb = await updateOrderStatus(orderId, status);
+    const updatedDb = await updateOrderStatus(orderId, status, estimatedReadyAt);
     if (!updatedDb) {
       console.error(`[API Error] Order status update failed for orderId: ${orderId}`);
       return res.status(404).json({ error: "Order not found in database or update failed" });
@@ -3252,6 +3165,21 @@ app.patch("/api/orders/:orderId/status", async (req, res) => {
     console.error(`[API Exception] Failed to update status for orderId ${orderId}:`, err.message || err);
     res.status(500).json({ error: "Failed to update order status" });
   }
+});
+
+// API: Get VAPID Public Key
+app.get("/api/notifications/vapid-public-key", (req, res) => {
+  res.json({ publicKey: vapidKeys.publicKey });
+});
+
+// API: Subscribe to Push Notifications
+app.post("/api/notifications/subscribe", (req, res) => {
+  const { userId, subscription } = req.body;
+  if (!subscription) {
+    return res.status(400).json({ error: "Subscription payload is required" });
+  }
+  savePushSubscription(userId || 'anonymous', subscription);
+  res.json({ success: true });
 });
 
 // API: Create a Print Order
@@ -3419,90 +3347,15 @@ app.all("/api/*", (req, res) => {
 });
 
 async function runStartupDiagnostics() {
-  if (!supabase) {
+  console.log("[Diagnostics] Starting MongoDB diagnostics...");
+  if (mongoose.connection.readyState !== 1) {
     console.warn("\n=======================================================");
-    console.warn("⚠️ DATABASE WARNING: Supabase is NOT configured!");
-    console.warn("The server will not be able to load or save orders.");
+    console.warn("⚠️ DATABASE WARNING: MongoDB is NOT fully connected!");
+    console.warn("Mongoose readyState:", mongoose.connection.readyState);
     console.warn("=======================================================\n");
-    return;
+  } else {
+    console.log("[Diagnostics] MongoDB is connected successfully.");
   }
-
-  console.log("[Diagnostics] Starting database schema diagnostics...");
-  
-  // 1. Check payment_id column
-  try {
-    const { error } = await supabase.from("canteen_orders").select("payment_id").limit(1);
-    if (error && error.code === "42703") {
-      console.error("\n=======================================================");
-      console.error("❌ DATABASE SCHEMA ERROR: 'payment_id' column is missing!");
-      console.error("Please run the SQL migration in your Supabase SQL editor:");
-      console.error("ALTER TABLE public.canteen_orders ADD COLUMN IF NOT EXISTS payment_id TEXT;");
-      console.error("=======================================================\n");
-    } else {
-      console.log("[Diagnostics] Column 'payment_id' exists in 'canteen_orders'.");
-    }
-  } catch (e) {}
-
-  // 2. Check user_id type mapping (test inserting non-UUID string)
-  try {
-    const dummyId = "diagnostics_test_id_" + Date.now();
-    const { error } = await supabase.from("canteen_orders").insert([{
-      id: dummyId,
-      user_id: "non_uuid_test_user_id",
-      items: [],
-      total_amount: 0,
-      status: "Pending",
-      payment_method: "test",
-      payment_status: "Unpaid",
-      token_number: "TEST"
-    }]);
-    
-    if (error) {
-      if (error.code === "22P02") {
-        console.error("\n=======================================================");
-        console.error("❌ DATABASE SCHEMA ERROR: 'user_id' in 'canteen_orders' is restricted to UUID!");
-        console.error("Please run the SQL migration in your Supabase SQL editor to change it to TEXT:");
-        console.error("ALTER TABLE public.canteen_orders ALTER COLUMN user_id TYPE TEXT;");
-        console.error("=======================================================\n");
-      } else if (error.code === "42703" && error.message.includes("payment_id")) {
-        // Handled in payment_id check
-      } else {
-        console.warn(`[Diagnostics] Order insert check warning: ${error.code} - ${error.message}`);
-      }
-    } else {
-      console.log("[Diagnostics] Column 'user_id' in 'canteen_orders' accepts custom text UIDs.");
-      // Cleanup
-      await supabase.from("canteen_orders").delete().eq("id", dummyId);
-    }
-  } catch (e) {}
-
-  // 3. Check canteen_student_profiles id type mapping
-  try {
-    const dummyProfileId = "non_uuid_test_profile_id";
-    const { error } = await supabase.from("canteen_student_profiles").insert([{
-      id: dummyProfileId,
-      email: "diagnostics_test@sphoorthy.edu.in",
-      full_name: "Diagnostics Test User",
-      phone_number: "0000000000",
-      profile_locked: false
-    }]);
-
-    if (error) {
-      if (error.code === "22P02") {
-        console.error("\n=======================================================");
-        console.error("❌ DATABASE SCHEMA ERROR: 'id' in 'canteen_student_profiles' is restricted to UUID!");
-        console.error("Please run the SQL migration in your Supabase SQL editor to change it to TEXT:");
-        console.error("ALTER TABLE public.canteen_student_profiles ALTER COLUMN id TYPE TEXT;");
-        console.error("=======================================================\n");
-      } else {
-        console.warn(`[Diagnostics] Student profiles check warning: ${error.code} - ${error.message}`);
-      }
-    } else {
-      console.log("[Diagnostics] Column 'id' in 'canteen_student_profiles' accepts custom text IDs.");
-      // Cleanup
-      await supabase.from("canteen_student_profiles").delete().eq("id", dummyProfileId);
-    }
-  } catch (e) {}
 }
 
 // Boot and integrate Vite bundle inside the process pipeline
@@ -3514,9 +3367,9 @@ async function startServer() {
     console.warn("Diagnostics warning:", diagErr);
   }
 
-  // Ensure Supabase tables are seeded with default menu catalog if empty
+  // Ensure MongoDB is seeded with default menu catalog if empty
   try {
-    await seedSupabaseIfNeeded();
+    await seedMongoDBIfNeeded();
   } catch (err) {
     console.warn("Failed or skipped booting database seeding:", err);
   }
