@@ -288,6 +288,13 @@ export function CanteenMenu({
                     <p className="text-slate-500 text-[11px] sm:text-xs leading-relaxed max-w-xl font-medium line-clamp-2 sm:line-clamp-none">
                       {item.description || 'Delicately cooked fresh with finest local SPHN ingredients, serving goodness within minutes.'}
                     </p>
+
+                    {/* Low stock badge */}
+                    {item.isAvailable && item.availableStock !== undefined && item.availableStock <= 5 && item.availableStock > 0 && (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md mt-0.5">
+                        ⚡ Only {item.availableStock} left!
+                      </span>
+                    )}
                   </div>
 
                   {/* Right Column (Product Image and ADD control) */}
@@ -332,8 +339,13 @@ export function CanteenMenu({
                           </span>
                           <button
                             type="button"
+                            disabled={item.availableStock !== undefined && quantityInCart >= item.availableStock}
                             onClick={() => onUpdateCart(item, quantityInCart + 1)}
-                            className="w-6 sm:w-9 h-full hover:bg-slate-50 font-black text-xs sm:text-sm flex items-center justify-center transition-all cursor-pointer"
+                            className={`w-6 sm:w-9 h-full font-black text-xs sm:text-sm flex items-center justify-center transition-all ${
+                              item.availableStock !== undefined && quantityInCart >= item.availableStock
+                                ? 'opacity-30 cursor-not-allowed'
+                                : 'hover:bg-slate-50 cursor-pointer'
+                            }`}
                           >
                             +
                           </button>

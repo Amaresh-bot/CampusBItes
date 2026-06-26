@@ -33,6 +33,9 @@ export interface FoodItem {
   isAvailable: boolean;
   estimatedPrepTime: number; // in minutes
   rating: number;
+  availableStock?: number; // How many units remain in stock
+  batchSize?: number; // How many servings can be cooked in one batch
+  cookTime?: number; // Minutes to cook one batch
   tags?: string[];
   isTodaySpecial?: boolean;
 }

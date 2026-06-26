@@ -32,7 +32,7 @@ export function AdminPanel({
   onToggleStudentVerify
 }: AdminPanelProps) {
   // Supabase diagnostic monitor states
-  const [activeAdminSubTab, setActiveAdminSubTab] = useState<'dashboard' | 'kitchen' | 'menu' | 'students' | 'upi' | 'database' | 'security' | 'transactions'>('dashboard');
+  const [activeAdminSubTab, setActiveAdminSubTab] = useState<'dashboard' | 'kitchen' | 'menu' | 'students' | 'upi' | 'database' | 'security' | 'transactions' | 'hours'>('dashboard');
   const [dbStatus, setDbStatus] = useState<any>(null);
   const [dbLoading, setDbLoading] = useState(false);
   const [printOrder, setPrintOrder] = useState<Order | null>(null);
@@ -51,12 +51,72 @@ export function AdminPanel({
   const [paymentLogs, setPaymentLogs] = useState<any[]>([]);
   const [paymentLogsLoading, setPaymentLogsLoading] = useState(false);
 
+  // Operating hours state
+  const [openingTime, setOpeningTime] = useState('08:00');
+  const [closingTime, setClosingTime] = useState('20:00');
+  const [isTemporarilyClosed, setIsTemporarilyClosed] = useState(false);
+  const [hoursLoading, setHoursLoading] = useState(false);
+  const [hoursSaveSuccess, setHoursSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/canteens/operating-hours').then(r => r.json()).then(data => {
+      if (data.success) {
+        setOpeningTime(data.openingTime || '08:00');
+        setClosingTime(data.closingTime || '20:00');
+        setIsTemporarilyClosed(data.isTemporarilyClosed || false);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const handleSaveHours = async () => {
+    setHoursLoading(true);
+    try {
+      const res = await fetch('/api/canteens/operating-hours', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ openingTime, closingTime, isTemporarilyClosed })
+      });
+      if (res.ok) {
+        setHoursSaveSuccess(true);
+        setTimeout(() => setHoursSaveSuccess(false), 2500);
+      }
+    } catch (e) { console.error(e); }
+    setHoursLoading(false);
+  };
+
+  // Dashboard date filter state
+  const [dashDateFilter, setDashDateFilter] = useState<'today' | 'week' | 'month' | 'custom'>('today');
+  const [dashCustomStart, setDashCustomStart] = useState('');
+  const [dashCustomEnd, setDashCustomEnd] = useState('');
+
+  const getFilteredOrders = () => {
+    const now = new Date();
+    return orders.filter(o => {
+      const created = new Date(o.createdAt);
+      if (dashDateFilter === 'today') {
+        return created.toDateString() === now.toDateString();
+      } else if (dashDateFilter === 'week') {
+        const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
+        return created >= weekAgo;
+      } else if (dashDateFilter === 'month') {
+        return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+      } else if (dashDateFilter === 'custom' && dashCustomStart && dashCustomEnd) {
+        const start = new Date(dashCustomStart);
+        const end = new Date(dashCustomEnd); end.setHours(23, 59, 59, 999);
+        return created >= start && created <= end;
+      }
+      return true;
+    });
+  };
+
   // Simulated live stock levels for interactive low-stock lists
   const [itemStocks, setItemStocks] = useState<Record<string, number>>({});
 
   // Helper to retrieve stock count safely for any item
-  const getItemStock = (itemId: string, isAvailable: boolean) => {
+  const getItemStock = (itemId: string, isAvailable: boolean, item?: FoodItem) => {
     if (!isAvailable) return 0;
+    // Prefer real availableStock from DB if present
+    if (item && item.availableStock !== undefined) return item.availableStock;
     if (itemId && itemId in itemStocks) return itemStocks[itemId];
     if (!itemId) return 5;
     // Create a stable, deterministic visual stock count for realism
@@ -156,6 +216,9 @@ export function AdminPanel({
   const [newItemPrep, setNewItemPrep] = useState('8');
   const [newItemImg, setNewItemImg] = useState('');
   const [newItemIsVeg, setNewItemIsVeg] = useState(true);
+  const [newItemStock, setNewItemStock] = useState('50');
+  const [newItemBatchSize, setNewItemBatchSize] = useState('2');
+  const [newItemCookTime, setNewItemCookTime] = useState('10');
 
   // Drag and drop image upload states
   const [isDragging, setIsDragging] = useState(false);
@@ -331,6 +394,9 @@ export function AdminPanel({
         category: newItemCat,
         estimatedPrepTime: Number(newItemPrep) || 10,
         imageUrl: newItemImg,
+        availableStock: Number(newItemStock) || 50,
+        batchSize: Number(newItemBatchSize) || 2,
+        cookTime: Number(newItemCookTime) || 10,
         tags: newItemIsVeg ? ['New', 'Vegetarian'] : ['New', 'Non-Vegetarian']
       });
 
@@ -532,12 +598,13 @@ export function AdminPanel({
         </div>
 
         {/* Categories Selector */}
-        <div className="grid grid-cols-4 gap-1.5 w-full pb-1">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 w-full pb-1">
           {[
             { id: 'dashboard', label: '📊 Dashboard' },
-            { id: 'kitchen', label: 'Queues' },
-            { id: 'menu', label: 'Menu Catalog' },
-            { id: 'students', label: 'Students' }
+            { id: 'kitchen', label: '🍳 Kitchen' },
+            { id: 'menu', label: '📋 Menu' },
+            { id: 'hours', label: '🕐 Hours' },
+            { id: 'students', label: '👥 Students' }
           ].map(subTab => (
             <button
               key={subTab.id}
@@ -1005,20 +1072,126 @@ export function AdminPanel({
         };
 
         return (
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-            <h4 className="font-sans font-bold text-slate-900 text-sm uppercase tracking-wider">Live Active Kitchen Queues</h4>
-            {activeOrders.length === 0 ? (
-              <div className="text-center py-10 text-slate-450 italic text-xs">
-                💤 Low traffic! No active orders in the kitchen queues.
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
+            <h4 className="font-sans font-bold text-slate-900 text-sm uppercase tracking-wider">🍳 Kitchen Display System</h4>
+
+            {/* KDS Batching View */}
+            {(() => {
+              // Group all active order items by name
+              const batchMap: Record<string, { totalQty: number; users: string[]; batchSize: number; cookTime: number; category: string }> = {};
+              activeOrders.forEach(ord => {
+                ord.items.forEach(it => {
+                  const menuItem = foodItems.find(fi => fi.id === (it.itemId || it.id) || fi.name === it.name);
+                  const bSize = menuItem?.batchSize ?? 2;
+                  const cTime = menuItem?.cookTime ?? 10;
+                  const cat = it.category || menuItem?.category || 'General';
+                  if (!batchMap[it.name]) {
+                    batchMap[it.name] = { totalQty: 0, users: [], batchSize: bSize, cookTime: cTime, category: cat };
+                  }
+                  batchMap[it.name].totalQty += it.quantity;
+                  const userLabel = ord.userName + (ord.tokenNumber ? ` (${ord.tokenNumber})` : '');
+                  if (!batchMap[it.name].users.includes(userLabel)) {
+                    batchMap[it.name].users.push(userLabel);
+                  }
+                });
+              });
+              const batchEntries = Object.entries(batchMap).sort((a, b) => b[1].totalQty - a[1].totalQty);
+
+              if (batchEntries.length === 0) return (
+                <div className="border border-dashed border-slate-200 rounded-2xl p-6 text-center text-slate-400 italic text-xs">
+                  💤 No active orders. The kitchen is quiet!
+                </div>
+              );
+
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Batch Cooking Plan</span>
+                    <span className="h-px flex-1 bg-slate-100" />
+                    <span className="text-[10px] text-slate-400 font-medium">{batchEntries.length} item types</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {batchEntries.map(([itemName, info]) => {
+                      const batchCount = Math.ceil(info.totalQty / info.batchSize);
+                      const totalCookTime = batchCount * info.cookTime;
+                      const urgency = info.totalQty >= 5 ? 'high' : info.totalQty >= 3 ? 'medium' : 'low';
+                      const catColors: Record<string, string> = {
+                        Breakfast: 'from-amber-50 to-amber-50/40 border-amber-200',
+                        Lunch: 'from-blue-50 to-blue-50/40 border-blue-200',
+                        Snacks: 'from-emerald-50 to-emerald-50/40 border-emerald-200',
+                        Chinese: 'from-rose-50 to-rose-50/40 border-rose-200',
+                        Beverages: 'from-cyan-50 to-cyan-50/40 border-cyan-200',
+                        Desserts: 'from-pink-50 to-pink-50/40 border-pink-200',
+                      };
+                      const cardStyle = catColors[info.category] || 'from-slate-50 to-slate-50/40 border-slate-200';
+
+                      return (
+                        <div key={itemName} className={`bg-gradient-to-br ${cardStyle} border rounded-2xl p-4 space-y-2.5`}>
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <h5 className="font-black text-slate-900 text-sm leading-tight">{itemName}</h5>
+                              <span className="text-[9px] text-slate-400 uppercase tracking-widest font-bold">{info.category}</span>
+                            </div>
+                            <div className={`text-right shrink-0 px-2.5 py-1 rounded-xl border text-xs font-black ${
+                              urgency === 'high' ? 'bg-rose-100 text-rose-700 border-rose-200' :
+                              urgency === 'medium' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                              'bg-slate-100 text-slate-600 border-slate-200'
+                            }`}>
+                              ×{info.totalQty}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-1.5 text-center">
+                            <div className="bg-white/70 border border-white rounded-xl py-1.5">
+                              <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Batches</div>
+                              <div className="text-lg font-black text-slate-900 leading-tight">{batchCount}</div>
+                            </div>
+                            <div className="bg-white/70 border border-white rounded-xl py-1.5">
+                              <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cook</div>
+                              <div className="text-lg font-black text-slate-900 leading-tight">{totalCookTime}m</div>
+                            </div>
+                            <div className="bg-white/70 border border-white rounded-xl py-1.5">
+                              <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Batch sz</div>
+                              <div className="text-lg font-black text-slate-900 leading-tight">{info.batchSize}</div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">Students ({info.users.length})</div>
+                            <div className="flex flex-wrap gap-1">
+                              {info.users.map(u => (
+                                <span key={u} className="bg-white/80 border border-slate-200 text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded-lg">{u}</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Per-queue Section */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Live Order Queues</span>
+                <span className="h-px flex-1 bg-slate-100" />
+                <span className="text-[10px] text-slate-400 font-medium">{activeOrders.length} active</span>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {renderQueueSection("Breakfast Queue", breakfastQueue, "border-amber-200 bg-amber-50/20 text-amber-800")}
-                {renderQueueSection("Lunch Queue", lunchQueue, "border-blue-200 bg-blue-50/20 text-blue-800")}
-                {renderQueueSection("Snacks Queue", snacksQueue, "border-emerald-200 bg-emerald-50/20 text-emerald-800")}
-                {renderQueueSection("Dinner Queue", dinnerQueue, "border-purple-200 bg-purple-50/20 text-purple-800")}
-              </div>
-            )}
+              {activeOrders.length === 0 ? (
+                <div className="text-center py-10 text-slate-450 italic text-xs">
+                  💤 Low traffic! No active orders in the kitchen queues.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {renderQueueSection("Breakfast Queue", breakfastQueue, "border-amber-200 bg-amber-50/20 text-amber-800")}
+                  {renderQueueSection("Lunch Queue", lunchQueue, "border-blue-200 bg-blue-50/20 text-blue-800")}
+                  {renderQueueSection("Snacks Queue", snacksQueue, "border-emerald-200 bg-emerald-50/20 text-emerald-800")}
+                  {renderQueueSection("Dinner Queue", dinnerQueue, "border-purple-200 bg-purple-50/20 text-purple-800")}
+                </div>
+              )}
+            </div>
           </div>
         );
       })()}
@@ -1040,64 +1213,171 @@ export function AdminPanel({
           </div>
 
           <div className="divide-y divide-slate-100">
-            {foodItems.map(item => (
-              <div key={item.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border shrink-0">
-                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+            {foodItems.map(item => {
+              const stock = item.availableStock !== undefined ? item.availableStock : getItemStock(item.id, item.isAvailable, item);
+              return (
+              <div key={item.id} className="py-3 flex flex-col gap-3 text-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border shrink-0">
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-slate-950 text-xs sm:text-sm">{item.name}</h5>
+                      <span className="text-[10px] text-slate-400 font-medium tracking-wider uppercase block">{item.category} • Prep: {item.estimatedPrepTime}m • Batch: {item.batchSize ?? 2} • Cook: {item.cookTime ?? 10}m</span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="font-mono text-slate-600">₹{item.price}</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                          stock === 0 ? 'bg-rose-100 text-rose-700' :
+                          stock <= 5 ? 'bg-amber-100 text-amber-700' :
+                          'bg-emerald-100 text-emerald-700'
+                        }`}>
+                          {stock === 0 ? 'Out of Stock' : `${stock} left`}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h5 className="font-bold text-slate-950 text-xs sm:text-sm">{item.name}</h5>
-                    <span className="text-[10px] text-slate-400 font-medium tracking-wider uppercase block">{item.category} • Prep: {item.estimatedPrepTime} mins</span>
-                    <span className="font-mono text-slate-600">₹{item.price}</span>
+
+                  <div className="flex flex-wrap gap-1.5 items-center self-end sm:self-center">
+                    <button
+                      onClick={() => { onEditMenuItem(item.id, { isAvailable: !item.isAvailable }); }}
+                      className={`px-2 py-1.5 rounded-lg font-bold border cursor-pointer text-[10px] transition-all ${
+                        item.isAvailable 
+                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                          : 'bg-slate-50 text-slate-400 border-slate-200'
+                      }`}
+                    >
+                      {item.isAvailable ? 'In Stock' : 'Out of Stock'}
+                    </button>
+                    <button
+                      onClick={() => { onEditMenuItem(item.id, { isTodaySpecial: !item.isTodaySpecial }); }}
+                      className={`px-2 py-1.5 rounded-lg font-bold border cursor-pointer text-[10px] transition-all ${
+                        item.isTodaySpecial ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-white text-slate-400 border-slate-200'
+                      }`}
+                    >
+                      Special
+                    </button>
+                    <button
+                      onClick={() => setEditingItem(item)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 transition-all cursor-pointer rounded-lg border border-slate-200 hover:border-blue-200"
+                      title="Edit details"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => onDeleteMenuItem(item.id)}
+                      className="p-1.5 text-red-600 hover:bg-red-50 transition-all cursor-pointer rounded-lg border border-slate-200 hover:border-red-200"
+                      title="Delete item"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5 items-center self-end sm:self-center">
-                  <button
-                    onClick={() => {
-                      onEditMenuItem(item.id, { isAvailable: !item.isAvailable });
+                {/* Stock Adjustment Row */}
+                <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Set Stock:</span>
+                  <input
+                    type="number"
+                    min={0}
+                    defaultValue={stock}
+                    key={`stock-${item.id}-${stock}`}
+                    className="w-20 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono outline-none focus:border-black transition-all"
+                    onBlur={(e) => {
+                      const newVal = Number(e.target.value);
+                      if (!isNaN(newVal) && newVal !== stock) {
+                        onEditMenuItem(item.id, { availableStock: newVal, isAvailable: newVal > 0 });
+                      }
                     }}
-                    className={`px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-lg font-bold border cursor-pointer text-[10px] sm:text-xs transition-all ${
-                      item.isAvailable 
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                        : 'bg-slate-50 text-slate-400 border-slate-200'
-                    }`}
-                  >
-                    {item.isAvailable ? 'In Stock' : 'Out of Stock'}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      onEditMenuItem(item.id, { isTodaySpecial: !item.isTodaySpecial });
-                    }}
-                    className={`px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-lg font-bold border cursor-pointer text-[10px] sm:text-xs transition-all ${
-                      item.isTodaySpecial 
-                        ? 'bg-amber-50 text-amber-600 border-amber-100' 
-                        : 'bg-white text-slate-450 border-slate-200'
-                    }`}
-                  >
-                    Special
-                  </button>
-
-                  <button
-                    onClick={() => setEditingItem(item)}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer rounded-lg border border-slate-200 hover:border-blue-200"
-                    title="Edit details"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-
-                  <button
-                    onClick={() => onDeleteMenuItem(item.id)}
-                    className="p-1.5 text-red-650 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all cursor-pointer rounded-lg border border-slate-200 hover:border-red-200"
-                    title="Delete item"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  />
+                  <div className="flex gap-1">
+                    {[10, 25, 50].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => onEditMenuItem(item.id, { availableStock: n, isAvailable: true })}
+                        className="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 text-[10px] font-bold rounded-lg cursor-pointer transition-all"
+                      >
+                        +{n}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            ))}
+            );})}
+
+          </div>
+        </div>
+      )}
+
+      {/* Operating Hours Configuration Panel */}
+      {activeAdminSubTab === 'hours' && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
+          <div>
+            <h4 className="font-sans font-bold text-slate-900 text-sm uppercase tracking-wider">🕐 Operating Hours</h4>
+            <p className="text-[11px] text-slate-500 mt-0.5">Configure when the canteen accepts online orders. Orders outside these hours will be blocked.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-2">
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Opening Time</label>
+              <input
+                type="time"
+                value={openingTime}
+                onChange={e => setOpeningTime(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-mono outline-none focus:border-black transition-all"
+              />
+              <p className="text-[9px] text-slate-400">Orders accepted from this time onward</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-2">
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Closing Time</label>
+              <input
+                type="time"
+                value={closingTime}
+                onChange={e => setClosingTime(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-mono outline-none focus:border-black transition-all"
+              />
+              <p className="text-[9px] text-slate-400">Orders blocked after this time</p>
+            </div>
+          </div>
+
+          {/* Current status preview */}
+          <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 flex items-center gap-3">
+            <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${isTemporarilyClosed ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse`} />
+            <div>
+              <div className="text-xs font-bold text-slate-700">
+                {isTemporarilyClosed ? 'Canteen Temporarily Closed' : `Open ${openingTime} – ${closingTime}`}
+              </div>
+              <div className="text-[10px] text-slate-400">
+                {isTemporarilyClosed ? 'All new orders are blocked right now' : 'Accepting online orders in this window'}
+              </div>
+            </div>
+          </div>
+
+          {/* Emergency closure toggle */}
+          <div className={`border rounded-2xl p-4 flex items-start justify-between gap-4 transition-all ${isTemporarilyClosed ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'}`}>
+            <div>
+              <div className="text-sm font-bold text-slate-800">Emergency / Holiday Closure</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">Immediately block all new orders regardless of operating hours. Useful for unforeseen events or maintenance.</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsTemporarilyClosed(!isTemporarilyClosed)}
+              className={`shrink-0 w-12 h-6 rounded-full transition-all relative border ${isTemporarilyClosed ? 'bg-rose-500 border-rose-500' : 'bg-slate-200 border-slate-300'}`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${isTemporarilyClosed ? 'left-6' : 'left-0.5'}`} />
+            </button>
+          </div>
+
+          <div className="flex gap-3 pt-1">
+            <button
+              type="button"
+              onClick={handleSaveHours}
+              disabled={hoursLoading}
+              className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${hoursLoading ? 'bg-slate-100 text-slate-400' : 'bg-black hover:bg-slate-900 text-white'}`}
+            >
+              {hoursLoading ? 'Saving…' : hoursSaveSuccess ? '✓ Saved!' : 'Save Hours Settings'}
+            </button>
           </div>
         </div>
       )}
@@ -2072,6 +2352,36 @@ WITH CHECK (
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none"
                   />
                 </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Stock Count</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={newItemStock}
+                    onChange={(e) => setNewItemStock(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Batch Size</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={newItemBatchSize}
+                    onChange={(e) => setNewItemBatchSize(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cook Time (mins/batch)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={newItemCookTime}
+                    onChange={(e) => setNewItemCookTime(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none"
+                  />
+                </div>
               </div>
 
               <div>
@@ -2291,6 +2601,36 @@ WITH CHECK (
                     type="number"
                     value={editingItem.estimatedPrepTime}
                     onChange={(e) => setEditingItem({ ...editingItem, estimatedPrepTime: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Stock Count</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editingItem.availableStock ?? 50}
+                    onChange={(e) => setEditingItem({ ...editingItem, availableStock: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Batch Size</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={editingItem.batchSize ?? 2}
+                    onChange={(e) => setEditingItem({ ...editingItem, batchSize: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cook Time (mins/batch)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={editingItem.cookTime ?? 10}
+                    onChange={(e) => setEditingItem({ ...editingItem, cookTime: Number(e.target.value) })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none"
                   />
                 </div>

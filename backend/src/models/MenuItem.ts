@@ -10,6 +10,9 @@ export interface IMenuItem extends Document {
   isAvailable: boolean;
   estimatedPrepTime: number;
   rating: number;
+  availableStock: number;
+  batchSize: number;
+  cookTime: number;
   tags: string[];
   isTodaySpecial: boolean;
   createdAt: Date;
@@ -27,6 +30,9 @@ const menuItemSchema = new Schema<IMenuItem>(
     isAvailable: { type: Boolean, default: true },
     estimatedPrepTime: { type: Number, default: 10 },
     rating: { type: Number, default: 5.0, min: 1, max: 5 },
+    availableStock: { type: Number, default: 50, min: 0 },
+    batchSize: { type: Number, default: 2, min: 1 },
+    cookTime: { type: Number, default: 10, min: 1 },
     tags: { type: [String], default: [] },
     isTodaySpecial: { type: Boolean, default: false }
   },

@@ -166,6 +166,107 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Restore navigation state on startup/session load
+  useEffect(() => {
+    if (user) {
+      const hash = window.location.hash.replace('#', '');
+      const savedActiveTab = sessionStorage.getItem('activeTab');
+      const savedMobileTab = sessionStorage.getItem('mobileTab');
+      const savedEntered = sessionStorage.getItem('hasEnteredApp');
+      
+      const isUserAdmin = user.role === 'admin';
+      
+      let targetActiveTab: any = 'menu';
+      let targetMobileTab: any = 'home';
+      let shouldEnter = false;
+
+      // Resolve active tab
+      if (hash && ['menu', 'orders', 'profile', 'admin', 'stores', 'offers', 'printhub', 'cart'].includes(hash)) {
+        targetActiveTab = hash;
+        shouldEnter = true;
+      } else if (savedActiveTab && ['menu', 'orders', 'profile', 'admin', 'stores', 'offers', 'printhub', 'cart'].includes(savedActiveTab)) {
+        targetActiveTab = savedActiveTab;
+        shouldEnter = true;
+      }
+
+      // Resolve mobile tab
+      if (hash && ['home', 'orders', 'stores', 'cart', 'profile', 'admin', 'printhub'].includes(hash)) {
+        targetMobileTab = hash === 'menu' ? 'home' : hash;
+        shouldEnter = true;
+      } else if (savedMobileTab && ['home', 'orders', 'stores', 'cart', 'profile', 'admin', 'printhub'].includes(savedMobileTab)) {
+        targetMobileTab = savedMobileTab;
+        shouldEnter = true;
+      }
+
+      if (savedEntered === 'true') {
+        shouldEnter = true;
+      }
+
+      // Admin security check
+      if (targetActiveTab === 'admin' && !isUserAdmin) {
+        targetActiveTab = 'menu';
+        window.location.hash = '#menu';
+      }
+      if (targetMobileTab === 'admin' && !isUserAdmin) {
+        targetMobileTab = 'home';
+        window.location.hash = '#home';
+      }
+
+      if (shouldEnter) {
+        setHasEnteredApp(true);
+        setActiveTab(targetActiveTab);
+        setMobileTab(targetMobileTab);
+      }
+    }
+  }, [user]);
+
+  // Synchronize state changes to URL hash and sessionStorage
+  useEffect(() => {
+    if (user) {
+      sessionStorage.setItem('hasEnteredApp', hasEnteredApp ? 'true' : 'false');
+      if (hasEnteredApp) {
+        const currentTab = isMobile ? (mobileTab === 'home' ? 'menu' : mobileTab) : activeTab;
+        sessionStorage.setItem('activeTab', activeTab);
+        sessionStorage.setItem('mobileTab', mobileTab);
+        
+        const isUserAdmin = user.role === 'admin';
+        if (currentTab === 'admin' && !isUserAdmin) {
+          window.location.hash = '#menu';
+        } else {
+          window.location.hash = `#${currentTab}`;
+        }
+      } else {
+        if (window.location.hash) {
+          window.location.hash = '';
+        }
+      }
+    }
+  }, [hasEnteredApp, activeTab, mobileTab, isMobile, user]);
+
+  // Listen to hashchange events
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      const isUserAdmin = user?.role === 'admin';
+      if (hash && ['menu', 'orders', 'profile', 'admin', 'stores', 'offers', 'printhub', 'cart'].includes(hash)) {
+        if (hash === 'admin' && !isUserAdmin) {
+          setActiveTab('menu');
+        } else {
+          setActiveTab(hash as any);
+        }
+      }
+      if (hash && ['home', 'orders', 'stores', 'cart', 'profile', 'admin', 'printhub'].includes(hash)) {
+        if (hash === 'admin' && !isUserAdmin) {
+          setMobileTab('home');
+        } else {
+          setMobileTab(hash as any);
+        }
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [user]);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [activeTab, mobileTab, hasEnteredApp]);

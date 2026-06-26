@@ -4,6 +4,8 @@ import { PrintOrder } from '../models/PrintOrder';
 import { Wallet } from '../models/Wallet';
 import { Transaction } from '../models/Transaction';
 import { Counter } from '../models/Counter';
+import { MenuItem } from '../models/MenuItem';
+import { Canteen } from '../models/Canteen';
 import mongoose from 'mongoose';
 
 const getYYMMDD = (date: Date): string => {
@@ -38,6 +40,43 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       return res.status(400).json({ success: false, message: 'userId, items, totalAmount, and paymentMethod are required' });
     }
     
+    // 1. Validate Canteen Operating Hours
+    const canteen = await Canteen.findOne({});
+    if (canteen) {
+      if (canteen.isTemporarilyClosed) {
+        return res.status(400).json({ success: false, message: 'Canteen is temporarily closed' });
+      }
+      if (!scheduledDate) {
+        const now = new Date();
+        const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const opening = canteen.openingTime || "08:00";
+        const closing = canteen.closingTime || "20:00";
+        if (currentHHMM < opening || currentHHMM > closing) {
+          return res.status(400).json({ 
+            success: false, 
+            message: `Canteen is closed. Operating hours: ${opening} - ${closing}. Current time: ${currentHHMM}` 
+          });
+        }
+      }
+    }
+
+    // 2. Validate Stock for all items (First Pass)
+    const menuItemsToUpdate = [];
+    for (const item of items) {
+      const itemId = item.itemId || item.id;
+      const menuItem = await MenuItem.findById(itemId);
+      if (!menuItem) {
+        return res.status(404).json({ success: false, message: `Menu item ${item.name || itemId} not found` });
+      }
+      if (menuItem.availableStock < item.quantity) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Insufficient stock for ${menuItem.name}. Available: ${menuItem.availableStock}, Requested: ${item.quantity}` 
+        });
+      }
+      menuItemsToUpdate.push({ menuItem, quantity: item.quantity });
+    }
+
     if (paymentMethod === 'wallet') {
       const wallet = await Wallet.findOne({ userId });
       if (!wallet || wallet.balance < totalAmount) {
@@ -54,6 +93,15 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
         description: `Order placement token payment`
       });
       await tx.save();
+    }
+
+    // 3. Decrement Stock (Second Pass)
+    for (const update of menuItemsToUpdate) {
+      update.menuItem.availableStock -= update.quantity;
+      if (update.menuItem.availableStock === 0) {
+        update.menuItem.isAvailable = false;
+      }
+      await update.menuItem.save();
     }
     
     // Determine mealCategory
@@ -225,6 +273,20 @@ export const updateOrderStatus = async (req: Request, res: Response, next: NextF
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    
+    // Check if status is transitioning to Cancelled
+    if (status === 'Cancelled' && order.status !== 'Cancelled') {
+      for (const item of order.items) {
+        const menuItem = await MenuItem.findById(item.itemId);
+        if (menuItem) {
+          menuItem.availableStock += item.quantity;
+          if (menuItem.availableStock > 0) {
+            menuItem.isAvailable = true;
+          }
+          await menuItem.save();
+        }
+      }
     }
     
     order.status = status;

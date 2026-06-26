@@ -14,6 +14,8 @@ import { MenuItem } from "./backend/src/models/MenuItem";
 import { Order } from "./backend/src/models/Order";
 import { PrintOrder } from "./backend/src/models/PrintOrder";
 import { Counter } from "./backend/src/models/Counter";
+import { Review } from "./backend/src/models/Review";
+import { StockLog } from "./backend/src/models/StockLog";
 import { createServer as createViteServer } from "vite";
 import { TABLES } from "./src/lib/tableNames";
 
@@ -187,6 +189,9 @@ function mapRowToDb(table: string, row: any): any {
       is_available: row.isAvailable !== undefined ? Boolean(row.isAvailable) : (row.is_available !== undefined ? Boolean(row.is_available) : true),
       estimated_prep_time: row.estimatedPrepTime !== undefined ? Number(row.estimatedPrepTime) : (row.estimated_prep_time !== undefined ? Number(row.estimated_prep_time) : 10),
       rating: row.rating !== undefined ? Number(row.rating) : (row.rating_val !== undefined ? Number(row.rating_val) : 5.0),
+      available_stock: row.availableStock !== undefined ? Number(row.availableStock) : (row.available_stock !== undefined ? Number(row.available_stock) : 50),
+      batch_size: row.batchSize !== undefined ? Number(row.batchSize) : (row.batch_size !== undefined ? Number(row.batch_size) : 2),
+      cook_time: row.cookTime !== undefined ? Number(row.cookTime) : (row.cook_time !== undefined ? Number(row.cook_time) : 10),
       tags: row.tags || [],
       is_today_special: row.isTodaySpecial !== undefined ? Boolean(row.isTodaySpecial) : (row.is_today_special !== undefined ? Boolean(row.is_today_special) : false)
     };
@@ -305,6 +310,9 @@ function mapRowFromDb(table: string, row: any): any {
       isAvailable: Boolean(row.is_available),
       estimatedPrepTime: Number(row.estimated_prep_time),
       rating: Number(row.rating),
+      availableStock: row.available_stock !== undefined ? Number(row.available_stock) : (row.availableStock !== undefined ? Number(row.availableStock) : 50),
+      batchSize: row.batch_size !== undefined ? Number(row.batch_size) : (row.batchSize !== undefined ? Number(row.batchSize) : 2),
+      cookTime: row.cook_time !== undefined ? Number(row.cook_time) : (row.cookTime !== undefined ? Number(row.cookTime) : 10),
       tags: row.tags || [],
       isTodaySpecial: Boolean(row.is_today_special)
     };
@@ -524,6 +532,7 @@ async function getNextTokenNumber(categoryPrefix: string, yymmdd: string): Promi
 }
 
 // MongoDB Async fetch/commit methods
+// MongoDB Async fetch/commit methods
 async function getMenuItems(): Promise<any[]> {
   try {
     const items = await MenuItem.find({}).lean();
@@ -537,6 +546,9 @@ async function getMenuItems(): Promise<any[]> {
       isAvailable: item.isAvailable,
       estimatedPrepTime: item.estimatedPrepTime,
       rating: item.rating,
+      availableStock: item.availableStock,
+      batchSize: item.batchSize,
+      cookTime: item.cookTime,
       tags: item.tags || [],
       isTodaySpecial: item.isTodaySpecial
     }));
@@ -559,6 +571,9 @@ async function addMenuItem(item: any): Promise<boolean> {
       isAvailable: item.isAvailable !== undefined ? Boolean(item.isAvailable) : true,
       estimatedPrepTime: item.estimatedPrepTime !== undefined ? Number(item.estimatedPrepTime) : 10,
       rating: item.rating !== undefined ? Number(item.rating) : 5.0,
+      availableStock: item.availableStock !== undefined ? Number(item.availableStock) : 50,
+      batchSize: item.batchSize !== undefined ? Number(item.batchSize) : 2,
+      cookTime: item.cookTime !== undefined ? Number(item.cookTime) : 10,
       tags: item.tags || [],
       isTodaySpecial: item.isTodaySpecial !== undefined ? Boolean(item.isTodaySpecial) : false
     });
@@ -581,6 +596,9 @@ async function updateMenuItemDb(itemId: string, updates: any): Promise<any> {
     if (updates.isAvailable !== undefined) updateFields.isAvailable = Boolean(updates.isAvailable);
     if (updates.estimatedPrepTime !== undefined) updateFields.estimatedPrepTime = Number(updates.estimatedPrepTime);
     if (updates.rating !== undefined) updateFields.rating = Number(updates.rating);
+    if (updates.availableStock !== undefined) updateFields.availableStock = Number(updates.availableStock);
+    if (updates.batchSize !== undefined) updateFields.batchSize = Number(updates.batchSize);
+    if (updates.cookTime !== undefined) updateFields.cookTime = Number(updates.cookTime);
     if (updates.tags !== undefined) updateFields.tags = updates.tags;
     if (updates.isTodaySpecial !== undefined) updateFields.isTodaySpecial = Boolean(updates.isTodaySpecial);
 
@@ -596,6 +614,9 @@ async function updateMenuItemDb(itemId: string, updates: any): Promise<any> {
         isAvailable: updated.isAvailable,
         estimatedPrepTime: updated.estimatedPrepTime,
         rating: updated.rating,
+        availableStock: updated.availableStock,
+        batchSize: updated.batchSize,
+        cookTime: updated.cookTime,
         tags: updated.tags || [],
         isTodaySpecial: updated.isTodaySpecial
       };
@@ -921,6 +942,21 @@ async function updateOrderStatus(orderId: string, status: string, estimatedReady
   try {
     const ord = await Order.findById(orderId);
     if (!ord) return null;
+
+    // Check if status is transitioning to Cancelled
+    if (status === 'Cancelled' && ord.status !== 'Cancelled') {
+      for (const item of ord.items) {
+        const menuItem = await MenuItem.findById(item.itemId);
+        if (menuItem) {
+          menuItem.availableStock += item.quantity;
+          if (menuItem.availableStock > 0) {
+            menuItem.isAvailable = true;
+          }
+          await menuItem.save();
+        }
+      }
+    }
+
     ord.status = status as any;
     if (estimatedReadyAt) {
       ord.estimatedReadyAt = estimatedReadyAt;
@@ -1268,7 +1304,7 @@ app.get("/api/menu", async (req, res) => {
 
 // --- Dynamic Menu CRUD Features (Add, Edit, Delete) ---
 app.post("/api/menu/add", async (req, res) => {
-  const { name, description, price, category, imageUrl, estimatedPrepTime, tags } = req.body;
+  const { name, description, price, category, imageUrl, estimatedPrepTime, tags, availableStock, batchSize, cookTime } = req.body;
   if (!name || !price || !category) {
     return res.status(400).json({ error: "Missing required menu properties." });
   }
@@ -1282,7 +1318,10 @@ app.post("/api/menu/add", async (req, res) => {
     isAvailable: true,
     estimatedPrepTime: Number(estimatedPrepTime) || 12,
     rating: 5.0,
-    tags: tags || ["New", "Vegetarian"]
+    tags: tags || ["New", "Vegetarian"],
+    availableStock: availableStock !== undefined ? Number(availableStock) : 50,
+    batchSize: batchSize !== undefined ? Number(batchSize) : 2,
+    cookTime: cookTime !== undefined ? Number(cookTime) : 10
   };
   dynamicMenuItems.push(newItem);
   savePersistedData("canteen_menu.json", dynamicMenuItems);
@@ -1292,7 +1331,7 @@ app.post("/api/menu/add", async (req, res) => {
 
 app.put("/api/menu/:itemId/edit", async (req, res) => {
   const { itemId } = req.params;
-  const { name, description, price, category, imageUrl, isAvailable, estimatedPrepTime, isTodaySpecial, tags } = req.body;
+  const { name, description, price, category, imageUrl, isAvailable, estimatedPrepTime, isTodaySpecial, tags, availableStock, batchSize, cookTime, adminId, adminName } = req.body;
   const itemIndex = dynamicMenuItems.findIndex(it => it.id === itemId);
   if (itemIndex !== -1) {
     dynamicMenuItems[itemIndex] = {
@@ -1305,11 +1344,15 @@ app.put("/api/menu/:itemId/edit", async (req, res) => {
       isAvailable: isAvailable !== undefined ? Boolean(isAvailable) : dynamicMenuItems[itemIndex].isAvailable,
       estimatedPrepTime: estimatedPrepTime !== undefined ? Number(estimatedPrepTime) : dynamicMenuItems[itemIndex].estimatedPrepTime,
       isTodaySpecial: isTodaySpecial !== undefined ? Boolean(isTodaySpecial) : dynamicMenuItems[itemIndex].isTodaySpecial,
-      tags: tags !== undefined ? tags : dynamicMenuItems[itemIndex].tags
+      tags: tags !== undefined ? tags : dynamicMenuItems[itemIndex].tags,
+      availableStock: availableStock !== undefined ? Number(availableStock) : dynamicMenuItems[itemIndex].availableStock,
+      batchSize: batchSize !== undefined ? Number(batchSize) : dynamicMenuItems[itemIndex].batchSize,
+      cookTime: cookTime !== undefined ? Number(cookTime) : dynamicMenuItems[itemIndex].cookTime
     };
     savePersistedData("canteen_menu.json", dynamicMenuItems);
   }
 
+  const prevItem = await MenuItem.findById(itemId);
   const updates: any = {};
   if (name !== undefined) updates.name = name;
   if (description !== undefined) updates.description = description;
@@ -1320,6 +1363,28 @@ app.put("/api/menu/:itemId/edit", async (req, res) => {
   if (estimatedPrepTime !== undefined) updates.estimatedPrepTime = Number(estimatedPrepTime);
   if (isTodaySpecial !== undefined) updates.isTodaySpecial = Boolean(isTodaySpecial);
   if (tags !== undefined) updates.tags = tags;
+  if (availableStock !== undefined) updates.availableStock = Number(availableStock);
+  if (batchSize !== undefined) updates.batchSize = Number(batchSize);
+  if (cookTime !== undefined) updates.cookTime = Number(cookTime);
+
+  if (prevItem && availableStock !== undefined && Number(availableStock) !== prevItem.availableStock) {
+    const resolvedAdminId = adminId || "mock_admin_id";
+    const resolvedAdminName = adminName || "Canteen Admin";
+    const stock = Number(availableStock);
+    if (stock === 0) {
+      updates.isAvailable = false;
+    } else if (stock > 0 && prevItem.availableStock === 0 && updates.isAvailable === undefined) {
+      updates.isAvailable = true;
+    }
+    await StockLog.create({
+      menuItemId: itemId,
+      itemName: prevItem.name,
+      previousStock: prevItem.availableStock,
+      newStock: stock,
+      adminId: mongoose.Types.ObjectId.isValid(resolvedAdminId) ? resolvedAdminId : new mongoose.Types.ObjectId(),
+      adminName: resolvedAdminName
+    });
+  }
 
   const updatedDb = await updateMenuItemDb(itemId, updates);
   res.json({ success: true, item: updatedDb || (itemIndex !== -1 ? dynamicMenuItems[itemIndex] : null) });
@@ -1334,6 +1399,183 @@ app.delete("/api/menu/:itemId/delete", async (req, res) => {
   }
   await deleteMenuItemDb(itemId);
   res.json({ success: true, message: "Item deleted successfully" });
+});
+
+// --- Item Reviews & Ratings Routes ---
+app.get("/api/menu/:itemId/reviews", async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const reviews = await Review.find({ menuItemId: itemId }).populate('userId', 'fullName name email');
+    const mappedReviews = reviews.map(r => ({
+      id: r._id.toString(),
+      userId: r.userId?._id?.toString() || (r.userId as any)?.id || r.userId,
+      userName: (r.userId as any)?.fullName || (r.userId as any)?.name || 'Anonymous',
+      userEmail: (r.userId as any)?.email || '',
+      menuItemId: r.menuItemId.toString(),
+      rating: r.rating,
+      review: r.review,
+      createdAt: r.createdAt.toISOString()
+    }));
+    res.json(mappedReviews);
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post("/api/menu/:itemId/reviews", async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const { rating, review: reviewText, userId } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized. User session not found.' });
+    }
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ success: false, message: 'Rating between 1 and 5 is required' });
+    }
+
+    // 1. Verify if user has a Completed order containing this item
+    const completedOrder = await Order.findOne({
+      userId,
+      status: 'Completed',
+      'items.itemId': itemId
+    });
+
+    if (!completedOrder) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Only users who have purchased this item can submit a rating and review.' 
+      });
+    }
+
+    // 2. Check if user already reviewed this item. If so, overwrite it.
+    let existingReview = await Review.findOne({ userId, menuItemId: itemId });
+    if (existingReview) {
+      existingReview.rating = Number(rating);
+      existingReview.review = reviewText || '';
+      await existingReview.save();
+      return res.status(200).json({ success: true, message: 'Review updated successfully', review: existingReview });
+    }
+
+    const newReview = new Review({
+      userId,
+      menuItemId: itemId,
+      rating: Number(rating),
+      review: reviewText || ''
+    });
+    await newReview.save();
+    res.status(201).json({ success: true, message: 'Review submitted successfully', review: newReview });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put("/api/menu/reviews/:reviewId", async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const { rating, review: reviewText, userId } = req.body;
+
+    const rev = await Review.findById(reviewId);
+    if (!rev) {
+      return res.status(404).json({ success: false, message: 'Review not found' });
+    }
+
+    if (rev.userId.toString() !== userId.toString()) {
+      return res.status(403).json({ success: false, message: 'Unauthorized to edit this review' });
+    }
+
+    if (rating !== undefined) {
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({ success: false, message: 'Rating between 1 and 5 is required' });
+      }
+      rev.rating = Number(rating);
+    }
+    if (reviewText !== undefined) {
+      rev.review = reviewText;
+    }
+
+    await rev.save();
+    res.status(200).json({ success: true, message: 'Review updated successfully', review: rev });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete("/api/menu/reviews/:reviewId", async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const { userId } = req.body;
+
+    const rev = await Review.findById(reviewId);
+    if (!rev) {
+      return res.status(404).json({ success: false, message: 'Review not found' });
+    }
+
+    if (rev.userId.toString() !== userId.toString()) {
+      return res.status(403).json({ success: false, message: 'Unauthorized to delete this review' });
+    }
+
+    const itemId = rev.menuItemId;
+    await Review.findByIdAndDelete(reviewId);
+
+    // Recalculate average rating after delete
+    const stats = await Review.aggregate([
+      { $match: { menuItemId: itemId } },
+      { $group: { _id: '$menuItemId', avgRating: { $avg: '$rating' } } }
+    ]);
+
+    const avg = stats.length > 0 ? parseFloat(stats[0].avgRating.toFixed(1)) : 5.0;
+    await MenuItem.findByIdAndUpdate(itemId, { rating: avg });
+
+    res.status(200).json({ success: true, message: 'Review deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// --- Canteen Operating Hours Routes ---
+app.get("/api/canteens/operating-hours", async (req, res) => {
+  try {
+    let canteen = await Canteen.findOne({});
+    if (!canteen) {
+      const defaultCanteenId = await getOrCreateDefaultCanteenId();
+      canteen = await Canteen.findById(defaultCanteenId);
+    }
+    res.json({
+      success: true,
+      openingTime: canteen?.openingTime || "08:00",
+      closingTime: canteen?.closingTime || "20:00",
+      isTemporarilyClosed: canteen?.isTemporarilyClosed || false
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post("/api/canteens/operating-hours", async (req, res) => {
+  try {
+    const { openingTime, closingTime, isTemporarilyClosed } = req.body;
+    let canteen = await Canteen.findOne({});
+    if (!canteen) {
+      const defaultCanteenId = await getOrCreateDefaultCanteenId();
+      canteen = await Canteen.findById(defaultCanteenId);
+    }
+    if (canteen) {
+      if (openingTime !== undefined) canteen.openingTime = openingTime;
+      if (closingTime !== undefined) canteen.closingTime = closingTime;
+      if (isTemporarilyClosed !== undefined) canteen.isTemporarilyClosed = isTemporarilyClosed;
+      await canteen.save();
+    }
+    res.json({
+      success: true,
+      message: "Operating hours updated successfully",
+      openingTime: canteen?.openingTime,
+      closingTime: canteen?.closingTime,
+      isTemporarilyClosed: canteen?.isTemporarilyClosed
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // --- UPI Payment Settings Config ---
@@ -3054,6 +3296,45 @@ app.post("/api/orders/create", async (req, res) => {
     return res.status(400).json({ error: "Incomplete order specification payload" });
   }
 
+  // 1. Validate Canteen Operating Hours
+  const canteen = await Canteen.findOne({});
+  if (canteen) {
+    if (canteen.isTemporarilyClosed) {
+      return res.status(400).json({ success: false, error: "Canteen is temporarily closed", message: "Canteen is temporarily closed" });
+    }
+    if (!order.scheduledDate) {
+      const now = new Date();
+      const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const opening = canteen.openingTime || "08:00";
+      const closing = canteen.closingTime || "20:00";
+      if (currentHHMM < opening || currentHHMM > closing) {
+        return res.status(400).json({ 
+          success: false,
+          error: `Canteen is closed. Operating hours: ${opening} - ${closing}. Current time: ${currentHHMM}`,
+          message: `Canteen is closed. Operating hours: ${opening} - ${closing}. Current time: ${currentHHMM}`
+        });
+      }
+    }
+  }
+
+  // 2. Validate Stock for all items (First Pass Check)
+  const menuItemsToUpdate = [];
+  for (const item of order.items) {
+    const itemId = item.itemId || item.id;
+    const menuItem = await MenuItem.findById(itemId);
+    if (!menuItem) {
+      return res.status(404).json({ success: false, error: `Menu item ${item.name || itemId} not found`, message: `Menu item not found` });
+    }
+    if (menuItem.availableStock < item.quantity) {
+      return res.status(400).json({ 
+        success: false, 
+        error: `Insufficient stock for ${menuItem.name}. Available: ${menuItem.availableStock}, Requested: ${item.quantity}`,
+        message: `Insufficient stock for ${menuItem.name}. Available: ${menuItem.availableStock}, Requested: ${item.quantity}` 
+      });
+    }
+    menuItemsToUpdate.push({ menuItem, quantity: item.quantity });
+  }
+
   // Securing Razorpay checkout: Verify payment signature before creating the kitchen order as paid
   if (order.paymentMethod === 'razorpay') {
     if (razorpay_order_id && String(razorpay_order_id).startsWith("rzp_sim_")) {
@@ -3078,6 +3359,15 @@ app.post("/api/orders/create", async (req, res) => {
         return res.status(400).json({ error: "Payment verification signature mismatch. Order declined." });
       }
     }
+  }
+
+  // Decrement Stock
+  for (const update of menuItemsToUpdate) {
+    update.menuItem.availableStock -= update.quantity;
+    if (update.menuItem.availableStock === 0) {
+      update.menuItem.isAvailable = false;
+    }
+    await update.menuItem.save();
   }
 
   // Assign pick-up token
