@@ -1302,6 +1302,24 @@ app.get("/api/menu", async (req, res) => {
   res.json(items);
 });
 
+// API: Lightweight stock snapshot for real-time cart validation
+// Returns only id, availableStock, isAvailable — fast polling endpoint
+app.get("/api/menu/stock-snapshot", async (req, res) => {
+  try {
+    const snapshot = await MenuItem.find({}, { _id: 1, availableStock: 1, isAvailable: 1 }).lean();
+    const result = snapshot.map((item: any) => ({
+      id: item._id.toString(),
+      availableStock: item.availableStock ?? 50,
+      isAvailable: item.isAvailable ?? true,
+    }));
+    return res.json({ success: true, snapshot: result });
+  } catch (err) {
+    console.error("[stock-snapshot] Error:", err);
+    return res.status(500).json({ success: false, error: "Failed to fetch stock snapshot" });
+  }
+});
+
+
 // --- Dynamic Menu CRUD Features (Add, Edit, Delete) ---
 app.post("/api/menu/add", async (req, res) => {
   const { name, description, price, category, imageUrl, estimatedPrepTime, tags, availableStock, batchSize, cookTime } = req.body;

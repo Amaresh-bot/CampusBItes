@@ -81,7 +81,17 @@ export function CartDrawer({
     })
     .filter((v): v is CartItem => v !== null && v.quantity > 0);
 
-  // Bill calculations
+  // Real-time stock validation: items in cart that are now OOS or exceed stock
+  const oosItems = new Set(
+    cartItems
+      .filter(item =>
+        !item.foodItem.isAvailable ||
+        (item.foodItem.availableStock !== undefined && item.foodItem.availableStock < item.quantity)
+      )
+      .map(item => item.foodItem.id)
+  );
+  const hasOosItems = oosItems.size > 0;
+
   const subtotal = cartItems.reduce((acc, item) => acc + (item.foodItem.price * item.quantity), 0);
   
   const discountAmount = 0;
@@ -332,10 +342,21 @@ export function CartDrawer({
         </div>
       ) : (
         <div className="space-y-5">
+          {/* Out-of-stock warning banner */}
+          {hasOosItems && (
+            <div className="flex items-start gap-2 bg-rose-50 border border-rose-200 rounded-xl p-3 text-xs">
+              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-black text-rose-700 uppercase tracking-wide text-[10px]">Items Unavailable</p>
+                <p className="text-rose-600 font-medium mt-0.5">Some items are out of stock or have insufficient quantity. Remove them to proceed with checkout.</p>
+              </div>
+            </div>
+          )}
+
           {/* Scrollable list of Items exactly like Swiggy */}
           <div className="space-y-3.5 max-h-56 overflow-y-auto pr-1">
             {cartItems.map(item => (
-              <div key={item.foodItem.id} className="flex items-center justify-between gap-4 text-xs">
+              <div key={item.foodItem.id} className={`flex items-center justify-between gap-4 text-xs ${oosItems.has(item.foodItem.id) ? 'opacity-75' : ''}`}>
                 <div className="flex-1 text-left space-y-0.5">
                   <div className="flex items-center gap-1.5">
                     {/* Tiny veg/nonweg symbol */}
@@ -349,6 +370,11 @@ export function CartDrawer({
                     <h5 className="font-sans font-black text-slate-800 leading-tight text-xs">
                       {item.foodItem.name}
                     </h5>
+                    {oosItems.has(item.foodItem.id) && (
+                      <span className="bg-rose-100 text-rose-600 text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md border border-rose-200">
+                        {!item.foodItem.isAvailable ? 'Out of Stock' : 'Low Stock'}
+                      </span>
+                    )}
                   </div>
                   <span className="text-[10px] text-slate-400 font-bold block">
                     {item.quantity} x ₹{item.foodItem.price}
@@ -368,8 +394,13 @@ export function CartDrawer({
                       {item.quantity}
                     </span>
                     <button
+                      disabled={item.foodItem.availableStock !== undefined && item.quantity >= item.foodItem.availableStock}
                       onClick={() => onUpdateCart(item.foodItem, item.quantity + 1)}
-                      className="px-2 h-full hover:bg-slate-50 font-black cursor-pointer text-[#1B4D3E]"
+                      className={`px-2 h-full font-black text-[#1B4D3E] ${
+                        item.foodItem.availableStock !== undefined && item.quantity >= item.foodItem.availableStock
+                          ? 'opacity-30 cursor-not-allowed'
+                          : 'hover:bg-slate-50 cursor-pointer'
+                      }`}
                     >
                       +
                     </button>
@@ -450,11 +481,21 @@ export function CartDrawer({
           {/* 6. Checkout CTA Button with integrated processing */}
           <button
             onClick={handleCheckout}
-            disabled={isProcessing}
-            className="w-full py-4 bg-[#1B4D3E] hover:bg-[#143B2F] text-white font-extrabold rounded-2xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 text-xs cursor-pointer active:scale-[0.98] disabled:opacity-50"
+            disabled={isProcessing || hasOosItems}
+            title={hasOosItems ? 'Remove out-of-stock items to proceed' : ''}
+            className={`w-full py-4 font-extrabold rounded-2xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 text-xs active:scale-[0.98] disabled:opacity-50 ${
+              hasOosItems
+                ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                : 'bg-[#1B4D3E] hover:bg-[#143B2F] text-white cursor-pointer'
+            }`}
           >
             {isProcessing ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : hasOosItems ? (
+              <>
+                <AlertCircle className="w-4 h-4" />
+                Remove Unavailable Items
+              </>
             ) : (
               <>
                 Place Order & Pay

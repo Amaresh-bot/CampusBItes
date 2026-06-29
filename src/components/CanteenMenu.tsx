@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Clock, Star, Flame, Tag, Check, ShoppingBag, Grid, HelpCircle, SlidersHorizontal, Mic } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Search, Clock, Star, Flame, Tag, Check, ShoppingBag, Grid, HelpCircle, SlidersHorizontal, Mic, MessageSquare, ThumbsUp, X, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { FoodItem } from '../types';
+import { FoodItem, Order } from '../types';
 
 interface CanteenMenuProps {
   items: FoodItem[];
@@ -16,6 +16,16 @@ interface CanteenMenuProps {
   vegetarianOnly?: boolean;
   setVegetarianOnly?: (veg: boolean) => void;
   hideSearchHeader?: boolean;
+  orders?: Order[];           // user's orders for review eligibility check
+  currentUserId?: string;     // logged-in user id
+}
+
+interface Review {
+  id: string;
+  userName: string;
+  rating: number;
+  review: string;
+  createdAt: string;
 }
 
 export function CanteenMenu({ 
@@ -30,11 +40,78 @@ export function CanteenMenu({
   setSearchQuery: propSetSearchQuery,
   vegetarianOnly: propVegetarianOnly,
   setVegetarianOnly: propSetVegetarianOnly,
-  hideSearchHeader = false
+  hideSearchHeader = false,
+  orders = [],
+  currentUserId,
 }: CanteenMenuProps) {
   const [localCategory, localSetCategory] = useState<string>('All');
   const [localSearchQuery, localSetSearchQuery] = useState<string>('');
   const [localVegetarianOnly, localSetVegetarianOnly] = useState<boolean>(false);
+
+  // Reviews state: map of itemId → reviews array
+  const [reviewsMap, setReviewsMap] = useState<Record<string, Review[]>>({});
+  const [expandedReviews, setExpandedReviews] = useState<Record<string, boolean>>({});
+  const [reviewFormItem, setReviewFormItem] = useState<string | null>(null); // item id with open form
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [reviewText, setReviewText] = useState<string>('');
+  const [reviewSubmitting, setReviewSubmitting] = useState<boolean>(false);
+  const [reviewError, setReviewError] = useState<string>('');
+
+  const fetchReviews = useCallback(async (itemId: string) => {
+    try {
+      const res = await fetch(`/api/menu/${itemId}/reviews`);
+      if (res.ok) {
+        const data = await res.json();
+        setReviewsMap(prev => ({ ...prev, [itemId]: data || [] }));
+      }
+    } catch (_) {}
+  }, []);
+
+  const handleToggleReviews = (itemId: string) => {
+    const willExpand = !expandedReviews[itemId];
+    setExpandedReviews(prev => ({ ...prev, [itemId]: willExpand }));
+    if (willExpand && !reviewsMap[itemId]) {
+      fetchReviews(itemId);
+    }
+  };
+
+  const handleSubmitReview = async (itemId: string) => {
+    if (!currentUserId) return;
+    setReviewSubmitting(true);
+    setReviewError('');
+    try {
+      const res = await fetch(`/api/menu/${itemId}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUserId, rating: reviewRating, review: reviewText }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setReviewFormItem(null);
+        setReviewText('');
+        setReviewRating(5);
+        fetchReviews(itemId); // refresh reviews
+      } else {
+        setReviewError(data.error || data.message || 'Failed to submit review');
+      }
+    } catch (e) {
+      setReviewError('Network error. Please try again.');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  // Check if current user has a Completed order for a given itemId
+  const hasCompletedOrderForItem = useCallback((itemId: string): boolean => {
+    if (!currentUserId || orders.length === 0) return false;
+    return orders.some(o =>
+      o.status === 'Completed' &&
+      o.userId === currentUserId &&
+      o.items.some((oi: any) => oi.id === itemId || oi.itemId === itemId || oi.name === items.find(i => i.id === itemId)?.name)
+    );
+  }, [orders, currentUserId, items]);
+
 
   const selectedCategory = propCategory !== undefined ? propCategory : localCategory;
   const setSelectedCategory = propSetCategory !== undefined ? propSetCategory : localSetCategory;
@@ -236,11 +313,12 @@ export function CanteenMenu({
               return (
                 <div 
                   key={item.id}
-                  className={`flex flex-row gap-4 sm:gap-6 justify-between items-start py-6 first:pt-0 last:pb-0 ${
+                  className={`py-6 first:pt-0 last:pb-0 border-b border-slate-100/60 last:border-0 text-left ${
                     !item.isAvailable ? 'opacity-60' : ''
                   }`}
                 >
-                  {/* Left Column (Details) */}
+                  <div className="flex flex-row gap-4 sm:gap-6 justify-between items-start">
+                    {/* Left Column (Details) */}
                   <div className="flex-1 space-y-1.5 text-left min-w-0">
                     <div className="flex items-center gap-2">
                       {/* Swiggy Veg/Non-veg Identifier */}
@@ -350,21 +428,107 @@ export function CanteenMenu({
                             +
                           </button>
                         </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => onUpdateCart(item, 1)}
-                          className="w-full h-[30px] sm:h-[38px] bg-white hover:bg-[#1B4D3E]/5 text-[#1B4D3E] border border-[#1B4D3E]/25 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all cursor-pointer shadow-md flex items-center justify-center text-center active:scale-95 text-[#1B4D3E]"
-                        >
-                          Add
-                        </button>
-                      )}
+                       ) : (
+                         <button
+                           type="button"
+                           onClick={() => onUpdateCart(item, 1)}
+                           className="w-full h-[30px] sm:h-[38px] bg-white hover:bg-[#1B4D3E]/5 text-[#1B4D3E] border border-[#1B4D3E]/25 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all cursor-pointer shadow-md flex items-center justify-center text-center active:scale-95 text-[#1B4D3E]"
+                         >
+                           Add
+                         </button>
+                       )}
                     </div>
                   </div>
 
                 </div>
-              );
-            })}
+
+                {/* Reviews Panel — expandable toggle below each item */}
+                <div className="col-span-full mt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleReviews(item.id)}
+                    className="flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-slate-600 font-bold uppercase tracking-wider transition-colors cursor-pointer py-1"
+                  >
+                    <MessageSquare className="w-3 h-3" />
+                    {expandedReviews[item.id] ? 'Hide Reviews' : `Reviews ${item.rating ? `(${item.rating.toFixed(1)} ★)` : ''}`}
+                    {expandedReviews[item.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </button>
+
+                  {expandedReviews[item.id] && (
+                    <div className="mt-2 space-y-2 border-t border-slate-100 pt-2">
+                      {/* Existing Reviews */}
+                      {(reviewsMap[item.id] || []).length === 0 ? (
+                        <p className="text-[10px] text-slate-400 italic">No reviews yet. Be the first!</p>
+                      ) : (
+                        (reviewsMap[item.id] || []).slice(0, 3).map(rev => (
+                          <div key={rev.id} className="bg-slate-50 rounded-xl p-3 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-black text-slate-700">{rev.userName || 'Student'}</span>
+                              <div className="flex items-center gap-0.5">
+                                {[1,2,3,4,5].map(s => (
+                                  <Star key={s} className={`w-2.5 h-2.5 ${s <= rev.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`} />
+                                ))}
+                              </div>
+                            </div>
+                            {rev.review && <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{rev.review}</p>}
+                            <p className="text-[9px] text-slate-400">{new Date(rev.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                          </div>
+                        ))
+                      )}
+
+                      {/* Review Submit — only for users who completed an order containing this item */}
+                      {currentUserId && hasCompletedOrderForItem(item.id) && (
+                        reviewFormItem === item.id ? (
+                          <div className="bg-[#E8F5E9]/50 border border-[#4CAF50]/20 rounded-xl p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-black text-slate-600 uppercase tracking-wider">Your Review</span>
+                              <button type="button" onClick={() => { setReviewFormItem(null); setReviewError(''); }} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {[1,2,3,4,5].map(s => (
+                                <button key={s} type="button" onClick={() => setReviewRating(s)} className="cursor-pointer">
+                                  <Star className={`w-5 h-5 transition-colors ${s <= reviewRating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 hover:text-amber-300'}`} />
+                                </button>
+                              ))}
+                              <span className="text-xs text-slate-500 ml-1 font-bold">{reviewRating}/5</span>
+                            </div>
+                            <textarea
+                              rows={2}
+                              placeholder="Share your experience..."
+                              value={reviewText}
+                              onChange={e => setReviewText(e.target.value)}
+                              className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs outline-none focus:border-[#1B4D3E]/40 resize-none"
+                            />
+                            {reviewError && <p className="text-[10px] text-rose-600 font-medium">{reviewError}</p>}
+                            <button
+                              type="button"
+                              disabled={reviewSubmitting}
+                              onClick={() => handleSubmitReview(item.id)}
+                              className="flex items-center gap-1.5 bg-[#1B4D3E] text-white text-[10px] font-black px-3 py-1.5 rounded-lg cursor-pointer hover:bg-[#143B2F] transition-all disabled:opacity-50"
+                            >
+                              <Send className="w-3 h-3" />
+                              {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => { setReviewFormItem(item.id); setReviewRating(5); setReviewText(''); setReviewError(''); }}
+                            className="flex items-center gap-1.5 text-[10px] text-[#1B4D3E] font-bold border border-[#1B4D3E]/30 px-2.5 py-1 rounded-lg cursor-pointer hover:bg-[#E8F5E9] transition-all"
+                          >
+                            <ThumbsUp className="w-3 h-3" />
+                            Rate this item
+                          </button>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
           </div>
         )}
       </div>

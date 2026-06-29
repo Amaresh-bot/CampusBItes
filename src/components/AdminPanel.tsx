@@ -129,11 +129,8 @@ export function AdminPanel({
       ...prev,
       [itemId]: amount
     }));
-    // Synchronize catalog status so the item is marked as available
-    const item = foodItems.find(i => i.id === itemId);
-    if (item && !item.isAvailable) {
-      onEditMenuItem(itemId, { isAvailable: true });
-    }
+    // Synchronize catalog status so the item is marked as available and stock is updated in database
+    onEditMenuItem(itemId, { availableStock: amount, isAvailable: true });
   };
 
   const fetchDbStatus = async () => {
@@ -456,9 +453,16 @@ export function AdminPanel({
   const completedToday = completedOrders.filter(o => isCreatedToday(o.createdAt));
   const dailyRevenue = completedToday.reduce((acc, o) => acc + o.totalAmount, 0);
 
+  // Period Metrics based on date filters
+  const filteredOrders = getFilteredOrders();
+  const filteredCompleted = filteredOrders.filter(o => o.status === 'Completed');
+  const periodRevenue = filteredCompleted.reduce((acc, o) => acc + o.totalAmount, 0);
+  const periodCompletedOrders = filteredCompleted.length;
+  const periodCancelledOrders = filteredOrders.filter(o => o.status === 'Cancelled').length;
+
   // Define low stock alert items (isAvailable false or simulated stock <= 5)
   const lowStockItems = foodItems.filter(item => {
-    const stock = getItemStock(item.id, item.isAvailable);
+    const stock = getItemStock(item.id, item.isAvailable, item);
     return stock <= 5;
   });
 
@@ -625,9 +629,9 @@ export function AdminPanel({
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Daily Revenue (Today)</span>
-            <p className="text-xl font-mono font-bold text-slate-900 mt-1 block">₹{dailyRevenue.toFixed(2)}</p>
+          <div className="space-y-1 text-left">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Revenue ({dashDateFilter})</span>
+            <p className="text-xl font-mono font-bold text-slate-900 mt-1 block">₹{periodRevenue.toFixed(2)}</p>
           </div>
           <div className="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center border border-emerald-100/50">
             <TrendingUp className="w-4 h-4" />
@@ -635,17 +639,17 @@ export function AdminPanel({
         </div>
 
         <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Total Active Orders</span>
-            <p className="text-xl font-mono font-bold text-slate-900 mt-1 block">{activeOrders.length} orders</p>
+          <div className="space-y-1 text-left">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Completed Orders ({dashDateFilter})</span>
+            <p className="text-xl font-mono font-bold text-slate-900 mt-1 block">{periodCompletedOrders} orders</p>
           </div>
-          <div className="w-9 h-9 bg-amber-50 text-amber-700 rounded-lg flex items-center justify-center border border-amber-100/50">
+          <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center border border-blue-100/50">
             <ShoppingBag className="w-4 h-4" />
           </div>
         </div>
 
         <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
+          <div className="space-y-1 text-left">
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Low Stock Inventory Alerts</span>
             <p className="text-xl font-mono font-bold text-rose-650 mt-1 block text-rose-600">{lowStockItems.length} items</p>
           </div>
@@ -662,6 +666,46 @@ export function AdminPanel({
       {/* Active Panel Views */}
       {activeAdminSubTab === 'dashboard' && (
         <div id="admin-analytics-dashboard" className="space-y-6">
+          
+          {/* Date Filter Bar */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-xs text-left">
+            <div>
+              <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Dashboard Filter</h3>
+              <p className="text-[10px] text-slate-400 font-bold mt-0.5">Filter analytics and metrics based on time periods</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {(['today', 'week', 'month', 'custom'] as const).map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setDashDateFilter(filter)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wide cursor-pointer transition-all border ${
+                    dashDateFilter === filter
+                      ? 'bg-[#1B4D3E] border-[#1B4D3E] text-white shadow-xs'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
+                  }`}
+                >
+                  {filter}
+                </button>
+              ))}
+              {dashDateFilter === 'custom' && (
+                <div className="flex items-center gap-2 mt-2 sm:mt-0 bg-slate-50 border border-slate-200 p-1.5 rounded-xl">
+                  <input
+                    type="date"
+                    value={dashCustomStart}
+                    onChange={(e) => setDashCustomStart(e.target.value)}
+                    className="bg-white border border-slate-200 outline-none p-1 text-[10px] rounded-lg text-slate-700 font-bold"
+                  />
+                  <span className="text-[9px] font-black text-slate-400">TO</span>
+                  <input
+                    type="date"
+                    value={dashCustomEnd}
+                    onChange={(e) => setDashCustomEnd(e.target.value)}
+                    className="bg-white border border-slate-200 outline-none p-1 text-[10px] rounded-lg text-slate-700 font-bold"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
           
           {/* Main 2-column Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -770,7 +814,7 @@ export function AdminPanel({
                               'Cancelled': '#ef4444'
                             };
                             const statusCounts: Record<string, number> = {};
-                            orders.forEach(o => {
+                            filteredOrders.forEach(o => {
                               statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
                             });
                             const statusData = Object.entries(statusCounts).map(([status, count]) => ({
@@ -804,7 +848,7 @@ export function AdminPanel({
                               'Cancelled': '#ef4444'
                             };
                             const statusCounts: Record<string, number> = {};
-                            orders.forEach(o => {
+                            filteredOrders.forEach(o => {
                               statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
                             });
                             const statusData = Object.entries(statusCounts).map(([status, count]) => ({
@@ -843,7 +887,7 @@ export function AdminPanel({
                         'Cancelled': '#ef4444'
                       };
                       const statusCounts: Record<string, number> = {};
-                      orders.forEach(o => {
+                      filteredOrders.forEach(o => {
                         statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
                       });
                       const statusData = Object.entries(statusCounts).map(([status, count]) => ({

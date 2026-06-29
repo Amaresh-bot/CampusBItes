@@ -23,6 +23,7 @@ import PrintHub from './components/PrintHub/PrintHub';
 import { AppFooter } from './components/AppFooter';
 import { SafeStorage } from './lib/storage';
 import { ProfileDropdown } from '@/components/ui/profile-dropdown';
+import { OrderConfirmation } from './components/OrderConfirmation';
 import explodedBurger from './assets/images/exploded_burger.png';
 import explodedBurgerClean from './assets/images/exploded_burger_clean.png';
 
@@ -323,6 +324,15 @@ export default function App() {
   const [isMobileCartOpen, setIsMobileCartOpen] = useState<boolean>(false);
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
 
+  // Canteen operating status (fetched from backend)
+  const [canteenStatus, setCanteenStatus] = useState<{
+    openingTime: string;
+    closingTime: string;
+    isTemporarilyClosed: boolean;
+    isOpen: boolean;
+  } | null>(null);
+
+
   // 1. Session restore — handled by UserContext (SWR pattern with localStorage)
 
   // 1b. Expose global alert register for payments / bookings triggers
@@ -460,10 +470,17 @@ export default function App() {
   useEffect(() => {
     fetchMenu();
     fetchPaymentSettings();
+    fetchCanteenStatus();
     const menuInterval = setInterval(() => {
       fetchMenu();
     }, 30000); // Dynamic real-time menu cache updates (every 30s)
-    return () => clearInterval(menuInterval);
+    const stockInterval = setInterval(() => {
+      fetchStockSnapshot(); // Light-weight stock poll every 15s for cart accuracy
+    }, 15000);
+    return () => {
+      clearInterval(menuInterval);
+      clearInterval(stockInterval);
+    };
   }, []);
 
   const hasActiveOrders = orders.some(o => 
@@ -749,6 +766,47 @@ export default function App() {
       console.error(err);
     }
   };
+
+  // Fetch canteen operating hours and compute isOpen status
+  const fetchCanteenStatus = async () => {
+    try {
+      const res = await fetch('/api/canteens/operating-hours', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        const { openingTime = '08:00', closingTime = '20:00', isTemporarilyClosed = false } = data;
+        const now = new Date();
+        const [openH, openM] = openingTime.split(':').map(Number);
+        const [closeH, closeM] = closingTime.split(':').map(Number);
+        const currentMins = now.getHours() * 60 + now.getMinutes();
+        const openMins = openH * 60 + openM;
+        const closeMins = closeH * 60 + closeM;
+        const isOpen = !isTemporarilyClosed && currentMins >= openMins && currentMins < closeMins;
+        setCanteenStatus({ openingTime, closingTime, isTemporarilyClosed, isOpen });
+      }
+    } catch (err) {
+      console.warn('Could not fetch canteen status:', err);
+    }
+  };
+
+  // Poll stock levels every 15s and merge into menuItems state
+  const fetchStockSnapshot = async () => {
+    try {
+      const res = await fetch('/api/menu/stock-snapshot', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.snapshot)) {
+          setMenuItems(prev => prev.map(item => {
+            const snap = data.snapshot.find((s: any) => s.id === item.id);
+            if (!snap) return item;
+            return { ...item, availableStock: snap.availableStock, isAvailable: snap.isAvailable };
+          }));
+        }
+      }
+    } catch (err) {
+      // Silent fail — snapshot is best-effort
+    }
+  };
+
 
   const handleUpdatePaymentSettings = async (settingsPayload: PaymentSettings) => {
     try {
@@ -2008,6 +2066,23 @@ export default function App() {
 
                 {/* ── CENTER: Menu Items ── */}
                 <div className="space-y-4 min-w-0">
+                {/* Canteen Closed Banner */}
+                {canteenStatus && !canteenStatus.isOpen && (
+                  <div className="mb-4 bg-rose-50 border border-rose-200 rounded-2xl px-4 py-3 flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-black text-rose-700 text-sm">
+                        {canteenStatus.isTemporarilyClosed ? 'Canteen Temporarily Closed' : 'Canteen is Currently Closed'}
+                      </p>
+                      <p className="text-rose-600 text-xs mt-0.5 font-medium">
+                        {canteenStatus.isTemporarilyClosed
+                          ? 'The canteen has been temporarily closed by management.'
+                          : `Ordering resumes at ${canteenStatus.openingTime}. Operating hours: ${canteenStatus.openingTime} – ${canteenStatus.closingTime}.`}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                   {isMenuLoading ? (
                     <MenuSkeleton count={4} />
                   ) : (
@@ -2023,6 +2098,8 @@ export default function App() {
                       setSearchQuery={setSearchQuery}
                       vegetarianOnly={vegetarianOnly}
                       setVegetarianOnly={setVegetarianOnly}
+                      orders={orders}
+                      currentUserId={user?.id}
                     />
                   )}
                 </div>
@@ -2223,46 +2300,15 @@ export default function App() {
       )}
 
       {placedOrder && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-sm p-6 rounded-3xl border border-slate-200 shadow-xl text-center space-y-6">
-            <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-sm border border-emerald-100">
-              <CheckCircle2 className="w-10 h-10" />
-            </div>
-            
-            <div className="space-y-1">
-              <h3 className="font-display font-black text-slate-950 text-xl tracking-tight">
-                Order Placed Successfully
-              </h3>
-              <p className="text-xs text-slate-500">
-                Your order ticket has been dispatched to the kitchen.
-              </p>
-            </div>
-            
-            <div className="bg-slate-50 border border-slate-200/60 p-5 rounded-2xl relative overflow-hidden">
-              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Token Number</span>
-              <span className="text-3xl font-mono font-black text-slate-950 mt-1 block tracking-tight">
-                {placedOrder.tokenNumber}
-              </span>
-              <span className="text-[10px] text-slate-500 mt-2 block font-medium">
-                Meal Category: <strong className="text-slate-800">{placedOrder.mealCategory || 'Snacks'}</strong>
-              </span>
-              
-              {/* Ticket Dotted Separator decoration */}
-              <div className="absolute left-0 right-0 top-0 h-1 flex justify-between px-2">
-                {Array.from({ length: 15 }).map((_, i) => (
-                  <div key={i} className="w-1.5 h-1.5 bg-white rounded-full -mt-0.75 border border-slate-200" />
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setPlacedOrder(null)}
-              className="w-full bg-[#1B4D3E] hover:bg-[#2E7D5A] text-white text-xs font-black uppercase tracking-wider py-3.5 px-4 rounded-xl transition-all cursor-pointer shadow-md active:scale-95"
-            >
-              Track Order Progress
-            </button>
-          </div>
-        </div>
+        <OrderConfirmation
+          order={placedOrder}
+          onTrackOrder={() => {
+            setPlacedOrder(null);
+            setActiveTab('orders');
+            setMobileTab('orders');
+          }}
+          onDismiss={() => setPlacedOrder(null)}
+        />
       )}
 
     </div>
