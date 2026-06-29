@@ -3387,19 +3387,45 @@ app.post("/api/orders/create", async (req, res) => {
           addSecurityLog("Order Creation Blocked (Incomplete checkout)", `No signature submitted for real payment options`, "CRITICAL", ip);
           return res.status(400).json({ error: "Order payment signature verification required." });
         }
-        if (!RAZORPAY_KEY_SECRET) {
-          return res.status(500).json({ error: "Razorpay secrets absent on security coordinator." });
+
+        let isVerified = false;
+
+        // Try direct API verification first for maximum resilience
+        const rzp = getRazorpay();
+        if (rzp) {
+          try {
+            console.log(`[Order Create] Attempting direct API check for payment: ${razorpay_payment_id}`);
+            const payment = await rzp.payments.fetch(razorpay_payment_id);
+            if (payment && (payment.status === 'captured' || payment.status === 'authorized')) {
+              isVerified = true;
+              console.log(`[Order Create] Direct API verification success for payment: ${razorpay_payment_id}`);
+            }
+          } catch (apiErr: any) {
+            console.warn(`[Order Create] Direct API verification failed: ${apiErr.message || apiErr}. Falling back to cryptographic signature check.`);
+          }
         }
 
-        const body = razorpay_order_id + "|" + razorpay_payment_id;
-        const expectedSignature = crypto
-          .createHmac("sha256", RAZORPAY_KEY_SECRET)
-          .update(body.toString())
-          .digest("hex");
+        // Fallback to signature verification if API check didn't verify it
+        if (!isVerified) {
+          if (!RAZORPAY_KEY_SECRET) {
+            return res.status(500).json({ error: "Razorpay secrets absent on security coordinator." });
+          }
 
-        if (expectedSignature !== razorpay_signature) {
-          addSecurityLog("Order Signature Spoof Blocked", `Checkout signature mismatched on order`, "CRITICAL", ip);
-          return res.status(400).json({ error: "Payment verification signature mismatch. Order declined." });
+          const body = razorpay_order_id + "|" + razorpay_payment_id;
+          const expectedSignature = crypto
+            .createHmac("sha256", RAZORPAY_KEY_SECRET)
+            .update(body.toString())
+            .digest("hex");
+
+          if (expectedSignature !== razorpay_signature) {
+            console.error(`[Order Create] Signature mismatch. Expected: ${expectedSignature}, Received: ${razorpay_signature}`);
+            addSecurityLog("Order Signature Spoof Blocked", `Checkout signature mismatched on order`, "CRITICAL", ip);
+            return res.status(400).json({ 
+              error: "Payment verification signature mismatch. Order declined.",
+              details: `Expected: ${expectedSignature.substring(0, 10)}..., Received: ${razorpay_signature.substring(0, 10)}...`
+            });
+          }
+          console.log("[Order Create] Cryptographic signature check passed.");
         }
       }
     }
