@@ -278,7 +278,7 @@ export function CartDrawer({
         onClearCart();
         setCustomInstructions('');
       } else {
-        alert("Failed to submit active kitchen order: " + (data.error || `HTTP ${resp.status}`));
+        alert("Failed to submit active kitchen order: " + (data.error || data.message || `HTTP ${resp.status}`));
       }
     } catch (e) {
       console.error(e);

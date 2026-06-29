@@ -3323,14 +3323,16 @@ app.post("/api/orders/create", async (req, res) => {
       }
       if (!order.scheduledDate) {
         const now = new Date();
-        const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        // Convert server time to Indian Standard Time (IST, UTC+5:30)
+        const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+        const currentHHMM = `${String(istTime.getUTCHours()).padStart(2, '0')}:${String(istTime.getUTCMinutes()).padStart(2, '0')}`;
         const opening = canteen.openingTime || "08:00";
         const closing = canteen.closingTime || "20:00";
         if (currentHHMM < opening || currentHHMM > closing) {
           return res.status(400).json({ 
             success: false,
-            error: `Canteen is closed. Operating hours: ${opening} - ${closing}. Current time: ${currentHHMM}`,
-            message: `Canteen is closed. Operating hours: ${opening} - ${closing}. Current time: ${currentHHMM}`
+            error: `Canteen is closed. Operating hours: ${opening} - ${closing}. Current time (IST): ${currentHHMM}`,
+            message: `Canteen is closed. Operating hours: ${opening} - ${closing}. Current time (IST): ${currentHHMM}`
           });
         }
       }
