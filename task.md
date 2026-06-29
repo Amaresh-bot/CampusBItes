@@ -67,14 +67,13 @@
     - [x] Run typechecks using `node .\node_modules\typescript\bin\tsc --noEmit`
     - [x] Validate order placement, print, scheduling, token formats, and notifications
 
-- [ ] **Phase 6: Batch KDS, Stock Management, Reviews, Hours & Receipts**
-  - [ ] Component A: Database Schema Updates (MenuItem, Canteen, StockLog)
-  - [ ] Component B: API Endpoints (MERN Backend & dev server)
-  - [ ] Component C: Navigation Persistence & Refresh Behavior
-  - [ ] Component D: KDS Batched Cooking Display
-  - [ ] Component E: Admin Inventory & Hours Configuration
-  - [ ] Component F: Customer Stock Displays & Cart Validation
-  - [ ] Component G: Ratings & Reviews UI
-  - [ ] Component H: Digital Receipt & QR Codes
-  - [ ] Verification: Run typechecks and test functionality
-
+- [x] **Phase 6: Batch KDS, Stock Management, Reviews, Hours & Receipts**
+  - [x] Component A: Database Schema Updates (MenuItem, Canteen, StockLog)
+  - [x] Component B: API Endpoints (MERN Backend & dev server)
+  - [x] Component C: Navigation Persistence & Refresh Behavior
+  - [x] Component D: KDS Batched Cooking Display
+  - [x] Component E: Admin Inventory & Hours Configuration
+  - [x] Component F: Customer Stock Displays & Cart Validation
+  - [x] Component G: Ratings & Reviews UI
+  - [x] Component H: Digital Receipt & QR Codes
+  - [x] Verification: Run typechecks and test functionality

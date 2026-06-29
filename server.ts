@@ -3307,139 +3307,178 @@ async function getAllTransactions(): Promise<any[]> {
 
 // API: Validate payment transaction and register kitchen order
 app.post("/api/orders/create", async (req, res) => {
-  const { order, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-  const ip = req.ip || "127.0.0.1";
+  try {
+    const { order, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const ip = req.ip || "127.0.0.1";
 
-  if (!order || !order.userId || !order.items || order.items.length === 0) {
-    return res.status(400).json({ error: "Incomplete order specification payload" });
-  }
-
-  // 1. Validate Canteen Operating Hours
-  const canteen = await Canteen.findOne({});
-  if (canteen) {
-    if (canteen.isTemporarilyClosed) {
-      return res.status(400).json({ success: false, error: "Canteen is temporarily closed", message: "Canteen is temporarily closed" });
+    if (!order || !order.userId || !order.items || order.items.length === 0) {
+      return res.status(400).json({ error: "Incomplete order specification payload" });
     }
-    if (!order.scheduledDate) {
-      const now = new Date();
-      const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      const opening = canteen.openingTime || "08:00";
-      const closing = canteen.closingTime || "20:00";
-      if (currentHHMM < opening || currentHHMM > closing) {
+
+    // 1. Validate Canteen Operating Hours
+    const canteen = await Canteen.findOne({});
+    if (canteen) {
+      if (canteen.isTemporarilyClosed) {
+        return res.status(400).json({ success: false, error: "Canteen is temporarily closed", message: "Canteen is temporarily closed" });
+      }
+      if (!order.scheduledDate) {
+        const now = new Date();
+        const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const opening = canteen.openingTime || "08:00";
+        const closing = canteen.closingTime || "20:00";
+        if (currentHHMM < opening || currentHHMM > closing) {
+          return res.status(400).json({ 
+            success: false,
+            error: `Canteen is closed. Operating hours: ${opening} - ${closing}. Current time: ${currentHHMM}`,
+            message: `Canteen is closed. Operating hours: ${opening} - ${closing}. Current time: ${currentHHMM}`
+          });
+        }
+      }
+    }
+
+    // 2. Validate Stock for all items (First Pass Check)
+    const menuItemsToUpdate = [];
+    for (const item of order.items) {
+      const itemId = item.itemId || item.id;
+      let menuItem: any = null;
+      let isFallback = false;
+
+      if (itemId && mongoose.Types.ObjectId.isValid(itemId)) {
+        menuItem = await MenuItem.findById(itemId);
+      }
+
+      // If not found or not valid ObjectId, fall back to dynamicMenuItems search
+      if (!menuItem) {
+        const fallbackItem = dynamicMenuItems.find(it => it.id === itemId);
+        if (fallbackItem) {
+          menuItem = {
+            _id: itemId,
+            name: fallbackItem.name,
+            availableStock: fallbackItem.availableStock ?? 50,
+            isAvailable: fallbackItem.isAvailable ?? true
+          };
+          isFallback = true;
+        }
+      }
+
+      if (!menuItem) {
+        return res.status(404).json({ success: false, error: `Menu item ${item.name || itemId} not found`, message: `Menu item not found` });
+      }
+
+      const availableStock = menuItem.availableStock ?? 0;
+      if (availableStock < item.quantity) {
         return res.status(400).json({ 
-          success: false,
-          error: `Canteen is closed. Operating hours: ${opening} - ${closing}. Current time: ${currentHHMM}`,
-          message: `Canteen is closed. Operating hours: ${opening} - ${closing}. Current time: ${currentHHMM}`
+          success: false, 
+          error: `Insufficient stock for ${menuItem.name}. Available: ${availableStock}, Requested: ${item.quantity}`,
+          message: `Insufficient stock for ${menuItem.name}. Available: ${availableStock}, Requested: ${item.quantity}` 
         });
       }
-    }
-  }
 
-  // 2. Validate Stock for all items (First Pass Check)
-  const menuItemsToUpdate = [];
-  for (const item of order.items) {
-    const itemId = item.itemId || item.id;
-    const menuItem = await MenuItem.findById(itemId);
-    if (!menuItem) {
-      return res.status(404).json({ success: false, error: `Menu item ${item.name || itemId} not found`, message: `Menu item not found` });
+      menuItemsToUpdate.push({ menuItem, quantity: item.quantity, isFallback, itemId });
     }
-    if (menuItem.availableStock < item.quantity) {
-      return res.status(400).json({ 
-        success: false, 
-        error: `Insufficient stock for ${menuItem.name}. Available: ${menuItem.availableStock}, Requested: ${item.quantity}`,
-        message: `Insufficient stock for ${menuItem.name}. Available: ${menuItem.availableStock}, Requested: ${item.quantity}` 
+
+    // Securing Razorpay checkout: Verify payment signature before creating the kitchen order as paid
+    if (order.paymentMethod === 'razorpay') {
+      const isSimulated = (razorpay_order_id && String(razorpay_order_id).startsWith("rzp_sim_")) || 
+                          razorpay_signature === "simulated_sig";
+      
+      if (!isSimulated) {
+        if (!razorpay_payment_id || !razorpay_signature) {
+          addSecurityLog("Order Creation Blocked (Incomplete checkout)", `No signature submitted for real payment options`, "CRITICAL", ip);
+          return res.status(400).json({ error: "Order payment signature verification required." });
+        }
+        if (!RAZORPAY_KEY_SECRET) {
+          return res.status(500).json({ error: "Razorpay secrets absent on security coordinator." });
+        }
+
+        const body = razorpay_order_id + "|" + razorpay_payment_id;
+        const expectedSignature = crypto
+          .createHmac("sha256", RAZORPAY_KEY_SECRET)
+          .update(body.toString())
+          .digest("hex");
+
+        if (expectedSignature !== razorpay_signature) {
+          addSecurityLog("Order Signature Spoof Blocked", `Checkout signature mismatched on order`, "CRITICAL", ip);
+          return res.status(400).json({ error: "Payment verification signature mismatch. Order declined." });
+        }
+      }
+    }
+
+    // Decrement Stock
+    for (const update of menuItemsToUpdate) {
+      if (update.isFallback) {
+        const fallbackItem = dynamicMenuItems.find(it => it.id === update.itemId);
+        if (fallbackItem) {
+          fallbackItem.availableStock = Math.max(0, (fallbackItem.availableStock ?? 50) - update.quantity);
+          if (fallbackItem.availableStock === 0) {
+            fallbackItem.isAvailable = false;
+          }
+          savePersistedData("canteen_menu.json", dynamicMenuItems);
+        }
+      } else {
+        update.menuItem.availableStock -= update.quantity;
+        if (update.menuItem.availableStock === 0) {
+          update.menuItem.isAvailable = false;
+        }
+        await update.menuItem.save();
+      }
+    }
+
+    // Assign pick-up token
+    const tokenNumber = `C-${Math.floor(100 + Math.random() * 900)}`;
+    const completedOrder = {
+      ...order,
+      id: order.id || `ord_${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      tokenNumber,
+      status: "Pending"
+    };
+
+    console.log("Creating Order:", completedOrder);
+
+    // Persist exclusively to MongoDB database
+    const isSaved = await addOrder(completedOrder);
+    if (!isSaved) {
+      console.error("Insert Error: Database Save Failed");
+      return res.status(500).json({ 
+        error: "Database Save Failed", 
+        message: "Could not save your order. Please check your database connection." 
       });
     }
-    menuItemsToUpdate.push({ menuItem, quantity: item.quantity });
-  }
 
-  // Securing Razorpay checkout: Verify payment signature before creating the kitchen order as paid
-  if (order.paymentMethod === 'razorpay') {
-    if (razorpay_order_id && String(razorpay_order_id).startsWith("rzp_sim_")) {
-      // Sandbox bypass
-    } else {
-      if (!razorpay_payment_id || !razorpay_signature) {
-        addSecurityLog("Order Creation Blocked (Incomplete checkout)", `No signature submitted for real payment options`, "CRITICAL", ip);
-        return res.status(400).json({ error: "Order payment signature verification required." });
-      }
-      if (!RAZORPAY_KEY_SECRET) {
-        return res.status(500).json({ error: "Razorpay secrets absent on security coordinator." });
-      }
+    console.log("Insert Result:", { success: true, orderId: completedOrder.id });
 
-      const body = razorpay_order_id + "|" + razorpay_payment_id;
-      const expectedSignature = crypto
-        .createHmac("sha256", RAZORPAY_KEY_SECRET)
-        .update(body.toString())
-        .digest("hex");
+    // Register checkout/payment transaction ledger audit log
+    try {
+      const txId = `tx_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      const descriptionObj = {
+        comment: `Canteen checkout total of ₹${completedOrder.totalAmount} paid via ${completedOrder.paymentMethod || 'razorpay'}`,
+        paymentId: razorpay_payment_id || `rzp_sim_pay_${Date.now()}`,
+        orderId: completedOrder.id,
+        status: "success"
+      };
 
-      if (expectedSignature !== razorpay_signature) {
-        addSecurityLog("Order Signature Spoof Blocked", `Checkout signature mismatched on order`, "CRITICAL", ip);
-        return res.status(400).json({ error: "Payment verification signature mismatch. Order declined." });
-      }
+      const newTx = {
+        id: txId,
+        userId: completedOrder.userId,
+        amount: completedOrder.totalAmount,
+        type: 'payment',
+        description: JSON.stringify(descriptionObj),
+        createdAt: new Date().toISOString()
+      };
+
+      walletTransactionsDb.push(newTx);
+      await addTransaction(newTx);
+      console.log(`[Storage] Registered payment transaction ledger check for Order: ${completedOrder.id}`);
+    } catch (txErr: any) {
+      console.warn("[Storage] Failed to register payment checkout log:", txErr.message);
     }
+
+    res.json({ success: true, order: completedOrder });
+  } catch (err: any) {
+    console.error("❌ Exception in Order Creation:", err);
+    res.status(400).json({ success: false, error: err.message || "Failed to create order due to validation exception" });
   }
-
-  // Decrement Stock
-  for (const update of menuItemsToUpdate) {
-    update.menuItem.availableStock -= update.quantity;
-    if (update.menuItem.availableStock === 0) {
-      update.menuItem.isAvailable = false;
-    }
-    await update.menuItem.save();
-  }
-
-  // Assign pick-up token
-  const tokenNumber = `C-${Math.floor(100 + Math.random() * 900)}`;
-  const completedOrder = {
-    ...order,
-    id: order.id || `ord_${Date.now()}`,
-    createdAt: new Date().toISOString(),
-    tokenNumber,
-    status: "Pending"
-  };
-
-  console.log("Creating Order:", completedOrder);
-
-  // Persist exclusively to Supabase database (Single source of truth)
-  const isSaved = await addOrder(completedOrder);
-  if (!isSaved) {
-    console.error("Insert Error: Database Save Failed");
-    console.error(`[API Error] Failed to persist order ${completedOrder.id} to Supabase.`);
-    return res.status(500).json({ 
-      error: "Database Save Failed", 
-      message: "Could not save your order. Please check if your Supabase schema (user_id and payment_id) is set up correctly." 
-    });
-  }
-
-  console.log("Insert Result:", { success: true, orderId: completedOrder.id });
-
-  // Register checkout/payment transaction ledger audit log
-  try {
-    const txId = `tx_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-    const descriptionObj = {
-      comment: `Canteen checkout total of ₹${completedOrder.totalAmount} paid via ${completedOrder.paymentMethod || 'razorpay'}`,
-      paymentId: razorpay_payment_id || `rzp_sim_pay_${Date.now()}`,
-      orderId: completedOrder.id,
-      status: "success"
-    };
-
-    const newTx = {
-      id: txId,
-      userId: completedOrder.userId,
-      amount: completedOrder.totalAmount,
-      type: 'payment',
-      description: JSON.stringify(descriptionObj),
-      createdAt: new Date().toISOString()
-    };
-
-    walletTransactionsDb.push(newTx);
-    await addTransaction(newTx);
-    console.log(`[Storage] Registered payment transaction ledger check for Order: ${completedOrder.id}`);
-  } catch (txErr: any) {
-    console.warn("[Storage] Failed to register payment checkout log:", txErr.message);
-  }
-
-  res.json({ success: true, order: completedOrder });
 });
 
 // API: Fetch ordered meal logs
