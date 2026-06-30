@@ -919,19 +919,13 @@ export default function App() {
                 className="relative w-full max-w-md my-8 cursor-default"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Visual Premium Close Icon */}
-                <button
-                  type="button"
-                  onClick={() => setShowAuthModal(false)}
-                  className="absolute right-4 top-4 text-[#64748B] hover:text-[#0F172A] font-bold text-xl h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 cursor-pointer transition-all z-50 shadow-xs active:scale-90"
-                  aria-label="Close Authentication Form"
-                >
-                  ×
-                </button>
-                <AuthScreen onSuccess={(authUser) => {
-                  setShowAuthModal(false);
-                  handleAuthSuccess(authUser);
-                }} />
+                <AuthScreen 
+                  onSuccess={(authUser) => {
+                    setShowAuthModal(false);
+                    handleAuthSuccess(authUser);
+                  }}
+                  onClose={() => setShowAuthModal(false)}
+                />
               </motion.div>
             </motion.div>
           )}

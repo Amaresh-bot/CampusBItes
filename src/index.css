@@ -57,4 +57,6 @@
   --color-destructive-foreground: #ffffff;
   --color-secondary: #f1f5f9;
   --color-secondary-foreground: #0f172a;
+  
+  --animate-spin-slow: spin 20s linear infinite;
 }

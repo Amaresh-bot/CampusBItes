@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, ClipboardList, Shield, GraduationCap, Phone, Check, LogIn, Lock, Sparkles, Building, ArrowRight, AlertCircle, RefreshCw, Mail } from 'lucide-react';
+import { User, ClipboardList, Shield, GraduationCap, Phone, Check, LogIn, Lock, Sparkles, Building, ArrowRight, AlertCircle, RefreshCw, Mail, ChefHat } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FallbackImage } from './FallbackImage';
 import { 
@@ -14,9 +14,10 @@ import { SafeStorage } from '../lib/storage';
 
 interface AuthScreenProps {
   onSuccess: (user: { id: string; name: string; email: string; role: 'customer' | 'admin'; studentProfile?: any }) => void;
+  onClose?: () => void;
 }
 
-export function AuthScreen({ onSuccess }: AuthScreenProps) {
+export function AuthScreen({ onSuccess, onClose }: AuthScreenProps) {
   const [mode, setMode] = useState<'login' | 'verification' | 'profile_setup'>('login');
   const [tab, setTab] = useState<'login' | 'register'>('login');
   
@@ -663,6 +664,151 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
       setLoading(false);
     }
   };
+
+  if (mode === 'login') {
+    return (
+      <div id="auth-screen" className="flex items-center justify-center min-h-[calc(100vh-140px)] px-4 py-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative w-full max-w-[375px] h-[812px] bg-[#1B4D3E] rounded-[40px] overflow-hidden shadow-2xl flex flex-col font-sans border border-white/10 select-none"
+        >
+          {/* Status Bar */}
+          <div className="absolute top-0 left-0 w-full h-[44px] flex justify-between items-center px-6 z-30 text-white select-none pointer-events-none">
+            <span className="text-xs font-semibold tracking-tight">12:34</span>
+            <div className="flex items-center gap-1.5">
+              {/* Cellular */}
+              <svg className="w-3.5 h-3" fill="currentColor" viewBox="0 0 17 11">
+                <rect x="0" y="8" width="3" height="3" rx="0.5" />
+                <rect x="4" y="6" width="3" height="5" rx="0.5" />
+                <rect x="8" y="4" width="3" height="7" rx="0.5" />
+                <rect x="12" y="2" width="3" height="9" rx="0.5" />
+              </svg>
+              {/* Wifi */}
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 16 11">
+                <path d="M15.3 1.3C13.5-.5 10.9-1.5 8-1.5s-5.5 1-7.3 2.8c-.3.3-.3.8 0 1.1l1.1 1.1c.3.3.8.3 1.1 0 1.2-1.2 3-1.9 5.1-1.9s3.9.7 5.1 1.9c.3.3.8.3 1.1 0l1.1-1.1c.3-.3.3-.8 0-1.1zm-2.8 2.8C11.3 3 9.7 2.3 8 2.3s-3.3.7-4.5 1.8c-.3.3-.3.8 0 1.1l1.1 1.1c.3.3.8.3 1.1 0 1.1-1.1 2.9-1.1 4 0 .3.3.8.3 1.1 0l1.1-1.1c.3-.3.3-.8 0-1.1zM9.1 7c-.6-.6-1.5-.6-2.1 0-.3.3-.3.8 0 1.1l1.1 1.1L9.1 8.1c.3-.3.3-.8 0-1.1z" />
+              </svg>
+              {/* Battery */}
+              <div className="w-[22px] h-[11.33px] border border-white/35 rounded-[2.67px] p-[1.5px] flex items-center relative">
+                <div className="w-full h-full bg-white rounded-[1.33px]" />
+                <div className="absolute w-[1.33px] h-[4px] bg-white/40 right-[-2.67px] rounded-r-xs" />
+              </div>
+            </div>
+          </div>
+
+          {/* Close/Later action */}
+          {onClose && (
+            <button 
+              onClick={onClose}
+              className="absolute top-[58px] left-[309px] w-[44px] h-[20px] text-[18px] font-extrabold text-[#E6EBF2] hover:text-white transition-all cursor-pointer z-35 flex items-center justify-center"
+              style={{ fontFamily: 'Sofia Pro, sans-serif' }}
+            >
+              Later
+            </button>
+          )}
+
+          {/* Background Pattern Elements */}
+          {/* Vector 1 */}
+          <div 
+            className="absolute w-[290px] h-[246px] left-[146px] top-[-66px] border border-[#3DA0A7] opacity-60 rounded-full pointer-events-none z-0"
+            style={{ transform: 'rotate(88.31deg)' }}
+          />
+
+          {/* Vector 2 */}
+          <div 
+            className="absolute w-[516.4px] h-[605.62px] left-[-183px] top-[138px] border border-[#3DA0A7] opacity-60 rounded-full pointer-events-none z-0"
+            style={{ transform: 'matrix(0.26, 0.97, 0.97, -0.26, 0, 0)' }}
+          />
+
+          {/* Background Vector 3 */}
+          <div 
+            className="absolute w-[72px] h-[64.06px] left-[-58px] top-[25px] border border-[#3DA0A7] opacity-60 rounded-full pointer-events-none z-0"
+            style={{ transform: 'rotate(-129.37deg)' }}
+          />
+
+          {/* Illustration & Ellipses */}
+          <div className="absolute w-[311.11px] h-[310.56px] left-[33.89px] top-[163px] z-10 pointer-events-none flex items-center justify-center">
+            {/* Ellipse 115 (Glow/Blur) */}
+            <div className="absolute w-[340px] h-[340px] left-[18px] top-[143px] bg-white opacity-[0.06] rounded-full blur-xl pointer-events-none" />
+
+            {/* Ellipses floating dots (Figma Style) */}
+            {/* Ellipse 80 */}
+            <div className="absolute w-4 h-4 bg-[#FFF1CE] rounded-full left-[9%] top-[56%] opacity-90 animate-pulse" />
+            {/* Ellipse 78 */}
+            <div className="absolute w-3.5 h-3.5 bg-[#FFF1CE] rounded-full left-[24%] top-[42%]" />
+            {/* Ellipse 81 */}
+            <div className="absolute w-3.5 h-3.5 bg-[#FFF1CE] rounded-full left-[66%] top-[43%] animate-ping" style={{ animationDuration: '3s' }} />
+            {/* Ellipse 82 */}
+            <div className="absolute w-2.5 h-2.5 bg-[#FFF1CE] rounded-full left-[89%] top-[39%]" />
+            {/* Ellipse 83 */}
+            <div className="absolute w-3 h-3 bg-[#FFF1CE] rounded-full left-[70%] top-[20%] opacity-85" />
+            {/* Ellipse 86 */}
+            <div className="absolute w-2.5 h-2.5 bg-[#FFF1CE] rounded-full left-[23%] top-[32%] opacity-90" />
+            {/* Ellipse 85 */}
+            <div className="absolute w-4 h-4 bg-[#FFF1CE] rounded-full left-[50%] top-[25%] opacity-80" />
+
+            {/* Chef hat floating inside glowing circle */}
+            <div className="relative w-48 h-48 bg-white/10 border border-white/20 rounded-full flex items-center justify-center shadow-lg animate-spin-slow">
+              <ChefHat className="w-20 h-20 text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]" />
+            </div>
+          </div>
+
+          {/* Heading Description Text */}
+          <div className="absolute left-[4.27%] right-[4.27%] top-[66.26%] bottom-[24.88%] text-center z-10">
+            <h2 
+              className="text-[28px] font-[800] leading-[130%] text-white text-center"
+              style={{ fontFamily: 'Sofia Pro, Proxima Nova, sans-serif' }}
+            >
+              Help your path to health goals with happiness
+            </h2>
+          </div>
+
+          {/* Error Banner inside card viewport */}
+          {error && (
+            <div className="absolute left-6 right-6 top-[550px] p-2.5 bg-red-950/80 border border-red-500/35 rounded-2xl flex items-center gap-2 z-30 shadow-md">
+              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+              <div className="text-[10px] text-red-100 font-sans leading-tight text-left line-clamp-2">
+                {error}
+              </div>
+            </div>
+          )}
+
+          {/* Google Login Button */}
+          <button
+            type="button"
+            id="google-signin-btn"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="absolute w-[327px] h-[54px] left-[24px] top-[634px] bg-[#FFFFFF] rounded-[16px] flex items-center justify-center gap-3 text-slate-800 text-sm font-bold shadow-md cursor-pointer hover:bg-slate-50 transition-all active:scale-[0.98] z-30 disabled:opacity-60"
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-slate-300 border-t-[#1B4D3E] rounded-full animate-spin" />
+            ) : (
+              <>
+                <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.113-5.136 4.113-3.41 0-6.173-2.763-6.173-6.173s2.763-6.173 6.173-6.173c1.554 0 2.97.575 4.062 1.517l2.943-2.943C18.99 2.193 15.822 1.1 12.24 1.1 6.223 1.1 1.34 5.983 1.34 12s4.883 10.9 10.9 10.9c6.641 0 11.041-4.664 11.041-11.223 0-.585-.054-1.023-.135-1.392H12.24z"/>
+                </svg>
+                <span>Login with Google</span>
+              </>
+            )}
+          </button>
+
+          {/* Outlined "Create New Account" Button */}
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="absolute w-[327px] h-[54px] left-[24px] top-[698px] border border-white/25 hover:bg-white/5 rounded-[16px] flex items-center justify-center text-white text-sm font-bold cursor-pointer transition-all active:scale-[0.98] z-30 disabled:opacity-60"
+          >
+            <span>Create New Account</span>
+          </button>
+
+          {/* Home Indicator */}
+          <div className="absolute bottom-[8px] left-1/2 -translate-x-1/2 w-[134px] h-[5px] bg-white/40 rounded-full z-30 pointer-events-none" />
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div id="auth-screen" className="flex items-center justify-center min-h-[calc(100vh-140px)] px-4 py-6">
