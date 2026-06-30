@@ -97,16 +97,22 @@ export function ProfileDropdown({
                             <div className="relative flex-shrink-0">
                                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1B4D3E] via-[#2E7D5A] to-emerald-400 p-0.5">
                                     <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-zinc-900">
-                                        <img
-                                            src={data.avatar}
-                                            alt={data.name}
-                                            width={32}
-                                            height={32}
-                                            className="w-full h-full object-cover rounded-full"
-                                            onError={(e) => {
-                                                e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(data.name)}`;
-                                            }}
-                                        />
+                                        {data.avatar && !data.avatar.startsWith('http') ? (
+                                            <div className="w-full h-full flex items-center justify-center text-lg select-none bg-slate-50 dark:bg-zinc-800">
+                                                {data.avatar}
+                                            </div>
+                                        ) : (
+                                            <img
+                                                src={data.avatar}
+                                                alt={data.name}
+                                                width={32}
+                                                height={32}
+                                                className="w-full h-full object-cover rounded-full"
+                                                onError={(e) => {
+                                                    e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(data.name)}`;
+                                                }}
+                                            />
+                                        )}
                                     </div>
                                 </div>
                             </div>

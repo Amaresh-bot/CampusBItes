@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { motion } from 'motion/react';
 import { User } from 'lucide-react';
 import { StudentProfile } from '../types';
+import { getAvatarEmoji } from '@/lib/utils';
 
 interface ProfileTabProps {
   user: { id: string; name: string; email: string; role: 'customer' | 'admin' };
@@ -33,7 +34,7 @@ export const ProfileTab = memo(function ProfileTab({
       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm text-xs space-y-4">
         <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
           <div className="w-10 h-10 bg-[#1B4D3E]/10 rounded-xl flex items-center justify-center border border-[#1B4D3E]/10 text-[#1B4D3E]">
-            <User className="w-5 h-5" />
+            <span className="text-xl select-none">{getAvatarEmoji(studentProfile?.fullName || user.name)}</span>
           </div>
           <div className="text-left">
             <h4 className="font-bold text-slate-950 text-sm">Canteen User Profile</h4>

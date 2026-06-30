@@ -28,6 +28,22 @@ import explodedBurger from './assets/images/exploded_burger.png';
 import explodedBurgerClean from './assets/images/exploded_burger_clean.png';
 
 
+export function getAvatarEmoji(name: string): string {
+  if (!name) return '🧑‍🎓';
+  const emojis = [
+    '🧑‍🎓', '👨‍🎓', '👩‍🎓', '🍕', '🍔', '🍟', '🌭', '🥪', '🌮', '🌯', 
+    '🥗', '🍜', '🍱', '🍣', '🥟', '🍛', '🥞', '🧇', '🍩', '🍪', 
+    '🧁', '🍰', '🍧', '🍨', '🍦', '🥧', '🍫', '🍿', '🥤', '🧋', 
+    '☕', '🍵', '🍉', '🍓'
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % emojis.length;
+  return emojis[index];
+}
+
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding)
@@ -1114,9 +1130,9 @@ export default function App() {
               {/* Profile Avatar trigger */}
               <button
                 onClick={() => setMobileTab('profile')}
-                className="w-8 h-8 rounded-xl bg-[#1B4D3E]/10 flex items-center justify-center text-[#1B4D3E] font-black text-xs font-mono border border-[#1B4D3E]/5"
+                className="w-8 h-8 rounded-xl bg-[#1B4D3E]/10 flex items-center justify-center text-[#1B4D3E] font-black text-base border border-[#1B4D3E]/5 select-none"
               >
-                {user.name.slice(0, 2).toUpperCase()}
+                {getAvatarEmoji(user.name)}
               </button>
             </div>
           </header>
@@ -1699,7 +1715,7 @@ export default function App() {
               data={{
                 name: user.name,
                 email: user.email,
-                avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`,
+                avatar: getAvatarEmoji(user.name),
                 subscription: user.role === 'admin' ? 'ADMIN' : 'STUDENT',
                 model: walletBalance !== null ? `₹${walletBalance.toFixed(2)}` : 'Loading...'
               }}
