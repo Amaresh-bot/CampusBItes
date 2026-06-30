@@ -12,11 +12,11 @@ interface BottomNavbarProps {
   onProfileHover: () => void;
 }
 
-const CartIcon = ({ count, className }: { count: number; className?: string }) => (
+const CartIcon = ({ count, className, ...props }: { count: number; className?: string; [key: string]: any }) => (
   <div className="relative">
-    <ShoppingCart className={className} />
+    <ShoppingCart className={className} {...props} />
     {count > 0 && (
-      <span className="absolute -top-2 -right-2 bg-red-500 text-white font-mono text-[8px] h-[14px] min-w-[14px] px-0.5 rounded-full flex items-center justify-center font-bold border-[1.5px] border-white leading-none">
+      <span className="absolute -top-2 -right-2 bg-red-500 text-white font-mono text-[8px] h-[14px] min-w-[14px] px-0.5 rounded-full flex items-center justify-center font-bold border-[1.5px] border-white leading-none z-20">
         {count > 9 ? '9+' : count}
       </span>
     )}
@@ -31,8 +31,8 @@ export const BottomNavbar = memo(function BottomNavbar({
   onProfileHover,
 }: BottomNavbarProps) {
   const CartIconComponent = useCallback(
-    ({ className }: { className?: string }) => (
-      <CartIcon count={cartItemCount} className={className} />
+    ({ className, ...props }: { className?: string; [key: string]: any }) => (
+      <CartIcon count={cartItemCount} className={className} {...props} />
     ),
     [cartItemCount]
   );

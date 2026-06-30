@@ -24,14 +24,14 @@ export default function Dock({ items, className, activeLabel }: DockProps) {
   const [tapped, setTapped] = React.useState<number | null>(null)
 
   return (
-    <div className={cn("flex items-center justify-center w-full py-2", className)}>
-      {/* Glassmorphic floating capsule */}
+    <div className={cn("flex items-center justify-center w-full py-3 px-4", className)}>
+      {/* Dark green glassmorphic floating capsule with elevated shadow */}
       <div
         className={cn(
-          "flex items-center gap-1 px-3 py-2 rounded-[28px]",
-          "bg-white/80 backdrop-blur-md",
-          "shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]",
-          "border border-white/60"
+          "flex items-center gap-1.5 px-4 py-2 rounded-[28px]",
+          "bg-[#1B4332]/95 backdrop-blur-lg",
+          "shadow-[0_12px_40px_rgba(0,0,0,0.3),0_2px_12px_rgba(0,0,0,0.15)]",
+          "border border-white/10"
         )}
       >
         {items.map((item, i) => {
@@ -49,71 +49,52 @@ export default function Dock({ items, className, activeLabel }: DockProps) {
               }}
               onMouseLeave={() => setHovered(null)}
             >
-              {/* All tabs use the same flat icon button — no special Cart treatment */}
+              {/* Animated active indicator background pill */}
+              {isActive && (
+                <motion.div
+                  layoutId="dock-active-pill"
+                  className="absolute inset-0 bg-white/12 rounded-2xl pointer-events-none"
+                  transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                />
+              )}
+
               <motion.button
                 animate={{
-                  scale: isHovered ? 1.15 : isTapped ? 0.88 : 1,
-                  y: isHovered ? -2 : 0,
+                  scale: isHovered ? 1.05 : isTapped ? 0.95 : 1,
+                  y: isHovered ? -1 : 0,
                 }}
-                whileTap={{ scale: 0.88 }}
+                whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 22 }}
                 onClick={() => {
                   setTapped(i)
-                  setTimeout(() => setTapped(null), 300)
+                  setTimeout(() => setTapped(null), 200)
                   item.onClick?.()
                 }}
                 aria-label={item.label}
                 className={cn(
                   "relative flex flex-col items-center justify-center gap-0.5",
-                  "w-[52px] h-[44px] rounded-2xl",
-                  "transition-colors duration-150"
+                  "w-[56px] h-[48px] rounded-2xl z-10",
+                  "transition-colors duration-150 cursor-pointer"
                 )}
               >
                 <item.icon
                   className={cn(
                     "w-5 h-5 transition-colors duration-150",
-                    isActive ? "text-[#1B4D3E] stroke-[2.4]" : "text-slate-400 stroke-[1.9]"
+                    isActive ? "text-white stroke-[2.4]" : "text-[#A5D6A7]/50 stroke-[1.9]"
                   )}
+                  // @ts-ignore
+                  fill={isActive ? "currentColor" : "none"}
                 />
 
                 {/* Label */}
                 <span
                   className={cn(
-                    "text-[9px] font-bold leading-none tracking-wide transition-colors duration-150",
-                    isActive ? "text-[#1B4D3E]" : "text-slate-400"
+                    "text-[9px] font-semibold leading-none tracking-wide transition-colors duration-150",
+                    isActive ? "text-white font-bold" : "text-[#A5D6A7]/45"
                   )}
                 >
                   {item.label}
                 </span>
-
-                {/* Animated active indicator dot — slides between tabs */}
-                <AnimatePresence>
-                  {isActive && (
-                    <motion.span
-                      key="active-dot"
-                      layoutId="nav-active-dot"
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                      className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-[#1B4D3E]"
-                    />
-                  )}
-                </AnimatePresence>
-
-                {/* Tap ripple */}
-                <AnimatePresence>
-                  {isTapped && (
-                    <motion.span
-                      key="ripple"
-                      initial={{ scale: 0.5, opacity: 0.35 }}
-                      animate={{ scale: 1.8, opacity: 0 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.32, ease: "easeOut" }}
-                      className="absolute inset-0 rounded-2xl bg-[#1B4D3E]/15 pointer-events-none"
-                    />
-                  )}
-                </AnimatePresence>
               </motion.button>
             </div>
           )
