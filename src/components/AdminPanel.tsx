@@ -44,6 +44,7 @@ export function AdminPanel({
   const [menuSearchQuery, setMenuSearchQuery] = useState('');
   const [menuStockTab, setMenuStockTab] = useState<'All' | 'In Stock' | 'Low Stock' | 'Out of Stock'>('All');
   const [menuCatTab, setMenuCatTab] = useState<'All' | 'Breakfast' | 'Lunch' | 'Snacks' | 'Beverages' | 'Desserts'>('All');
+  const [chartPeriod, setChartPeriod] = useState<'Today' | 'Weekly' | 'Monthly'>('Today');
   const [printOrder, setPrintOrder] = useState<Order | null>(null);
 
   useEffect(() => {
@@ -59,6 +60,44 @@ export function AdminPanel({
   // Global payment audit logs states
   const [paymentLogs, setPaymentLogs] = useState<any[]>([]);
   const [paymentLogsLoading, setPaymentLogsLoading] = useState(false);
+
+  // Weekly revenue data from completed orders
+  const getWeeklyData = () => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dayLabel = days[d.getDay()];
+      const revenue = orders
+        .filter(o => o.status === 'Completed' && new Date(o.createdAt).toDateString() === d.toDateString())
+        .reduce((sum, o) => sum + o.totalAmount, 0);
+      data.push({ time: dayLabel, revenue });
+    }
+    return data;
+  };
+
+  // Monthly revenue data from completed orders (by weeks)
+  const getMonthlyData = () => {
+    const data = [];
+    for (let i = 3; i >= 0; i--) {
+      const end = new Date();
+      end.setDate(end.getDate() - i * 7);
+      const start = new Date(end);
+      start.setDate(start.getDate() - 6);
+      
+      const label = `Week ${4 - i}`;
+      const revenue = orders
+        .filter(o => {
+          if (o.status !== 'Completed') return false;
+          const d = new Date(o.createdAt);
+          return d >= start && d <= end;
+        })
+        .reduce((sum, o) => sum + o.totalAmount, 0);
+      data.push({ time: label, revenue });
+    }
+    return data;
+  };
 
   // Hourly revenue helper method for AreaChart
   const getRevenueChartData = () => {
@@ -701,15 +740,16 @@ export function AdminPanel({
           {/* Greeting Header Row */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2">
             <div className="text-left">
-              <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+              <h1 className="text-2xl font-black text-[#1B4332] tracking-tight flex items-center gap-2">
                 Good afternoon, {user?.name || 'Administrator'} <span className="animate-bounce">👋</span>
               </h1>
+              {/* Accent class fix */}
               <p className="text-xs text-[#A5D6A7]/65 mt-0.5">Here's what's happening in your canteen today.</p>
             </div>
             
             {/* Custom Premium Date Dropdown */}
             <div className="relative">
-              <button className="flex items-center gap-2 bg-[#131916] border border-white/5 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-white/5 transition-all text-white cursor-pointer">
+              <button className="flex items-center gap-2 bg-[#1B4332] border border-[#2D6A4F]/20 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-[#2D6A4F] transition-all text-white cursor-pointer">
                 <span className="w-2 h-2 rounded-full bg-[#4CAF50] animate-pulse" />
                 <span>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                 <ChevronRight className="w-3.5 h-3.5 rotate-90" />
@@ -720,7 +760,7 @@ export function AdminPanel({
           {/* 4 KPIs Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Card 1: Today's Revenue */}
-            <div className="bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col justify-between min-h-[125px] text-left">
+            <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col justify-between min-h-[125px] text-left">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-[#A5D6A7]/55 uppercase tracking-wider block">Today's Revenue</span>
@@ -739,7 +779,7 @@ export function AdminPanel({
             </div>
 
             {/* Card 2: Orders Today */}
-            <div className="bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col justify-between min-h-[125px] text-left">
+            <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col justify-between min-h-[125px] text-left">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-[#A5D6A7]/55 uppercase tracking-wider block">Orders Today</span>
@@ -758,7 +798,7 @@ export function AdminPanel({
             </div>
 
             {/* Card 3: Pending Orders */}
-            <div className="bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col justify-between min-h-[125px] text-left">
+            <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col justify-between min-h-[125px] text-left">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-[#A5D6A7]/55 uppercase tracking-wider block">Pending Orders</span>
@@ -779,7 +819,7 @@ export function AdminPanel({
             </div>
 
             {/* Card 4: Low Stock Items */}
-            <div className="bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col justify-between min-h-[125px] text-left">
+            <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col justify-between min-h-[125px] text-left">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-[#A5D6A7]/55 uppercase tracking-wider block">Low Stock Items</span>
@@ -801,7 +841,7 @@ export function AdminPanel({
           </div>
 
           {/* Revenue Overview chart block */}
-          <div className="bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col space-y-4 text-left">
+          <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col space-y-4 text-left">
             <div className="flex justify-between items-center">
               <div>
                 <h4 className="font-bold text-white text-sm">Revenue Overview</h4>
@@ -811,10 +851,14 @@ export function AdminPanel({
                   <span className="text-[#A5D6A7]/50 font-normal">vs yesterday</span>
                 </div>
               </div>
-              <select className="bg-[#19211D] border border-white/10 text-white rounded-lg text-xs font-semibold px-2 py-1 outline-none">
-                <option>Today</option>
-                <option>Weekly</option>
-                <option>Monthly</option>
+              <select 
+                value={chartPeriod}
+                onChange={e => setChartPeriod(e.target.value as any)}
+                className="bg-[#19211D] border border-white/10 text-white rounded-lg text-xs font-semibold px-2 py-1 outline-none cursor-pointer"
+              >
+                <option value="Today">Today</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Monthly">Monthly</option>
               </select>
             </div>
 
@@ -822,7 +866,7 @@ export function AdminPanel({
             <div className="h-[200px] w-full pt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={getRevenueChartData()}
+                  data={chartPeriod === 'Today' ? getRevenueChartData() : chartPeriod === 'Weekly' ? getWeeklyData() : getMonthlyData()}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
                   <defs>
@@ -866,7 +910,7 @@ export function AdminPanel({
           {/* 2 Column Row: Top Selling Item & Recent Orders */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Top Selling Item Card */}
-            <div className="lg:col-span-5 bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col justify-between text-left">
+            <div className="lg:col-span-5 bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col justify-between text-left">
               <div className="flex justify-between items-center pb-3 border-b border-white/5">
                 <h4 className="font-bold text-white text-sm">Top Selling Item</h4>
                 <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-[#4CAF50] text-[10px] font-bold flex items-center gap-1">
@@ -903,7 +947,7 @@ export function AdminPanel({
             </div>
 
             {/* Recent Orders List Card */}
-            <div className="lg:col-span-7 bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col justify-between text-left">
+            <div className="lg:col-span-7 bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col justify-between text-left">
               <div className="flex justify-between items-center pb-3 border-b border-white/5">
                 <h4 className="font-bold text-white text-sm">Recent Orders</h4>
                 <button 
@@ -987,14 +1031,14 @@ export function AdminPanel({
             {/* Header Title Row */}
             <div className="flex justify-between items-center pb-2">
               <div>
-                <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                <h1 className="text-2xl font-black text-[#1B4332] tracking-tight flex items-center gap-2">
                   Kitchen Dashboard <span className="animate-pulse">🍳</span>
                 </h1>
                 <p className="text-xs text-[#A5D6A7]/65 mt-0.5">Manage live queues, batches, and kitchen operations.</p>
               </div>
               <button 
                 onClick={() => window.location.reload()}
-                className="flex items-center gap-1.5 bg-[#131916] border border-white/5 px-4 py-2 rounded-xl text-xs font-bold hover:bg-white/5 transition-all text-white cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 bg-[#1B4332] border border-white/5 px-4 py-2 rounded-xl text-xs font-bold hover:bg-white/5 transition-all text-white cursor-pointer active:scale-95"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Refresh</span>
@@ -1022,7 +1066,7 @@ export function AdminPanel({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               
               {/* Column Left (Live Orders Queue) */}
-              <div className="lg:col-span-7 bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4">
+              <div className="lg:col-span-7 bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4">
                 <div className="flex justify-between items-center pb-2 border-b border-white/5">
                   <h4 className="font-bold text-white text-sm">Active Orders Queue</h4>
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">
@@ -1139,7 +1183,7 @@ export function AdminPanel({
               </div>
 
               {/* Column Right (Batch Cooking Plan) */}
-              <div className="lg:col-span-5 bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4">
+              <div className="lg:col-span-5 bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4">
                 <div className="flex justify-between items-center pb-2 border-b border-white/5">
                   <h4 className="font-bold text-white text-sm">Batch Cooking Plan</h4>
                   <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-bold">
@@ -1209,7 +1253,7 @@ export function AdminPanel({
             {/* Header Title Row */}
             <div className="flex justify-between items-center pb-2">
               <div>
-                <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                <h1 className="text-2xl font-black text-[#1B4332] tracking-tight flex items-center gap-2">
                   Orders Management <span className="animate-pulse">📋</span>
                 </h1>
                 <p className="text-xs text-[#A5D6A7]/65 mt-0.5">Track and manage all incoming customer orders.</p>
@@ -1219,7 +1263,7 @@ export function AdminPanel({
             {/* KPIs Stats Row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: 'Total Orders', count: orders.length, color: 'text-white bg-[#131916] border-white/5' },
+                { label: 'Total Orders', count: orders.length, color: 'text-white bg-[#1B4332] border-white/5' },
                 { label: 'Pending', count: pendingCount, color: 'text-amber-400 bg-amber-500/10 border-amber-500/10' },
                 { label: 'Preparing', count: preparingCount, color: 'text-blue-400 bg-blue-500/10 border-blue-500/10' },
                 { label: 'Ready', count: readyCount, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/10' },
@@ -1240,7 +1284,7 @@ export function AdminPanel({
                 placeholder="Search orders by Token, Customer Name, Email..."
                 value={orderSearchQuery}
                 onChange={(e) => setOrderSearchQuery(e.target.value)}
-                className="flex-1 bg-[#131916] border border-white/10 text-white rounded-xl py-3 px-4 text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500/20 placeholder:text-[#A5D6A7]/30"
+                className="flex-1 bg-[#1B4332] border border-white/10 text-white rounded-xl py-3 px-4 text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500/20 placeholder:text-[#A5D6A7]/30"
               />
             </div>
 
@@ -1261,7 +1305,7 @@ export function AdminPanel({
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border whitespace-nowrap ${
                       orderStatusTab === tab
                         ? 'bg-[#1B4D3E] border-[#1B4D3E] text-white shadow-md'
-                        : 'bg-[#131916] border-white/5 text-[#A5D6A7]/50 hover:bg-white/5'
+                        : 'bg-[#1B4332] border-white/5 text-[#A5D6A7]/50 hover:bg-white/5'
                     }`}
                   >
                     {tab} ({count})
@@ -1271,7 +1315,7 @@ export function AdminPanel({
             </div>
 
             {/* Orders list view */}
-            <div className="bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4">
+            <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4">
               {filteredOrdersList.length === 0 ? (
                 <div className="py-12 text-center text-[#A5D6A7]/40 text-xs italic">
                   🔍 No orders matched the filter or search query.
@@ -1433,7 +1477,7 @@ export function AdminPanel({
             {/* Header Title Row */}
             <div className="flex justify-between items-center pb-2">
               <div>
-                <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                <h1 className="text-2xl font-black text-[#1B4332] tracking-tight flex items-center gap-2">
                   Menu Management <span className="animate-pulse">🍔</span>
                 </h1>
                 <p className="text-xs text-[#A5D6A7]/65 mt-0.5">Manage menu items, stock, and availability.</p>
@@ -1450,7 +1494,7 @@ export function AdminPanel({
             {/* Stock KPIs Summary Bar */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: 'Total Items', count: foodItems.length, color: 'text-white bg-[#131916] border-white/5' },
+                { label: 'Total Items', count: foodItems.length, color: 'text-white bg-[#1B4332] border-white/5' },
                 { label: 'In Stock', count: inStockCount, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/10' },
                 { label: 'Low Stock', count: lowStockCount, color: 'text-amber-400 bg-amber-500/10 border-amber-500/10' },
                 { label: 'Out of Stock', count: outOfStockCount, color: 'text-rose-400 bg-rose-500/10 border-rose-500/10' },
@@ -1472,7 +1516,7 @@ export function AdminPanel({
                 placeholder="Search menu items..."
                 value={menuSearchQuery}
                 onChange={(e) => setMenuSearchQuery(e.target.value)}
-                className="w-full bg-[#131916] border border-white/10 text-white rounded-xl py-3 px-4 text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500/20 placeholder:text-[#A5D6A7]/30"
+                className="w-full bg-[#1B4332] border border-white/10 text-white rounded-xl py-3 px-4 text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500/20 placeholder:text-[#A5D6A7]/30"
               />
 
               {/* Stock filter dropdown tabs */}
@@ -1484,7 +1528,7 @@ export function AdminPanel({
                     className={`flex-1 px-3 py-2 rounded-xl text-[10px] font-bold border transition-all cursor-pointer ${
                       menuStockTab === tab
                         ? 'bg-[#1B4D3E] border-[#1B4D3E] text-white shadow-md'
-                        : 'bg-[#131916] border-white/5 text-[#A5D6A7]/50 hover:bg-white/5'
+                        : 'bg-[#1B4332] border-white/5 text-[#A5D6A7]/50 hover:bg-white/5'
                     }`}
                   >
                     {tab}
@@ -1502,7 +1546,7 @@ export function AdminPanel({
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border whitespace-nowrap ${
                     menuCatTab === cat
                       ? 'bg-[#1B4D3E] border-[#1B4D3E] text-white shadow-md'
-                      : 'bg-[#131916] border-white/5 text-[#A5D6A7]/50 hover:bg-white/5'
+                      : 'bg-[#1B4332] border-white/5 text-[#A5D6A7]/50 hover:bg-white/5'
                   }`}
                 >
                   {cat}
@@ -1511,7 +1555,7 @@ export function AdminPanel({
             </div>
 
             {/* List of items cards */}
-            <div className="bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4">
+            <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4">
               {filteredMenuItems.length === 0 ? (
                 <div className="py-12 text-center text-[#A5D6A7]/40 text-xs italic">
                   🔍 No items matched category or stock filters.
@@ -1603,14 +1647,14 @@ export function AdminPanel({
         <div className="space-y-6 text-left">
           {/* Header Title */}
           <div className="pb-2 border-b border-white/5">
-            <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-black text-[#1B4332] tracking-tight flex items-center gap-2">
               Operating Hours <span className="animate-pulse">🕐</span>
             </h1>
             <p className="text-xs text-[#A5D6A7]/65 mt-0.5">Configure when the canteen accepts online orders. Orders outside these hours will be blocked.</p>
           </div>
 
           {/* Current status display card */}
-          <div className="bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg flex items-center gap-3">
+          <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg flex items-center gap-3">
             <div className={`w-3 h-3 rounded-full shrink-0 ${isTemporarilyClosed ? 'bg-rose-500' : 'bg-[#4CAF50]'} animate-pulse`} />
             <div>
               <div className="text-sm font-extrabold text-white">
@@ -1624,7 +1668,7 @@ export function AdminPanel({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Opening Time Card */}
-            <div className="bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4">
+            <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4">
               <label className="block text-[10px] font-black text-[#A5D6A7]/60 uppercase tracking-widest">Opening Time</label>
               <input
                 type="time"
@@ -1646,7 +1690,7 @@ export function AdminPanel({
             </div>
 
             {/* Closing Time Card */}
-            <div className="bg-[#131916] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4">
+            <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4">
               <label className="block text-[10px] font-black text-[#A5D6A7]/60 uppercase tracking-widest">Closing Time</label>
               <input
                 type="time"
@@ -1672,7 +1716,7 @@ export function AdminPanel({
           </div>
 
           {/* Emergency closure toggle card */}
-          <div className={`border rounded-2xl p-5 flex items-start justify-between gap-4 transition-all ${isTemporarilyClosed ? 'bg-rose-500/5 border-rose-500/20' : 'bg-[#131916] border-white/5'}`}>
+          <div className={`border rounded-2xl p-5 flex items-start justify-between gap-4 transition-all ${isTemporarilyClosed ? 'bg-rose-500/5 border-rose-500/20' : 'bg-[#1B4332] border-white/5'}`}>
             <div className="text-left space-y-1">
               <div className="text-sm font-extrabold text-white">Emergency / Holiday Closure</div>
               <div className="text-xs text-[#A5D6A7]/50 leading-relaxed">
@@ -1700,47 +1744,12 @@ export function AdminPanel({
             {hoursLoading ? 'Saving hours...' : hoursSaveSuccess ? '✓ Hours Settings Saved!' : 'Save Hours Settings'}
           </button>
 
-          {/* Advanced Administration subtabs row selector */}
-          <div className="mt-8 pt-6 border-t border-white/5 space-y-3 text-left">
-            <h4 className="text-xs font-black text-[#A5D6A7]/55 uppercase tracking-widest">Advanced Administration Utilities</h4>
-            <div className="flex flex-wrap gap-2">
-              <button 
-                onClick={() => setActiveAdminSubTab('students')} 
-                className="px-3.5 py-2.5 bg-[#131916] border border-white/10 hover:bg-white/5 text-[#A5D6A7] rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95"
-              >
-                👥 Verify Students
-              </button>
-              <button 
-                onClick={() => setActiveAdminSubTab('upi')} 
-                className="px-3.5 py-2.5 bg-[#131916] border border-white/10 hover:bg-white/5 text-[#A5D6A7] rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95"
-              >
-                💳 Configure Merchant UPI
-              </button>
-              <button 
-                onClick={() => { setActiveAdminSubTab('database'); setDbStatus(null); }} 
-                className="px-3.5 py-2.5 bg-[#131916] border border-white/10 hover:bg-white/5 text-[#A5D6A7] rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95"
-              >
-                ⚙️ DB Diagnostic Monitor
-              </button>
-              <button 
-                onClick={() => setActiveAdminSubTab('security')} 
-                className="px-3.5 py-2.5 bg-[#131916] border border-white/10 hover:bg-white/5 text-[#A5D6A7] rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95"
-              >
-                🛡️ Firebase Security Auditor
-              </button>
-              <button 
-                onClick={() => { setActiveAdminSubTab('transactions'); fetchPaymentLogs(); }} 
-                className="px-3.5 py-2.5 bg-[#131916] border border-white/10 hover:bg-white/5 text-[#A5D6A7] rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95"
-              >
-                💳 Razorpay Ledger
-              </button>
-            </div>
-          </div>
+
         </div>
       )}
       {/* Students lists panel */}
       {activeAdminSubTab === 'students' && (
-        <div className="bg-[#131916] border border-white/5 rounded-2xl p-6 shadow-lg space-y-4">
+        <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-6 shadow-lg space-y-4">
           <button onClick={() => setActiveAdminSubTab('hours')} className="text-xs font-bold text-[#A5D6A7]/50 hover:text-white mb-2 flex items-center gap-1 cursor-pointer">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Settings
           </button>
@@ -1781,7 +1790,7 @@ export function AdminPanel({
 
       {/* UPI payouts setting */}
       {activeAdminSubTab === 'upi' && (
-        <div className="bg-[#131916] border border-white/5 rounded-2xl p-6 shadow-lg space-y-4 max-w-lg">
+        <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-6 shadow-lg space-y-4 max-w-lg">
           <button onClick={() => setActiveAdminSubTab('hours')} className="text-xs font-bold text-[#A5D6A7]/50 hover:text-white mb-2 flex items-center gap-1 cursor-pointer">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Settings
           </button>
@@ -2499,7 +2508,7 @@ WITH CHECK (
 
       {/* Payment Transactions / Audit logs */}
       {activeAdminSubTab === 'transactions' && (
-        <div className="bg-[#131916] border border-white/5 rounded-2xl p-6 shadow-lg space-y-6">
+        <div className="bg-[#1B4332] border border-white/5 rounded-2xl p-6 shadow-lg space-y-6">
           <button onClick={() => setActiveAdminSubTab('hours')} className="text-xs font-bold text-[#A5D6A7]/50 hover:text-white mb-2 flex items-center gap-1 cursor-pointer">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Settings
           </button>
@@ -2875,7 +2884,7 @@ WITH CHECK (
       {/* Edit MenuItem dialog modal overlays */}
       {editingItem && (
         <div className="fixed inset-0 bg-[#0C0F0E]/80 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#131916] text-white border border-white/5 w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4 my-auto max-h-[calc(100vh-2rem)] overflow-y-auto text-left">
+          <div className="bg-[#1B4332] text-white border border-white/5 w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4 my-auto max-h-[calc(100vh-2rem)] overflow-y-auto text-left">
             <h4 className="font-bold text-slate-900 text-base sticky top-0 bg-white pb-1">Edit Food Item</h4>
 
             <form onSubmit={handleEditSubmit} className="space-y-3 text-xs">
