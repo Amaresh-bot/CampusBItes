@@ -655,7 +655,7 @@ export function AdminPanel({
     <div id="admin-panel" className="space-y-6">
       
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 border border-slate-200 rounded-2xl shadow-xs">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-5 border border-slate-200 rounded-2xl shadow-xs">
         <div className="flex items-center gap-3">
           <button 
             onClick={onBack}
@@ -697,42 +697,7 @@ export function AdminPanel({
         </div>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
-          <div className="space-y-1 text-left">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Revenue ({dashDateFilter})</span>
-            <p className="text-xl font-mono font-bold text-slate-900 mt-1 block">₹{periodRevenue.toFixed(2)}</p>
-          </div>
-          <div className="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center border border-emerald-100/50">
-            <TrendingUp className="w-4 h-4" />
-          </div>
-        </div>
 
-        <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
-          <div className="space-y-1 text-left">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Completed Orders ({dashDateFilter})</span>
-            <p className="text-xl font-mono font-bold text-slate-900 mt-1 block">{periodCompletedOrders} orders</p>
-          </div>
-          <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center border border-blue-100/50">
-            <ShoppingBag className="w-4 h-4" />
-          </div>
-        </div>
-
-        <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
-          <div className="space-y-1 text-left">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none block">Low Stock Inventory Alerts</span>
-            <p className="text-xl font-mono font-bold text-rose-650 mt-1 block text-rose-600">{lowStockItems.length} items</p>
-          </div>
-          <div className={`w-9 h-9 rounded-lg flex items-center justify-center border transition-all ${
-            lowStockItems.length > 0 
-              ? 'bg-rose-50 text-rose-600 border-rose-100 animate-pulse' 
-              : 'bg-slate-50 text-slate-400 border-slate-200'
-          }`}>
-            <AlertTriangle className="w-4 h-4" />
-          </div>
-        </div>
-      </div>
 
       {/* Active Panel Views */}
       {activeAdminSubTab === 'dashboard' && (
@@ -863,7 +828,7 @@ export function AdminPanel({
             </div>
 
             {/* Premium Recharts AreaChart with green gradients */}
-            <div className="h-[200px] w-full pt-2">
+            <div className="h-[150px] sm:h-[200px] w-full pt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={chartPeriod === 'Today' ? getRevenueChartData() : chartPeriod === 'Weekly' ? getWeeklyData() : getMonthlyData()}
