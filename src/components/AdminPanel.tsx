@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ChefHat, TrendingUp, ShoppingBag, CheckSquare, ChevronRight, XCircle, ArrowLeft, QrCode, PlusCircle, Trash2, Edit2, Settings, Users, Percent, Sparkles, Smartphone, Check, Database, RefreshCw, AlertTriangle, ShieldCheck, Lock, AlertCircle, BarChart2, DollarSign, Activity, UploadCloud, ClipboardList, Menu } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie, Legend, AreaChart, Area } from 'recharts';
 import { Order, OrderStatus, FoodItem, StudentProfile, PaymentSettings } from '../types';
+import { useUser } from '../context/UserContext';
 import { SafeStorage } from '../lib/storage';
 
 interface AdminPanelProps {
@@ -35,6 +36,14 @@ export function AdminPanel({
   const [activeAdminSubTab, setActiveAdminSubTab] = useState<'dashboard' | 'kitchen' | 'menu' | 'students' | 'upi' | 'database' | 'security' | 'transactions' | 'hours'>('dashboard');
   const [dbStatus, setDbStatus] = useState<any>(null);
   const [dbLoading, setDbLoading] = useState(false);
+  const { user } = useUser();
+
+  // Search & Filter state variables
+  const [orderSearchQuery, setOrderSearchQuery] = useState('');
+  const [orderStatusTab, setOrderStatusTab] = useState<'All' | 'Pending' | 'Preparing' | 'Ready' | 'Completed' | 'Cancelled'>('All');
+  const [menuSearchQuery, setMenuSearchQuery] = useState('');
+  const [menuStockTab, setMenuStockTab] = useState<'All' | 'In Stock' | 'Low Stock' | 'Out of Stock'>('All');
+  const [menuCatTab, setMenuCatTab] = useState<'All' | 'Breakfast' | 'Lunch' | 'Snacks' | 'Beverages' | 'Desserts'>('All');
   const [printOrder, setPrintOrder] = useState<Order | null>(null);
 
   useEffect(() => {
@@ -50,6 +59,29 @@ export function AdminPanel({
   // Global payment audit logs states
   const [paymentLogs, setPaymentLogs] = useState<any[]>([]);
   const [paymentLogsLoading, setPaymentLogsLoading] = useState(false);
+
+  // Hourly revenue helper method for AreaChart
+  const getRevenueChartData = () => {
+    const slots = [
+      { time: '6 AM', revenue: 0 },
+      { time: '9 AM', revenue: 0 },
+      { time: '12 PM', revenue: 0 },
+      { time: '3 PM', revenue: 0 },
+      { time: '6 PM', revenue: 0 },
+      { time: '9 PM', revenue: 0 }
+    ];
+    orders.filter(o => o.status === 'Completed').forEach(ord => {
+      const date = new Date(ord.createdAt);
+      const hour = date.getHours();
+      if (hour >= 6 && hour < 9) slots[0].revenue += ord.totalAmount;
+      else if (hour >= 9 && hour < 12) slots[1].revenue += ord.totalAmount;
+      else if (hour >= 12 && hour < 15) slots[2].revenue += ord.totalAmount;
+      else if (hour >= 15 && hour < 18) slots[3].revenue += ord.totalAmount;
+      else if (hour >= 18 && hour < 21) slots[4].revenue += ord.totalAmount;
+      else if (hour >= 21 || hour < 6) slots[5].revenue += ord.totalAmount;
+    });
+    return slots;
+  };
 
   // Operating hours state
   const [openingTime, setOpeningTime] = useState('08:00');
@@ -670,7 +702,7 @@ export function AdminPanel({
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2">
             <div className="text-left">
               <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-                Good afternoon, Akshith <span className="animate-bounce">👋</span>
+                Good afternoon, {user?.name || 'Administrator'} <span className="animate-bounce">👋</span>
               </h1>
               <p className="text-xs text-[#A5D6A7]/65 mt-0.5">Here's what's happening in your canteen today.</p>
             </div>
@@ -679,7 +711,7 @@ export function AdminPanel({
             <div className="relative">
               <button className="flex items-center gap-2 bg-[#131916] border border-white/5 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-white/5 transition-all text-white cursor-pointer">
                 <span className="w-2 h-2 rounded-full bg-[#4CAF50] animate-pulse" />
-                <span>7 May 2025</span>
+                <span>{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                 <ChevronRight className="w-3.5 h-3.5 rotate-90" />
               </button>
             </div>
@@ -693,7 +725,7 @@ export function AdminPanel({
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-[#A5D6A7]/55 uppercase tracking-wider block">Today's Revenue</span>
                   <span className="text-2xl font-mono font-black text-white block mt-1">
-                    ₹{periodRevenue > 0 ? periodRevenue.toLocaleString() : '2,450'}
+                    ₹{dailyRevenue.toLocaleString()}
                   </span>
                 </div>
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-extrabold text-sm shrink-0">
@@ -712,7 +744,7 @@ export function AdminPanel({
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-[#A5D6A7]/55 uppercase tracking-wider block">Orders Today</span>
                   <span className="text-2xl font-mono font-black text-white block mt-1">
-                    {orders.length > 0 ? orders.filter(o => o.createdAt.includes('2025-05-07') || new Date(o.createdAt).toDateString() === new Date().toDateString()).length || 34 : 34}
+                    {orders.filter(o => isCreatedToday(o.createdAt)).length}
                   </span>
                 </div>
                 <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
@@ -774,7 +806,7 @@ export function AdminPanel({
               <div>
                 <h4 className="font-bold text-white text-sm">Revenue Overview</h4>
                 <div className="text-[11px] font-bold text-[#4CAF50] mt-1 flex items-center gap-1.5">
-                  <span className="text-sm font-black text-white font-mono">₹2,450</span>
+                  <span className="text-sm font-black text-white font-mono">₹{dailyRevenue.toFixed(2)}</span>
                   <span>↗ 12.5%</span>
                   <span className="text-[#A5D6A7]/50 font-normal">vs yesterday</span>
                 </div>
@@ -790,17 +822,7 @@ export function AdminPanel({
             <div className="h-[200px] w-full pt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={[
-                    { time: '12 AM', revenue: 0 },
-                    { time: '3 AM', revenue: 150 },
-                    { time: '6 AM', revenue: 600 },
-                    { time: '9 AM', revenue: 1200 },
-                    { time: '12 PM', revenue: 2450 },
-                    { time: '3 PM', revenue: 1800 },
-                    { time: '6 PM', revenue: 2200 },
-                    { time: '9 PM', revenue: 1900 },
-                    { time: '12 AM', revenue: 2450 },
-                  ]}
+                  data={getRevenueChartData()}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
                   <defs>
