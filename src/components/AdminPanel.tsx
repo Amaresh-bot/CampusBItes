@@ -1013,10 +1013,10 @@ export function AdminPanel({
             {/* Meal slot queues overview */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: 'Breakfast Queue', count: breakfastQueue.length, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-                { label: 'Lunch Queue', count: lunchQueue.length, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
-                { label: 'Snacks Queue', count: snacksQueue.length, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-                { label: 'Dinner Queue', count: dinnerQueue.length, color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+                { label: 'Breakfast Queue', count: breakfastQueue.length, color: 'text-white bg-[#1B4332] border-[#2D6A4F]/20' },
+                { label: 'Lunch Queue', count: lunchQueue.length, color: 'text-white bg-[#1B4332] border-[#2D6A4F]/20' },
+                { label: 'Snacks Queue', count: snacksQueue.length, color: 'text-white bg-[#1B4332] border-[#2D6A4F]/20' },
+                { label: 'Dinner Queue', count: dinnerQueue.length, color: 'text-white bg-[#1B4332] border-[#2D6A4F]/20' },
               ].map((slot, sIdx) => (
                 <div key={sIdx} className={`border rounded-2xl p-4 flex items-center justify-between shadow-md ${slot.color}`}>
                   <span className="text-xs font-extrabold uppercase tracking-wider">{slot.label}</span>
@@ -1228,10 +1228,10 @@ export function AdminPanel({
             {/* KPIs Stats Row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: 'Total Orders', count: orders.length, color: 'text-white bg-[#1B4332] border-white/5' },
-                { label: 'Pending', count: pendingCount, color: 'text-amber-400 bg-amber-500/10 border-amber-500/10' },
-                { label: 'Preparing', count: preparingCount, color: 'text-blue-400 bg-blue-500/10 border-blue-500/10' },
-                { label: 'Ready', count: readyCount, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/10' },
+                { label: 'Total Orders', count: orders.length, color: 'text-white bg-[#1B4332] border-[#2D6A4F]/20' },
+                { label: 'Pending', count: pendingCount, color: 'text-white bg-[#1B4332] border-[#2D6A4F]/20' },
+                { label: 'Preparing', count: preparingCount, color: 'text-white bg-[#1B4332] border-[#2D6A4F]/20' },
+                { label: 'Ready', count: readyCount, color: 'text-white bg-[#1B4332] border-[#2D6A4F]/20' },
               ].map((kpi, kIdx) => (
                 <div key={kIdx} className={`border rounded-2xl p-4 flex items-center justify-between shadow-md ${kpi.color}`}>
                   <span className="text-xs font-extrabold uppercase tracking-wider">{kpi.label}</span>
@@ -1459,10 +1459,10 @@ export function AdminPanel({
             {/* Stock KPIs Summary Bar */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: 'Total Items', count: foodItems.length, color: 'text-white bg-[#1B4332] border-white/5' },
-                { label: 'In Stock', count: inStockCount, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/10' },
-                { label: 'Low Stock', count: lowStockCount, color: 'text-amber-400 bg-amber-500/10 border-amber-500/10' },
-                { label: 'Out of Stock', count: outOfStockCount, color: 'text-rose-400 bg-rose-500/10 border-rose-500/10' },
+                { label: 'Total Items', count: foodItems.length, color: 'text-white bg-[#1B4332] border-[#2D6A4F]/20' },
+                { label: 'In Stock', count: inStockCount, color: 'text-white bg-[#1B4332] border-[#2D6A4F]/20' },
+                { label: 'Low Stock', count: lowStockCount, color: 'text-white bg-[#1B4332] border-[#2D6A4F]/20' },
+                { label: 'Out of Stock', count: outOfStockCount, color: 'text-white bg-[#1B4332] border-[#2D6A4F]/20' },
               ].map((kpi, kIdx) => (
                 <div key={kIdx} className={`border rounded-2xl p-4 flex items-center justify-between shadow-md ${kpi.color}`}>
                   <span className="text-xs font-extrabold uppercase tracking-wider">{kpi.label}</span>
