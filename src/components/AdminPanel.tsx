@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ChefHat, TrendingUp, ShoppingBag, CheckSquare, ChevronRight, XCircle, ArrowLeft, QrCode, PlusCircle, Trash2, Edit2, Settings, Users, Percent, Sparkles, Smartphone, Check, Database, RefreshCw, AlertTriangle, ShieldCheck, Lock, AlertCircle, BarChart2, DollarSign, Activity, UploadCloud } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie, Legend } from 'recharts';
+import { ChefHat, TrendingUp, ShoppingBag, CheckSquare, ChevronRight, XCircle, ArrowLeft, QrCode, PlusCircle, Trash2, Edit2, Settings, Users, Percent, Sparkles, Smartphone, Check, Database, RefreshCw, AlertTriangle, ShieldCheck, Lock, AlertCircle, BarChart2, DollarSign, Activity, UploadCloud, ClipboardList, Menu } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie, Legend, AreaChart, Area } from 'recharts';
 import { Order, OrderStatus, FoodItem, StudentProfile, PaymentSettings } from '../types';
 import { SafeStorage } from '../lib/storage';
 
