@@ -1308,7 +1308,7 @@ export default function App() {
                     {/* Veg toggle */}
                     <button
                       onClick={() => setVegetarianOnly(!vegetarianOnly)}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold border transition-all ${
+                      className={`hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold border transition-all ${
                         vegetarianOnly ? 'bg-emerald-50 border-emerald-400 text-emerald-700' : 'bg-white border-slate-200 text-slate-500'
                       }`}
                     >
@@ -2196,7 +2196,9 @@ export default function App() {
       {/* ═══════════════════════════════════════
            SHARED APP FOOTER
       ═══════════════════════════════════════ */}
-      <AppFooter onPolicyClick={(key) => setComplianceModal(key)} className="mt-16" />
+      {(!isMobile || mobileTab === 'home' || mobileTab === 'profile') && (
+        <AppFooter onPolicyClick={(key) => setComplianceModal(key)} className="mt-16" />
+      )}
 
       {/* Compliance / Policy Modal */}
       <AnimatePresence>

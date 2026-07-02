@@ -274,7 +274,7 @@ export function LandingPage({ onSignIn, onContactUs, isLoggedIn, onEnterApp, onS
 
       {/* 6. Featured SPHN Categories (Swiggy food options circular slider layout) */}
       <section 
-        className="pt-8 sm:pt-10 pb-16 w-full relative z-20 border-t border-slate-100 select-none overflow-hidden"
+        className="hidden sm:block pt-8 sm:pt-10 pb-16 w-full relative z-20 border-t border-slate-100 select-none overflow-hidden"
         style={{
           background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 1))'
         }}

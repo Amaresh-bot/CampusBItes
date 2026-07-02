@@ -196,7 +196,7 @@ export function CanteenMenu({
         <div className="sticky top-[80px] z-30 bg-[#F2F7F5]/90 backdrop-blur-md pb-4 pt-2 -mx-4 px-4 sm:-mx-6 sm:px-6">
           <div className="space-y-3">
             {/* Swiggy-Style Search Input & Veg Filter Row */}
-            <div className="flex gap-3 items-center">
+            <div className="flex gap-2.5 items-center w-full">
               {/* Search Card */}
               <div className="flex-1 relative shadow-md rounded-[20px] bg-white border border-slate-100 flex items-center h-[54px] focus-within:ring-2 focus-within:ring-[#1B4D3E]/20 transition-all duration-300 px-4">
                 <Search className="w-5 h-5 text-slate-400 mr-2.5 shrink-0" />
@@ -236,6 +236,21 @@ export function CanteenMenu({
                   </div>
                 )}
               </div>
+
+              {/* Veg Toggle Beside Search Bar on Mobile */}
+              <button
+                onClick={() => setVegetarianOnly(!vegetarianOnly)}
+                className={`flex sm:hidden items-center justify-center gap-1.5 h-[54px] px-4 rounded-[20px] border shadow-md transition-all shrink-0 cursor-pointer ${
+                  vegetarianOnly 
+                    ? 'bg-emerald-50 border-emerald-400 text-emerald-755 font-black' 
+                    : 'bg-white border-slate-100 text-slate-500 font-semibold'
+                }`}
+              >
+                <div className={`w-3.5 h-3.5 border rounded flex items-center justify-center p-[1px] ${vegetarianOnly ? 'border-emerald-500 bg-emerald-500' : 'border-slate-400'}`}>
+                  {vegetarianOnly && <Check className="w-2.5 h-2.5 text-white stroke-[3.5]" />}
+                </div>
+                <span className="text-[11px] uppercase tracking-wide">Veg</span>
+              </button>
             </div>
 
             {/* Connected Store Filtering Indicator */}
